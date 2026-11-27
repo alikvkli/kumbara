@@ -28,8 +28,11 @@ struct CaptureReviewView: View {
                 }
                 // Geliştirici aracı (test korpusu, T3.1): kullanıcıya gösterilmez.
                 #if DEBUG
-                ToolbarItem(placement: .secondaryAction) {
-                    CorpusExportButton(lines: review.lines, kind: review.result.kind)
+                // Ekran görüntülerinde (UI testi) de görünmez.
+                if !ProcessInfo.processInfo.arguments.contains("-ui-testing") {
+                    ToolbarItem(placement: .secondaryAction) {
+                        CorpusExportButton(lines: review.lines, kind: review.result.kind)
+                    }
                 }
                 #endif
             }
