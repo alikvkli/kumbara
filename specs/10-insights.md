@@ -1,6 +1,6 @@
 # 10 — İçgörüler ve Araçlar (M6)
 
-Durum: **taslak** (2026-11-27), onay bekliyor. Kapsam: REQ-I1 … REQ-I7 (yeni).
+Durum: **onaylandı** (2026-11-27). Kapsam: REQ-I1 … REQ-I7 (yeni).
 İlkeler değişmez: her şey cihazda (C1), sunucu yok (C2), `Decimal` (C3), onaysız kayıt
 yok (C5), dürüst arayüz (C6). Hiçbir özellik yeni bir ağ isteği, hesap ya da izin
 gerektirmez; tek istisna §6'daki isteğe bağlı konum (karar K3).
@@ -32,7 +32,9 @@ Bildirim: "Kasım raporu hazır" (ayarlardan kapatılabilir, varsayılan açık)
 
 Algılama (`SubscriptionDetector`):
 - Aynı satıcı (Merchant normalleştirmesi) için en az **3 ödeme**, aralıklar 28–35 gün
-  (aylık) ya da 360–370 gün (yıllık); tutar sapması son tutara göre ±%15 içinde.
+  (aylık) ya da 360–370 gün (yıllık); her ödeme bir öncekine göre ±%15 içinde. Zincirde
+  bir kez, en çok +%50'lik zam adımına izin verilir (zamlanan abonelik kaybolmasın).
+- Beklenen günden 40 gün sonra hâlâ ödeme yoksa abonelik bitmiş sayılır, listelenmez.
 - Zaten tekrarlayan kural olan ödemeler "tanımlı" olarak listelenir, yeniden önerilmez.
 - Taksitler ve transferler hariç.
 
@@ -123,7 +125,8 @@ Düzenli alım kuralı: "Her ayın 15'inde 2 gram altın" ya da "Her maaşta ₺
 - `Split` (işlem, kişi, pay tutarı, kapanan tutar) — işlemde `ownShare` hesabı buradan.
 - `Debt` (kişi, yön, tutar, tarih, hesap, kapanış kayıtları)
 - `SavingsPlan` (varlık, miktar/tutar, sıklık, gün, hedef?, aktif)
-- `SubscriptionDismissal` / `SuggestionDismissal` (satıcı anahtarı)
+- "Abonelik değil" / "Bunu önerme": bildirim defterinde (`NotificationLog`) anahtar olarak
+  (`dismiss:subscription:<satıcı>`); ayrı model yok.
 - `MonthlyReport` saklanmaz; her açılışta hesaplanır (yalnız "görüldü" bayrağı
   UserDefaults'ta).
 - Yedek sürümü 1 kalır; yeni alanlar opsiyonel (09 §3 ile geriye uyumlu).
@@ -157,7 +160,7 @@ demo veriye örnek → ekran görüntüsü turu.
 - **AC-I7-1** "Her ayın 15'i 2 gram" → 15'inde bir bildirim; form satış fiyatıyla dolu,
   kaydetmeden işlem yok. 12 ayda 10 alım → "12 ayın 10'unda".
 
-## 11. Kararlar (onay bekliyor — önerilerim ✱)
+## 11. Kararlar (2026-11-27, önerildiği gibi onaylandı)
 - **K1 Rapor zamanı:** ✱ ayın 1'i 09:00 bildirim + Özet'te 7 gün kart. (Alternatif: yalnız
   Geçmiş aylar listesi, bildirimsiz.)
 - **K2 Paylaşılan rapor görseli:** ✱ varsayılan tutarlar gizli, yalnız yüzdeler.

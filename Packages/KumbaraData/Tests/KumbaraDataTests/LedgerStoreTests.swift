@@ -161,7 +161,7 @@ struct DemoDataTests {
 
         let all = try context.fetch(FetchDescriptor<LedgerTransaction>())
         // 23 kayıt + spor salonu (geçen ay + bu ayın taslağı) + 6 taksit (2 kesin, 4 planlı) + kart ödemesi.
-        #expect(all.count == 32)
+        #expect(all.count == 43)
         #expect(all.filter { $0.status == .draft }.map(\.merchant) == ["MacFit"])
         #expect(all.filter { $0.status == .planned }.count == 4)
         #expect(all.filter { $0.status != .planned }.allSatisfy { $0.date <= now })

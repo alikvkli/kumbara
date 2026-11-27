@@ -87,6 +87,41 @@ enum Reminders {
                                                withCompletionHandler: nil)
     }
 
+    static let monthlyReportID = "monthly-report"
+
+    /// Ayın 1'i 09:00: "Kasım raporu hazır" (specs/10 §1, K1). Kapalıysa bekleyen bildirim kaldırılır.
+    static func scheduleMonthlyReport(enabled: Bool, now: Date = .now, calendar: Calendar = .current) {
+        guard !isUITesting else { return }
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: [monthlyReportID])
+        guard enabled else { return }
+        let nextMonth = LedgerMonth(containing: now, calendar: calendar).next
+        let closing = LedgerMonth(containing: now, calendar: calendar).interval(in: calendar).start
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "\(closing.formatted(.dateTime.month(.wide))) raporu hazır")
+        content.body = String(localized: "Ay nasıl geçti: harcaman, bütçen ve birikimin tek sayfada.")
+        content.threadIdentifier = "report"
+        content.userInfo = ["link": DeepLink.report.url.absoluteString]
+        let components = DateComponents(year: nextMonth.year, month: nextMonth.month, day: 1, hour: 9)
+        center.add(UNNotificationRequest(identifier: monthlyReportID, content: content,
+                                         trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)),
+                   withCompletionHandler: nil)
+    }
+
+    /// Aboneliğin fiyatı arttı: hemen, bir kez (specs/10 §2).
+    static func subscriptionIncreased(_ subscription: SubscriptionDetector.Subscription, locale: Locale = .current) {
+        guard !isUITesting, let previous = subscription.previousAmount, let increase = subscription.priceIncrease else { return }
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "\(subscription.name) fiyatı arttı")
+        let old = Money(previous, .TRY).formatted(locale: locale)
+        let new = Money(subscription.lastAmount, .TRY).formatted(locale: locale)
+        content.body = String(localized: "\(old) → \(new) (\(increase.formattedPercent(locale: locale, fractionDigits: 0, sign: .always)))")
+        content.threadIdentifier = "subscription"
+        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "subscription:\(subscription.merchantKey)",
+                                                                     content: content, trigger: nil),
+                                               withCompletionHandler: nil)
+    }
+
     static func cancel(_ rule: RecurringRule) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier(for: rule)])
     }

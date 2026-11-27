@@ -14,6 +14,7 @@ struct SummaryView: View {
     @Query private var budgets: [Budget]
     @Query(filter: #Predicate<LedgerAccount> { !$0.isArchived }, sort: \LedgerAccount.sortIndex)
     private var accounts: [LedgerAccount]
+    @AppStorage(SettingsKey.reportSeen) private var reportSeen = ""
 
     /// Özet ana para biriminde; diğer para birimleri ayrıca belirtilir (kur desteği M2).
     private let currency = CurrencyCode.TRY
@@ -54,6 +55,19 @@ struct SummaryView: View {
             }
         }
         .navigationTitle("Özet")
+        .navigationDestination(item: Binding(get: { router.reportMonth }, set: { router.reportMonth = $0 })) { month in
+            MonthlyReportView(month: month)
+        }
+    }
+
+    /// Ayın ilk 7 günü, kapanan ayın raporu Özet'in başında durur (specs/10 §1, K1).
+    private var pendingReport: (LedgerMonth, MonthlyReport)? {
+        guard selectedMonth == nil, calendar.component(.day, from: .now) <= 7 else { return nil }
+        let closed = LedgerMonth(containing: .now, calendar: calendar).previous
+        guard reportSeen != closed.key,
+              let report = try? InsightStore(context: context).report(for: closed, now: .now, calendar: calendar),
+              report.hasContent else { return nil }
+        return (closed, report)
     }
 
     private var summaryList: some View {
@@ -68,6 +82,15 @@ struct SummaryView: View {
         let categories = categoriesByID
 
         return List {
+            if let pending = pendingReport {
+                let closed = pending.0
+                Section {
+                    ReportBanner(month: closed, report: pending.1,
+                                 open: { router.reportMonth = closed },
+                                 close: { withAnimation { reportSeen = closed.key } })
+                }
+            }
+
             Section {
                 VStack(alignment: .leading, spacing: 16) {
                     MonthMenu(month: month, selection: $selectedMonth)
@@ -118,6 +141,12 @@ struct SummaryView: View {
                 Button("Tüm işlemler") { router.show(.ledger) }
             } header: {
                 Text("Son işlemler")
+            }
+
+            Section {
+                NavigationLink { ReportsListView() } label: {
+                    Label("Aylık raporlar", systemImage: "doc.text.magnifyingglass")
+                }
             }
         }
     }

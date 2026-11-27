@@ -1,4 +1,5 @@
 import Foundation
+import KumbaraCore
 import Observation
 
 /// Uygulama bölümleri. iOS'ta sekme, macOS'ta kenar çubuğu öğesi (specs/06 §6.1, §7).
@@ -37,6 +38,8 @@ final class AppRouter {
     /// Gelir kaydedildi; hızlı ekleme kapanınca "birikime ayıralım mı?" sorulur (REQ-P10).
     var pendingSavingsSplit: Decimal?
     var savingsSplit: SavingsSplitRequest?
+    /// Özet'te açılacak aylık rapor (rapor bildirimi, specs/10 §1).
+    var reportMonth: LedgerMonth?
 
     func show(_ section: AppSection) { destination = .section(section) }
 

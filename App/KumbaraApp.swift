@@ -137,13 +137,21 @@ struct RootView: View {
         // Bütçe eşikleri her kayıttan sonra değerlendirilir (REQ-B2); kaydı hangi ekran yapmış olursa olsun.
         .onReceive(NotificationCenter.default.publisher(for: ModelContext.didSave)) { _ in
             BudgetMonitor.shared.check(context)
+            InsightMonitor.check(context)
             WidgetPublisher.publish(context: context, board: board)
         }
         // Widget, Denetim Merkezi ve menü çubuğu bağlantıları: kumbara://add, scan, budget, portfolio, market.
         .onOpenURL { url in DeepLink(url: url)?.open(router: router, capture: capture) }
         // Widget'lar ve menü çubuğu yeni fiyatla güncellenir (specs/09 §4).
         .onChange(of: board.lastSuccess) { _, _ in WidgetPublisher.publish(context: context, board: board) }
-        .onAppear { BudgetMonitor.shared.start() }
+        .onAppear {
+            BudgetMonitor.shared.start()
+            BudgetMonitor.shared.onLink = { link in
+                link.open(router: router, capture: capture)
+                BudgetMonitor.shared.pendingLink = nil
+            }
+            if let link = BudgetMonitor.shared.pendingLink { BudgetMonitor.shared.onLink?(link) }
+        }
         // Vadesi gelen tekrarlar taslak olur ve sıradaki vadelerin hatırlatması kurulur (REQ-L7).
         .onChange(of: scenePhase, initial: true) { _, phase in
             #if os(iOS)
@@ -156,6 +164,9 @@ struct RootView: View {
             // Tarihi gelen taksitler kesinleşir; kart son ödeme hatırlatmaları kurulur (REQ-L8, L9).
             _ = try? InstallmentStore(context: context).postDue()
             if let accounts = try? context.fetch(FetchDescriptor<LedgerAccount>()) { Reminders.scheduleCardDue(accounts, context: context) }
+            // Aylık rapor bildirimi ve abonelik zamları (specs/10 §1, §2).
+            Reminders.scheduleMonthlyReport(enabled: UserDefaults.standard.object(forKey: SettingsKey.reportNotification) as? Bool ?? true)
+            InsightMonitor.check(context)
         }
     }
 }
@@ -163,6 +174,8 @@ struct RootView: View {
 /// Uygulama dışından gelen bağlantılar (specs/09 §4).
 enum DeepLink: String {
     case add, scan, budget, portfolio, market
+    /// Kapanan ayın raporu (specs/10 §1): rapor bildirimine dokununca.
+    case report
 
     static let scheme = "kumbara"
 
@@ -186,6 +199,9 @@ enum DeepLink: String {
         case .budget: router.show(.budget)
         case .portfolio: router.show(.portfolio)
         case .market: router.isPresentingMarket = true
+        case .report:
+            router.show(.summary)
+            router.reportMonth = LedgerMonth(containing: .now, calendar: .current).previous
         }
     }
 }

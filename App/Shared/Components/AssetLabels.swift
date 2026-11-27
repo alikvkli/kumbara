@@ -160,6 +160,10 @@ enum SettingsKey {
     static let priceKind = "valuation.priceKind"
     static let costMethod = "valuation.costMethod"
     static let smartCheck = "capture.smartCheck"
+    /// Aylık rapor bildirimi (specs/10 §1, K1); varsayılan açık.
+    static let reportNotification = "report.notify"
+    /// Özet'teki rapor kartı kapatıldığı ay ("2026-10").
+    static let reportSeen = "report.seen"
 }
 
 /// "Bozdurma · 5 dk önce" ve tazelik uyarısı (C4, C6, specs/06 §2.4). Sağlayıcı adı gösterilmez.

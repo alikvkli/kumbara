@@ -119,6 +119,17 @@ final class ScreenshotTests: XCTestCase {
                 try shot("11-butce-ekle")
                 app.buttons["Vazgeç"].firstMatch.tap()
             }
+            // Abonelikler (specs/10 §2)
+            let subscriptions = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Abonelikler")).firstMatch
+            if !subscriptions.isHittable { app.swipeUp() }
+            if subscriptions.waitForExistence(timeout: 3) {
+                subscriptions.tap()
+                Thread.sleep(forTimeInterval: 1)
+                try shot("17-abonelikler")
+                app.navigationBars.buttons.firstMatch.tap()
+            }
+            app.swipeDown()
+            app.swipeDown()
         }
 
         tapTab("Özet")
@@ -129,6 +140,35 @@ final class ScreenshotTests: XCTestCase {
             Thread.sleep(forTimeInterval: 1)
             try shot("13-kart")
             app.navigationBars.buttons.firstMatch.tap()
+            app.swipeDown()
+            app.swipeDown()
+        }
+        // Aylık rapor (specs/10 §1)
+        let reports = app.buttons["Aylık raporlar"].firstMatch
+        for _ in 0..<3 where !reports.isHittable { app.swipeUp() }
+        if reports.waitForExistence(timeout: 3) {
+            reports.tap()
+            let previousMonth = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
+            let year = String(Calendar.current.component(.year, from: previousMonth))
+            let latest = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", year)).firstMatch
+            if latest.waitForExistence(timeout: 3) {
+                latest.tap()
+                Thread.sleep(forTimeInterval: 1)
+                try shot("18-rapor")
+                app.swipeUp()
+                try shot("18b-rapor-birikim")
+                let share = app.buttons["Paylaş"].firstMatch
+                if share.waitForExistence(timeout: 2) {
+                    share.tap()
+                    if app.switches["Tutarları göster"].firstMatch.waitForExistence(timeout: 3) {
+                        try shot("19-rapor-paylas")
+                        app.buttons["Kapat"].firstMatch.tap()
+                    }
+                }
+                app.navigationBars.buttons.firstMatch.tap()
+            }
+            app.navigationBars.buttons.firstMatch.tap()
+            app.swipeDown()
             app.swipeDown()
             app.swipeDown()
         }

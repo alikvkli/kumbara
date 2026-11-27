@@ -19,6 +19,19 @@ public enum DemoData {
     }
 
     private static let items: [Item] = [
+        // Abonelik geçmişi (specs/10 §2): Netflix bu ay zamlandı, Spotify bu ay görünmedi.
+        Item(monthOffset: -3, day: 5, kind: .expense, amount: "189.99", account: "card", category: "subscriptions", merchant: "Netflix"),
+        Item(monthOffset: -2, day: 5, kind: .expense, amount: "189.99", account: "card", category: "subscriptions", merchant: "Netflix"),
+        Item(monthOffset: -1, day: 5, kind: .expense, amount: "189.99", account: "card", category: "subscriptions", merchant: "Netflix"),
+        Item(monthOffset: -3, day: 12, kind: .expense, amount: "99", account: "card", category: "subscriptions", merchant: "Spotify"),
+        Item(monthOffset: -2, day: 12, kind: .expense, amount: "99", account: "card", category: "subscriptions", merchant: "Spotify"),
+        Item(monthOffset: -1, day: 12, kind: .expense, amount: "99", account: "card", category: "subscriptions", merchant: "Spotify"),
+        // İki ay önce (rapor karşılaştırması için)
+        Item(monthOffset: -2, day: 1, kind: .income, amount: "62000", account: "bank", category: "salary", merchant: nil),
+        Item(monthOffset: -2, day: 1, kind: .expense, amount: "22500", account: "bank", category: "housing.rent", merchant: nil),
+        Item(monthOffset: -2, day: 7, kind: .expense, amount: "3105.30", account: "card", category: "market.food", merchant: "Migros"),
+        Item(monthOffset: -2, day: 9, kind: .expense, amount: "2450", account: "card", category: "transport.fuel", merchant: "Opet"),
+        Item(monthOffset: -2, day: 15, kind: .expense, amount: "1650", account: "card", category: "dining.restaurant", merchant: "Köfteci Yusuf"),
         // Geçen ay (karşılaştırma için)
         Item(monthOffset: -1, day: 1, kind: .income, amount: "62000", account: "bank", category: "salary", merchant: nil),
         Item(monthOffset: -1, day: 1, kind: .expense, amount: "22500", account: "bank", category: "housing.rent", merchant: nil),
@@ -67,7 +80,8 @@ public enum DemoData {
         let thisMonth = LedgerMonth(containing: now, calendar: calendar)
 
         for (index, item) in items.enumerated() {
-            let month = item.monthOffset == 0 ? thisMonth : thisMonth.previous
+            var month = thisMonth
+            for _ in 0..<(-item.monthOffset) { month = month.previous }
             guard let date = calendar.date(from: DateComponents(
                 year: month.year, month: month.month, day: item.day, hour: 9 + index % 10, minute: (index * 7) % 60)),
                   date <= now,

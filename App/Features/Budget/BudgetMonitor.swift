@@ -68,6 +68,20 @@ final class BudgetMonitor: NSObject, UNUserNotificationCenterDelegate {
         UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
     }
 
+    /// Bildirimde bağlantı varsa (ör. aylık rapor) uygulama içinde açılır.
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                            didReceive response: UNNotificationResponse) async {
+        guard let link = response.notification.request.content.userInfo["link"] as? String,
+              let url = URL(string: link), let deepLink = DeepLink(url: url) else { return }
+        await MainActor.run { BudgetMonitor.shared.pendingLink = deepLink }
+    }
+
+    /// Bildirimden gelen ve kök görünümün açacağı bağlantı.
+    var pendingLink: DeepLink? {
+        didSet { if let pendingLink { onLink?(pendingLink) } }
+    }
+    var onLink: ((DeepLink) -> Void)?
+
     // Uygulama öndeyken de afiş göster: eşiği geçiren kaydı kullanıcı az önce yaptı.
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
                                             willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {

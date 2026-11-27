@@ -83,6 +83,13 @@ struct BudgetView: View {
                         }
                     }
 
+                    // Abonelikler (specs/10 §2).
+                    Section {
+                        NavigationLink { SubscriptionsView() } label: {
+                            SubscriptionsLinkLabel()
+                        }
+                    }
+
                     if !suggestions.isEmpty {
                         Section {
                             ForEach(suggestions, id: \.category.id) { item in

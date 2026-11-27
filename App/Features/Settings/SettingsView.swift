@@ -13,6 +13,7 @@ struct SettingsView: View {
     @AppStorage(SettingsKey.priceKind) private var priceKind: PriceKind = .bid
     @AppStorage(SettingsKey.costMethod) private var costMethod: CostMethod = .averageCost
     @AppStorage(SettingsKey.smartCheck) private var smartCheck = true
+    @AppStorage(SettingsKey.reportNotification) private var reportNotification = true
 
     var body: some View {
         Form {
@@ -27,6 +28,17 @@ struct SettingsView: View {
                 Text("Birikim")
             } footer: {
                 Text("Bozdurma fiyatı, birikimini bugün satsan eline geçecek tutardır; en dürüst değer budur.")
+            }
+            Section {
+                Toggle("Aylık rapor bildirimi", isOn: $reportNotification)
+                    .onChange(of: reportNotification) { _, enabled in
+                        Reminders.scheduleMonthlyReport(enabled: enabled)
+                        if enabled { Reminders.requestAuthorizationIfNeeded() }
+                    }
+            } header: {
+                Text("Raporlar")
+            } footer: {
+                Text("Her ayın 1'i sabah, kapanan ayın raporu hazır olunca haber verir. Raporlar Özet › Aylık raporlar bölümünde durur.")
             }
             Section {
                 Toggle("Akıllı kontrol", isOn: $smartCheck)
