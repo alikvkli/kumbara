@@ -151,10 +151,20 @@ public enum DemoData {
             (.gold(.quarter), .buy, "4", "9380", "0", 45, "48.60"),
             (.gold(.gram24), .buy, "2.5", "5810", "0", 10, "50.55"),
         ]
+        var saved: [AssetTrade] = []
         for (asset, side, quantity, price, fee, daysAgo, usd) in trades {
-            try store.save(TradeDraft(asset: asset, side: side, quantity: dec(quantity), unitPrice: dec(price),
-                                      fee: dec(fee), date: ago(daysAgo)), usdTRYAtTrade: dec(usd), now: now)
+            saved.append(try store.save(TradeDraft(asset: asset, side: side, quantity: dec(quantity), unitPrice: dec(price),
+                                                   fee: dec(fee), date: ago(daysAgo)), usdTRYAtTrade: dec(usd), now: now))
         }
+
+        // Hedefler: çeyreklerin hepsi düğün için (8 / 20); gram altınlar ev peşinatı için.
+        let goals = GoalStore(context: context)
+        let wedding = try goals.save(SavingsGoal(name: "Düğün", target: .quantity(.gold(.quarter), 20),
+                                                 deadline: calendar.date(byAdding: .month, value: 10, to: now)))
+        let home = try goals.save(SavingsGoal(name: "Ev peşinatı", target: .amount(500_000),
+                                              deadline: calendar.date(byAdding: .month, value: 24, to: now)))
+        try goals.assign(saved.filter { $0.asset == .gold(.quarter) }, to: wedding)
+        try goals.assign(saved.filter { $0.asset == .gold(.gram24) }, to: home)
 
         // Yapay fiyat eğrisi: doğrusal yükseliş + hafif dalga; bugün gerçek düzeye yakın biter.
         let curves: [(AssetCode, Double, Double, Double)] = [

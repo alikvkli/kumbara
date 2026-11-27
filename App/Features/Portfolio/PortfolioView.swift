@@ -111,6 +111,8 @@ struct PortfolioView: View {
                 .labelsHidden()
             }
 
+            GoalsSection()
+
             Section("Varlıklar") {
                 ForEach(rows) { row in
                     NavigationLink(value: row.position.asset) {

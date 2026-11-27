@@ -186,6 +186,7 @@ public struct ExchangeStore {
             trade.feeRaw = record.fee
             trade.usdTRYRaw = record.usdTRY
             trade.createdAt = record.createdAt
+            trade.goalID = record.goalID
             context.insert(trade)
         }
 
@@ -233,6 +234,17 @@ public struct ExchangeStore {
             rule.category = record.categoryID.flatMap { categories[$0] }
         }
 
+        let existingGoals = Set(try context.fetch(FetchDescriptor<Goal>()).map(\.id))
+        for record in backup.goals ?? [] where !existingGoals.contains(record.id) {
+            let goal = Goal(SavingsGoal(id: record.id, name: record.name, target: .amount(0), deadline: record.deadline))
+            goal.kindRaw = record.kind
+            goal.assetID = record.assetID
+            goal.targetRaw = record.target
+            goal.isArchived = record.isArchived
+            goal.createdAt = record.createdAt
+            context.insert(goal)
+        }
+
         let existingAlerts = Set(try context.fetch(FetchDescriptor<PriceAlert>()).map(\.id))
         for record in backup.priceAlerts where !existingAlerts.contains(record.id) {
             guard let asset = AssetCode(id: record.assetID), let threshold = Decimal(canonical: record.threshold) else { continue }
@@ -263,6 +275,7 @@ public struct ExchangeStore {
         try context.delete(model: CustomAsset.self)
         try context.delete(model: PriceSnapshot.self)
         try context.delete(model: PriceAlert.self)
+        try context.delete(model: Goal.self)
         try context.save()
     }
 
@@ -293,7 +306,8 @@ public struct ExchangeStore {
             },
             trades: try context.fetch(FetchDescriptor<AssetTrade>()).map {
                 .init(id: $0.id, assetID: $0.assetID, side: $0.sideRaw, quantity: $0.quantityRaw, unitPrice: $0.unitPriceRaw,
-                      fee: $0.feeRaw, date: $0.date, usdTRY: $0.usdTRYRaw, note: $0.note, createdAt: $0.createdAt)
+                      fee: $0.feeRaw, date: $0.date, usdTRY: $0.usdTRYRaw, note: $0.note, createdAt: $0.createdAt,
+                      goalID: $0.goalID)
             },
             customAssets: try context.fetch(FetchDescriptor<CustomAsset>()).map {
                 .init(id: $0.id, name: $0.name, manualPrice: $0.manualPriceRaw, manualPriceDate: $0.manualPriceDate,
@@ -316,6 +330,10 @@ public struct ExchangeStore {
                 .init(id: $0.id, assetID: $0.assetID, direction: $0.directionRaw, threshold: $0.thresholdRaw,
                       priceKind: $0.priceKindRaw, lastSatisfied: $0.lastSatisfied, isActive: $0.isActive, firedAt: $0.firedAt,
                       firedPrice: $0.firedPrice, createdAt: $0.createdAt)
+            },
+            goals: try context.fetch(FetchDescriptor<Goal>()).map {
+                .init(id: $0.id, name: $0.name, kind: $0.kindRaw, assetID: $0.assetID, target: $0.targetRaw,
+                      deadline: $0.deadline, isArchived: $0.isArchived, createdAt: $0.createdAt)
             })
     }
 }
@@ -338,6 +356,8 @@ struct Backup: Codable {
     var budgets: [BudgetRecord]
     var recurringRules: [Rule]
     var priceAlerts: [Alert]
+    /// Sonradan eklendi; eski yedeklerde yok.
+    var goals: [GoalRecord]?
 
     struct Account: Codable {
         var id: UUID; var name: String; var kind: String; var currency: String; var openingBalance: String
@@ -358,7 +378,7 @@ struct Backup: Codable {
     }
     struct TradeRecord: Codable {
         var id: UUID; var assetID: String; var side: String; var quantity: String; var unitPrice: String; var fee: String
-        var date: Date; var usdTRY: String?; var note: String; var createdAt: Date
+        var date: Date; var usdTRY: String?; var note: String; var createdAt: Date; var goalID: UUID?
     }
     struct Custom: Codable {
         var id: UUID; var name: String; var manualPrice: String?; var manualPriceDate: Date?; var createdAt: Date
@@ -374,6 +394,10 @@ struct Backup: Codable {
         var id: UUID; var kind: String; var amount: String; var isAmountVariable: Bool; var accountID: UUID?
         var categoryID: UUID?; var merchant: String?; var note: String; var frequency: String; var start: Date
         var end: Date?; var maxCount: Int?; var lastDue: Date?; var isPaused: Bool; var createdAt: Date
+    }
+    struct GoalRecord: Codable {
+        var id: UUID; var name: String; var kind: String; var assetID: String?; var target: String; var deadline: Date?
+        var isArchived: Bool; var createdAt: Date
     }
     struct Alert: Codable {
         var id: UUID; var assetID: String; var direction: String; var threshold: String; var priceKind: String

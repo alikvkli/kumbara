@@ -18,6 +18,8 @@ struct TradeEditor: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Query private var customAssets: [CustomAsset]
+    @Query(filter: #Predicate<Goal> { !$0.isArchived }, sort: \Goal.createdAt) private var goals: [Goal]
+    @State private var goalID: UUID?
 
     @State private var asset: AssetCode?
     @State private var side: Trade.Side = .buy
@@ -103,6 +105,13 @@ struct TradeEditor: View {
 
                 Section {
                     DatePicker("Tarih", selection: $date, in: ...Date.now)
+                    if !goals.isEmpty {
+                        // Hangi hedef için (specs/09 §6, R2); satış da hedeften düşer.
+                        Picker("Hedef", selection: $goalID) {
+                            Text("Yok").tag(UUID?.none)
+                            ForEach(goals) { Text(verbatim: $0.name).tag(Optional($0.id)) }
+                        }
+                    }
                     TextField("Not", text: $note, axis: .vertical).lineLimit(1...3)
                 }
 
@@ -202,6 +211,7 @@ struct TradeEditor: View {
             feeText = draft.fee.isZero ? "" : plain(draft.fee)
             date = draft.date
             note = draft.note
+            goalID = editing.goalID
         } else if case .create(let preset) = mode {
             asset = preset
             prefillPrice()
@@ -233,7 +243,11 @@ struct TradeEditor: View {
             usdTRY = await board.usdTRY(on: date)
         }
         do {
-            try PortfolioStore(context: context).save(draft, editing: editing, usdTRYAtTrade: usdTRY)
+            let record = try PortfolioStore(context: context).save(draft, editing: editing, usdTRYAtTrade: usdTRY)
+            if record.goalID != goalID {
+                record.goalID = goalID
+                try context.save()
+            }
             await board.refresh(including: asset.map { [$0] } ?? [])
             dismiss()
         } catch {

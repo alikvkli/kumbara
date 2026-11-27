@@ -13,7 +13,8 @@ public enum SchemaV1: VersionedSchema {
 
     public static var models: [any PersistentModel.Type] {
         [LedgerAccount.self, LedgerCategory.self, LedgerTransaction.self, MerchantMemory.self,
-         AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self, RecurringRule.self, PriceAlert.self]
+         AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self, RecurringRule.self, PriceAlert.self,
+         Goal.self]
     }
 
     @Model
@@ -168,6 +169,8 @@ extension SchemaV1 {
         var usdTRYRaw: String?
         public var note: String = ""
         public var createdAt: Date = Date.now
+        /// Hangi birikim hedefi için (specs/09 §6, R2); `nil` = hedefsiz.
+        public var goalID: UUID?
 
         public init(trade: Trade, note: String = "") {
             self.id = trade.id
@@ -348,8 +351,52 @@ extension SchemaV1 {
                                   threshold: threshold, priceKind: PriceKind(rawValue: priceKindRaw) ?? .bid)
         }
     }
+
+    /// Birikim hedefi (REQ-P9, specs/09 §6). İlerleme, `goalID`'si bu hedef olan alımlardan hesaplanır.
+    @Model
+    public final class Goal {
+        public var id: UUID = UUID()
+        public var name: String = ""
+        /// `quantity` | `amount`.
+        var kindRaw: String = "amount"
+        var assetID: String?
+        var targetRaw: String = "0"
+        public var deadline: Date?
+        public var isArchived: Bool = false
+        public var createdAt: Date = Date.now
+
+        public init(_ goal: SavingsGoal) {
+            self.id = goal.id
+            apply(goal)
+        }
+
+        func apply(_ goal: SavingsGoal) {
+            name = goal.name
+            deadline = goal.deadline
+            switch goal.target {
+            case let .quantity(asset, quantity):
+                kindRaw = "quantity"
+                assetID = asset.id
+                targetRaw = quantity.canonicalString
+            case let .amount(amount):
+                kindRaw = "amount"
+                assetID = nil
+                targetRaw = amount.canonicalString
+            }
+        }
+
+        public var goal: SavingsGoal? {
+            guard let target = Decimal(canonical: targetRaw) else { return nil }
+            if kindRaw == "quantity" {
+                guard let asset = assetID.flatMap(AssetCode.init(id:)) else { return nil }
+                return SavingsGoal(id: id, name: name, target: .quantity(asset, target), deadline: deadline)
+            }
+            return SavingsGoal(id: id, name: name, target: .amount(target), deadline: deadline)
+        }
+    }
 }
 
+public typealias Goal = SchemaV1.Goal
 public typealias PriceAlert = SchemaV1.PriceAlert
 public typealias RecurringRule = SchemaV1.RecurringRule
 public typealias Budget = SchemaV1.Budget

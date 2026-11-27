@@ -7,6 +7,8 @@ import Testing
 @MainActor
 @Suite("Dışa / içe aktarma (specs/09 §3)")
 struct ExchangeStoreTests {
+    /// ModelContext kapsayıcısını tutmaz; kapsayıcı bırakılırsa bağlam çöker. Test boyunca burada tutulur.
+    private let containers = ContainerBag()
     private var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Europe/Istanbul")!
@@ -15,8 +17,7 @@ struct ExchangeStoreTests {
     private var now: Date { calendar.date(from: DateComponents(year: 2026, month: 11, day: 27, hour: 12))! }
 
     private func demoContext() throws -> ModelContext {
-        let container = try KumbaraContainer.make(inMemory: true)
-        let context = container.mainContext
+        let context = try containers.make()
         try LedgerSeeder.seedIfNeeded(context, locale: Locale(identifier: "tr_TR"))
         try DemoData.load(into: context, now: now, calendar: calendar)
         return context
@@ -27,7 +28,7 @@ struct ExchangeStoreTests {
         let source = try demoContext()
         let data = try ExchangeStore(context: source).backupJSON(now: now)
 
-        let target = try KumbaraContainer.make(inMemory: true).mainContext
+        let target = try containers.make()
         try LedgerSeeder.seedIfNeeded(target, locale: Locale(identifier: "tr_TR"))
         try ExchangeStore(context: target).restore(data, mode: .replace)
 

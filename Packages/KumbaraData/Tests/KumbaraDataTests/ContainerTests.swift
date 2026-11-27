@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 @testable import KumbaraData
 
@@ -38,5 +39,17 @@ struct ContainerTests {
         let source = try temporaryDirectory(), destination = try temporaryDirectory()
         try KumbaraContainer.moveLegacyStore(from: source, to: destination)
         #expect(try FileManager.default.contentsOfDirectory(atPath: destination.path).isEmpty)
+    }
+}
+
+/// Testlerde oluşturulan bellek içi kapsayıcıları test boyunca canlı tutar.
+@MainActor
+final class ContainerBag {
+    private var containers: [ModelContainer] = []
+
+    func make() throws -> ModelContext {
+        let container = try KumbaraContainer.make(inMemory: true)
+        containers.append(container)
+        return container.mainContext
     }
 }
