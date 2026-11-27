@@ -89,11 +89,23 @@ struct MarketView: View {
         .accessibilityElement(children: .combine)
     }
 
+    /// Fiyat henüz gelmediyse ve yenileme sürüyorsa yer tutucu (yükleniyor); "—" yalnız gerçekten
+    /// alınamayan fiyat için.
+    @ViewBuilder
     private func price(_ value: Decimal?, _ asset: AssetCode) -> some View {
-        Text(verbatim: value.map { asset.formatPrice($0, locale: locale) } ?? "—")
-            .monospacedDigit()
-            .contentTransition(.numericText())
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
+        if let value {
+            Text(verbatim: asset.formatPrice(value, locale: locale))
+                .monospacedDigit()
+                .contentTransition(.numericText())
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        } else if board.isRefreshing && !board.unavailable.contains(asset) {
+            Text(verbatim: "00.000")
+                .redacted(reason: .placeholder)
+                .accessibilityLabel(Text("Yükleniyor"))
+        } else {
+            Text(verbatim: "—")
+                .accessibilityLabel(Text("Fiyat yok"))
+        }
     }
 }

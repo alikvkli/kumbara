@@ -69,7 +69,15 @@ final class ScreenshotTests: XCTestCase {
         let ticker = app.buttons["Piyasa fiyatları"].firstMatch
         if ticker.waitForExistence(timeout: 3) {
             ticker.tap()
-            Thread.sleep(forTimeInterval: 2)
+            // Tüm piyasa fiyatlarının gelmesini bekle (ağ hızına bağlı; sabit süre yetmiyor).
+            let updated = app.staticTexts["Güncellendi"].firstMatch
+            _ = updated.waitForExistence(timeout: 20)
+            let loading = NSPredicate(format: "label == %@", "Yükleniyor")
+            let deadline = Date.now.addingTimeInterval(20)
+            while app.staticTexts.matching(loading).count > 0, Date.now < deadline {
+                Thread.sleep(forTimeInterval: 0.5)
+            }
+            Thread.sleep(forTimeInterval: 1)
             try shot("7-piyasa")
             app.buttons["Bitti"].firstMatch.tap()
         }
