@@ -223,10 +223,14 @@ struct RealReturnSection: View {
     private func comparison(_ title: LocalizedStringKey, benchmark: Decimal, detail: String) -> some View {
         let difference = value - benchmark
         return VStack(alignment: .leading, spacing: 4) {
-            HStack {
+            // Tutar asla kırılmaz; dar ekranda başlık iki satıra iner.
+            HStack(alignment: .firstTextBaseline) {
                 Text(title)
-                Spacer()
+                Spacer(minLength: 8)
                 PnLText(amount: difference, ratio: difference / benchmark)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .layoutPriority(1)
             }
             Text(verbatim: detail).font(.footnote).foregroundStyle(.secondary)
         }
