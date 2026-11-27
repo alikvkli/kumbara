@@ -3,7 +3,7 @@ import KumbaraData
 import SwiftData
 import SwiftUI
 
-/// Piyasa sayfası: tüm altın türleri, metaller ve dövizlerde alış/satış ve fiyatların tazeliği (REQ-M3).
+/// Piyasa sayfası: altın türleri ve dövizlerde alış/satış ve fiyatların tazeliği (REQ-M3).
 struct MarketView: View {
     @Environment(PriceBoard.self) private var board
     @Environment(\.locale) private var locale
@@ -15,7 +15,7 @@ struct MarketView: View {
     var body: some View {
         NavigationStack {
             List {
-                // Altın, döviz ve metaller ayrı: aynı tabloda karışınca aranan satır kayboluyor.
+                // Altın ve döviz ayrı: aynı tabloda karışınca aranan satır kayboluyor.
                 Section {
                     Picker("Grup", selection: $group) {
                         ForEach(MarketGroup.allCases) { Text($0.title).tag($0) }
@@ -165,9 +165,9 @@ struct MarketView: View {
     }
 }
 
-/// Piyasa sayfasının grupları.
+/// Piyasa sayfasının grupları. Değerli metaller (gümüş, platin, paladyum) piyasa sayfasında gösterilmez.
 enum MarketGroup: String, CaseIterable, Identifiable {
-    case gold, fx, metal
+    case gold, fx
 
     var id: Self { self }
 
@@ -175,7 +175,6 @@ enum MarketGroup: String, CaseIterable, Identifiable {
         switch asset {
         case .gold: self = .gold
         case .fx: self = .fx
-        case .metal: self = .metal
         default: return nil
         }
     }
@@ -184,7 +183,6 @@ enum MarketGroup: String, CaseIterable, Identifiable {
         switch self {
         case .gold: "Altın"
         case .fx: "Döviz"
-        case .metal: "Metaller"
         }
     }
 
@@ -192,7 +190,6 @@ enum MarketGroup: String, CaseIterable, Identifiable {
         switch self {
         case .gold: "Alış: kuyumcunun senden aldığı (bozdurma). Satış: sana sattığı. Tahmini fiyatlar ons ve dolar kurundan hesaplanır."
         case .fx: "Alış: bankanın senden aldığı. Satış: sana sattığı."
-        case .metal: "Gram başına. Tahmini fiyatlar ons ve dolar kurundan hesaplanır."
         }
     }
 }

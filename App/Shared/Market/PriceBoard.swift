@@ -22,7 +22,7 @@ final class PriceBoard {
     /// Alt aksesuar ve piyasa sayfasında her zaman gösterilenler.
     static let tickerAssets: [AssetCode] = [.gold(.gram24), .fx(.USD), .fx(.EUR)]
     static let marketAssets: [AssetCode] = GoldKind.allCases.map { .gold($0) }
-        + PreciousMetal.allCases.map { .metal($0) } + [.fx(.USD), .fx(.EUR), .fx(.GBP), .fx(.CHF)]
+        + [.fx(.USD), .fx(.EUR), .fx(.GBP), .fx(.CHF)]
 
     /// Görünür ekranların istediği ek varlıklar (ör. piyasa sayfası). Periyodik yenilemeye de girer.
     private var watched: [UUID: Set<AssetCode>] = [:]
