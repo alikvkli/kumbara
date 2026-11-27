@@ -149,8 +149,9 @@ demo veriye örnek → ekran görüntüsü turu.
 - **AC-I2-1** Netflix 3 ay ₺229, 4. ay ₺279 → abonelik listede, "+%22" işaretli, bir
   bildirim. 2 ödemeli satıcı listede yok.
 - **AC-I2-2** Tekrarlayan kuralı olan kira "tanımlı" görünür, öneri olarak gelmez.
-- **AC-I3-1** ₺12.000, 6 taksit, kesim 20'si, alım 22 Kasım → ilk taksit Aralık
-  ekstresinde, Kasım bütçesine ₺0 girer; hiçbir kayıt oluşmaz.
+- **AC-I3-1** ₺12.000, 6 taksit, kesim 20'si, alım 22 Kasım → Kasım bütçesine ilk taksit ₺2.000
+  girer (08 §3.2: ilk taksit alım ayında); ilk taksit 20 Aralık ekstresinde (son ödeme 30 Aralık);
+  hiçbir kayıt oluşmaz.
 - **AC-I4-1** ₺900 yemek, 3 kişi eşit → bütçeye ₺300; Ayşe ve Mehmet'ten ₺300'er
   alacak; Ayşe ₺300 ödeyince bütçe değişmez, hesap +₺300.
 - **AC-I5-1** Kira (1'i), kart son ödemesi (7'si), Netflix tahmini (9'u) → 1 Aralık'ta

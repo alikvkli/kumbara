@@ -137,6 +137,19 @@ final class ScreenshotTests: XCTestCase {
                 try shot("17-abonelikler")
                 app.navigationBars.buttons.firstMatch.tap()
             }
+            // Alabilir miyim? (specs/10 §3)
+            let purchase = app.buttons["Alabilir miyim?"].firstMatch
+            if !purchase.isHittable { app.swipeUp() }
+            if purchase.waitForExistence(timeout: 3) {
+                purchase.tap()
+                let field = app.textFields["purchase.amount"]
+                if field.waitForExistence(timeout: 3) {
+                    field.tap()
+                    app.typeText("12000")
+                    try shot("21-alabilir-miyim")
+                }
+                app.buttons["Kapat"].firstMatch.tap()
+            }
             app.swipeDown()
             app.swipeDown()
         }

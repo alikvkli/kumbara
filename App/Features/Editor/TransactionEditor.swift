@@ -14,6 +14,17 @@ struct TransactionEditor: View {
     }
 
     let mode: Mode
+    /// Yeni kayıtta önceden doldurulan alanlar ("Alabilir miyim?", hızlı ekleme önerisi; specs/10 §3, §6).
+    /// Kaydetmek yine kullanıcıdadır (C5).
+    var prefill: Prefill? = nil
+
+    struct Prefill {
+        var amount: Decimal?
+        var accountID: UUID?
+        var categoryID: UUID?
+        var merchant: String?
+        var installments: Int?
+    }
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -329,8 +340,26 @@ struct TransactionEditor: View {
         } else {
             account = (try? store.defaultAccount()) ?? accounts.first
             if case .create(let initialKind) = mode { kind = initialKind }
+            if let prefill { apply(prefill) }
         }
         loadRecentCategories()
+    }
+
+    private func apply(_ prefill: Prefill) {
+        if let amount = prefill.amount {
+            var text = amount.formattedNumber(locale: locale, fractionDigits: 0...2)
+            if let grouping = locale.groupingSeparator, !grouping.isEmpty {
+                text = text.replacingOccurrences(of: grouping, with: "")
+            }
+            amountText = text
+        }
+        if let id = prefill.accountID, let match = accounts.first(where: { $0.id == id }) { account = match }
+        if let id = prefill.categoryID {
+            let descriptor = FetchDescriptor<LedgerCategory>(predicate: #Predicate { $0.id == id })
+            category = (try? context.fetch(descriptor))?.first
+        }
+        if let merchant = prefill.merchant { self.merchant = merchant }
+        if let count = prefill.installments, count > 1 { installments = count }
     }
 
     private func loadRecentCategories() {

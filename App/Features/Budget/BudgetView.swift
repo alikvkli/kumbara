@@ -19,6 +19,7 @@ struct BudgetView: View {
     @State private var selectedMonth: LedgerMonth?
     @State private var editing: BudgetEditor.Target?
     @State private var detail: UUID?
+    @State private var isCheckingPurchase = false
 
     private var month: LedgerMonth { selectedMonth ?? LedgerMonth(containing: .now, calendar: calendar) }
     private var store: BudgetStore { BudgetStore(context: context) }
@@ -92,6 +93,9 @@ struct BudgetView: View {
                         NavigationLink { SubscriptionsView() } label: {
                             SubscriptionsLinkLabel()
                         }
+                        Button { isCheckingPurchase = true } label: {
+                            Label("Alabilir miyim?", systemImage: "questionmark.circle")
+                        }
                     }
 
                     if !suggestions.isEmpty {
@@ -125,6 +129,7 @@ struct BudgetView: View {
         .navigationDestination(item: $detail) { id in
             BudgetDetailView(budgetID: id, month: month)
         }
+        .sheet(isPresented: $isCheckingPurchase) { PurchaseCheckView() }
         .sheet(item: $editing) { target in
             BudgetEditor(target: target, month: month)
         }
