@@ -119,6 +119,18 @@ public enum DemoData {
                 rent.dueDay = calendar.startOfDay(for: rent.date)
             }
         }
+        // Maaş da tekrarlayan gelir: ödeme takviminde "maaşa N gün" (specs/10 §5).
+        let salaries = all.filter { $0.category?.seedKey == "salary" }
+        if let first = salaries.first {
+            let rule = try recurring.makeRule(from: first, frequency: .monthly(day: 1), calendar: calendar)
+            for salary in salaries.dropFirst() {
+                salary.recurrenceID = rule.id
+                salary.dueDay = calendar.startOfDay(for: salary.date)
+            }
+            rule.lastDue = salaries.last.map { calendar.startOfDay(for: $0.date) }
+        }
+        let rentRules = try recurring.rules().filter { $0.category?.seedKey == "housing.rent" }
+        for rule in rentRules { rule.lastDue = rents.last.map { calendar.startOfDay(for: $0.date) } }
         try recurring.generateDrafts(now: now, calendar: calendar)
         // Taksitli alım: geçen ayın 10'unda ₺12.000, 6 taksit (2'si kesin, 4'ü planlı).
         if let date = calendar.date(from: DateComponents(year: thisMonth.previous.year, month: thisMonth.previous.month, day: 10, hour: 16)),

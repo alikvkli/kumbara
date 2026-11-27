@@ -12,6 +12,7 @@ struct BudgetView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.calendar) private var calendar
     @Environment(PriceBoard.self) private var board
+    @Environment(AppRouter.self) private var router
     // Gözlem için: işlem ya da bütçe değişince ekran yeniden hesaplanır.
     @Query private var transactions: [LedgerTransaction]
     @Query private var budgetModels: [Budget]
@@ -83,8 +84,11 @@ struct BudgetView: View {
                         }
                     }
 
-                    // Abonelikler (specs/10 §2).
+                    // Ödeme takvimi ve abonelikler (specs/10 §2, §5).
                     Section {
+                        NavigationLink { PaymentCalendarView() } label: {
+                            PaymentCalendarLinkLabel()
+                        }
                         NavigationLink { SubscriptionsView() } label: {
                             SubscriptionsLinkLabel()
                         }
@@ -114,6 +118,10 @@ struct BudgetView: View {
             }
         }
         .navigationTitle("Bütçe")
+        .navigationDestination(isPresented: Binding(get: { router.isPresentingCalendar },
+                                                    set: { router.isPresentingCalendar = $0 })) {
+            PaymentCalendarView()
+        }
         .navigationDestination(item: $detail) { id in
             BudgetDetailView(budgetID: id, month: month)
         }

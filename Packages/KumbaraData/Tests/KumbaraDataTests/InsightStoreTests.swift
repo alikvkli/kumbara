@@ -53,3 +53,31 @@ struct InsightStoreTests {
         #expect(october.savings != nil)
     }
 }
+
+@MainActor
+@Suite("Ödeme takvimi deposu (specs/10 §5)")
+struct PaymentCalendarStoreTests {
+    private let containers = ContainerBag()
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Istanbul")!
+        return calendar
+    }
+    private var now: Date { calendar.date(from: DateComponents(year: 2026, month: 11, day: 27, hour: 12))! }
+
+    @Test("Örnek veri: kira ve maaş 1 Aralık'ta, kart dönemi 'şu ana kadar'; kartlı abonelik ayrı kalem değil")
+    func demoCalendar() throws {
+        let context = try containers.make()
+        try LedgerSeeder.seedIfNeeded(context, locale: Locale(identifier: "tr_TR"))
+        try DemoData.load(into: context, now: now, calendar: calendar)
+        let items = try InsightStore(context: context).upcomingPayments(from: now, days: 31, now: now, calendar: calendar)
+        let december1 = calendar.date(from: DateComponents(year: 2026, month: 12, day: 1))!
+        #expect(items.contains { $0.isIncome && $0.date == december1 })
+        #expect(items.contains { !$0.isIncome && $0.date == december1 && $0.amount == 22_500 })
+        #expect(items.contains { $0.isPartial })
+        #expect(!items.contains { $0.title == "Netflix" })
+        #expect(!items.contains { $0.title == "MacFit" })
+        let next = try #require(PaymentCalendar.nextIncome(items, from: now, calendar: calendar))
+        #expect(next.days == 4)
+    }
+}

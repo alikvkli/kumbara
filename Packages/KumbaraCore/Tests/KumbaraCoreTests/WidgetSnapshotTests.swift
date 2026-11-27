@@ -13,9 +13,27 @@ struct WidgetSnapshotTests {
         snapshot.prices[0].asOf = snapshot.createdAt
         snapshot.prices[1].asOf = snapshot.createdAt
         snapshot.portfolioTotal = Decimal(string: "285400.37")
+        snapshot.upcoming = snapshot.upcoming?.enumerated().map { index, item in
+            var item = item
+            item.date = snapshot.createdAt.addingTimeInterval(Double(index + 1) * 86_400)
+            return item
+        }
         let url = WidgetSnapshotStore.url(in: directory)
         try WidgetSnapshotStore.write(snapshot, to: url)
         #expect(WidgetSnapshotStore.read(from: url) == snapshot)
+    }
+
+    @Test("Eski özet (yaklaşan ödemeler alanı yok) okunur")
+    func oldSnapshotDecodes() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "widget-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        var snapshot = WidgetSnapshot.placeholder
+        snapshot.upcoming = nil
+        let url = WidgetSnapshotStore.url(in: directory)
+        try WidgetSnapshotStore.write(snapshot, to: url)
+        let text = try String(contentsOf: url, encoding: .utf8)
+        #expect(!text.contains("upcoming"))
+        #expect(WidgetSnapshotStore.read(from: url)?.upcoming == nil)
     }
 
     @Test("Widget fiyatı tazeler; gün değişince günlük değişim yeniden hesaplanır")

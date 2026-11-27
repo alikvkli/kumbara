@@ -80,6 +80,15 @@ enum WidgetPublisher {
                               portfolioPnL: positions.isEmpty ? nil : total - cost,
                               portfolioPnLRatio: cost > 0 ? (total - cost) / cost : nil,
                               holdings: Array(holdings.prefix(3)), budget: budget,
-                              hidesAmounts: UserDefaults.standard.bool(forKey: hideAmountsKey))
+                              hidesAmounts: UserDefaults.standard.bool(forKey: hideAmountsKey),
+                              upcoming: upcoming(context: context, now: now, calendar: calendar))
+    }
+
+    /// Önümüzdeki 30 günün giderleri, en çok 6 kalem (widget en yakın 3'ünü gösterir).
+    private static func upcoming(context: ModelContext, now: Date, calendar: Calendar) -> [WidgetSnapshot.Upcoming] {
+        let items = (try? InsightStore(context: context).upcomingPayments(from: now, days: 30, now: now, calendar: calendar)) ?? []
+        return items.filter { !$0.isIncome }.prefix(6).map {
+            .init(title: $0.title, date: $0.date, amount: $0.amount, isIncome: $0.isIncome, isEstimate: $0.isEstimate)
+        }
     }
 }

@@ -40,6 +40,8 @@ final class AppRouter {
     var savingsSplit: SavingsSplitRequest?
     /// Özet'te açılacak aylık rapor (rapor bildirimi, specs/10 §1).
     var reportMonth: LedgerMonth?
+    /// Bütçe'de ödeme takvimini aç (widget bağlantısı).
+    var isPresentingCalendar = false
 
     func show(_ section: AppSection) { destination = .section(section) }
 

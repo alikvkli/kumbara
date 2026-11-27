@@ -119,6 +119,15 @@ final class ScreenshotTests: XCTestCase {
                 try shot("11-butce-ekle")
                 app.buttons["Vazgeç"].firstMatch.tap()
             }
+            // Ödeme takvimi (specs/10 §5)
+            let paymentCalendar = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Ödeme takvimi")).firstMatch
+            if !paymentCalendar.isHittable { app.swipeUp() }
+            if paymentCalendar.waitForExistence(timeout: 3) {
+                paymentCalendar.tap()
+                Thread.sleep(forTimeInterval: 1)
+                try shot("20-odeme-takvimi")
+                app.navigationBars.buttons.firstMatch.tap()
+            }
             // Abonelikler (specs/10 §2)
             let subscriptions = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Abonelikler")).firstMatch
             if !subscriptions.isHittable { app.swipeUp() }

@@ -48,6 +48,23 @@ public struct WidgetSnapshot: Codable, Hashable, Sendable {
         }
     }
 
+    /// Yaklaşan ödeme (specs/10 §5): widget yalnız bugünden sonrakileri gösterir.
+    public struct Upcoming: Codable, Hashable, Sendable {
+        public var title: String
+        public var date: Date
+        public var amount: Decimal
+        public var isIncome: Bool
+        public var isEstimate: Bool
+
+        public init(title: String, date: Date, amount: Decimal, isIncome: Bool, isEstimate: Bool) {
+            self.title = title
+            self.date = date
+            self.amount = amount
+            self.isIncome = isIncome
+            self.isEstimate = isEstimate
+        }
+    }
+
     public var createdAt: Date
     public var prices: [Price]
     public var portfolioTotal: Decimal?
@@ -57,9 +74,13 @@ public struct WidgetSnapshot: Codable, Hashable, Sendable {
     public var budget: Budget?
     /// "Widget'ta tutarları gizle" (kilit ayarı); fiyatlar gizlenmez, kişisel tutarlar gizlenir.
     public var hidesAmounts: Bool
+    /// Önümüzdeki 30 günün ödemeleri; eski özetlerde yok.
+    public var upcoming: [Upcoming]?
 
     public init(createdAt: Date, prices: [Price], portfolioTotal: Decimal?, portfolioPnL: Decimal?,
-                portfolioPnLRatio: Decimal?, holdings: [Holding], budget: Budget?, hidesAmounts: Bool) {
+                portfolioPnLRatio: Decimal?, holdings: [Holding], budget: Budget?, hidesAmounts: Bool,
+                upcoming: [Upcoming]? = nil) {
+        self.upcoming = upcoming
         self.createdAt = createdAt
         self.prices = prices
         self.portfolioTotal = portfolioTotal
@@ -79,7 +100,10 @@ public struct WidgetSnapshot: Codable, Hashable, Sendable {
                    Holding(name: "Çeyrek altın", value: 81_300, pnlRatio: Decimal(string: "0.13")),
                    Holding(name: "USD", value: 60_900, pnlRatio: Decimal(string: "0.18"))],
         budget: Budget(perDay: 1_799, remainingDays: 4, spentFraction: 0.84, remaining: 7_194),
-        hidesAmounts: false)
+        hidesAmounts: false,
+        upcoming: [Upcoming(title: "Kira", date: .now.addingTimeInterval(2 * 86_400), amount: 22_500, isIncome: false, isEstimate: false),
+                   Upcoming(title: "Kredi kartı", date: .now.addingTimeInterval(5 * 86_400), amount: 8_420, isIncome: false, isEstimate: false),
+                   Upcoming(title: "Netflix", date: .now.addingTimeInterval(9 * 86_400), amount: Decimal(string: "229.99")!, isIncome: false, isEstimate: true)])
 
     /// Fiyatı yeni gelen değerlerle günceller (widget kendi yenilemesinde). Değişim oranı, eski
     /// fiyatın günü bugünden önceyse yeniden hesaplanır; değilse korunur.

@@ -176,6 +176,8 @@ enum DeepLink: String {
     case add, scan, budget, portfolio, market
     /// Kapanan ayın raporu (specs/10 §1): rapor bildirimine dokununca.
     case report
+    /// Bütçe › Ödeme takvimi (yaklaşan ödemeler widget'ı).
+    case calendar
 
     static let scheme = "kumbara"
 
@@ -202,6 +204,9 @@ enum DeepLink: String {
         case .report:
             router.show(.summary)
             router.reportMonth = LedgerMonth(containing: .now, calendar: .current).previous
+        case .calendar:
+            router.show(.budget)
+            router.isPresentingCalendar = true
         }
     }
 }

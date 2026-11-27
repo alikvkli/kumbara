@@ -68,7 +68,7 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 ## M6 — İçgörüler ve araçlar — ayrıntı: 10
 - [x] T6.2 Abonelikler: algılama, zam uyarısı, "tekrarlayan yap" / "abonelik değil" (REQ-I2).
 - [x] T6.1 Aylık rapor: Özet kartı (ilk 7 gün), Aylık raporlar listesi, paylaşılan görsel (tutarlar varsayılan gizli), 1'inde bildirim (REQ-I1).
-- [ ] T6.5 Ödeme takvimi (REQ-I5).
+- [x] T6.5 Ödeme takvimi: ay ızgarası, 30 günlük liste, gelir sayacı, bakiye uyarısı, "Yaklaşan ödemeler" widget'ı (REQ-I5).
 - [ ] T6.3 "Alabilir miyim?" (REQ-I3).
 - [ ] T6.7 Altın birikim planı (REQ-I7).
 - [ ] T6.4 Alacak / borç (REQ-I4).

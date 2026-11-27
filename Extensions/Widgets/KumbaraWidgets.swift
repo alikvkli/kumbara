@@ -11,6 +11,7 @@ struct KumbaraWidgets: WidgetBundle {
         PriceWidget()
         BudgetWidget()
         PortfolioWidget()
+        UpcomingWidget()
         #if os(iOS)
         AddExpenseControl()
         ScanReceiptControl()
@@ -296,7 +297,67 @@ struct PortfolioWidgetView: View {
     }
 }
 
+// MARK: - Yaklaşan ödemeler (orta; specs/10 §5)
+
+struct UpcomingWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "upcoming", provider: SnapshotProvider()) { entry in
+            UpcomingWidgetView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
+                .widgetURL(DeepLinkURL.calendar)
+        }
+        .configurationDisplayName("Yaklaşan ödemeler")
+        .description("Önümüzdeki günlerin kira, kart ve abonelik ödemeleri.")
+        .supportedFamilies([.systemMedium])
+    }
+}
+
+struct UpcomingWidgetView: View {
+    let entry: SnapshotEntry
+
+    var body: some View {
+        if let snapshot = entry.snapshot, let all = snapshot.upcoming {
+            let today = Calendar.current.startOfDay(for: entry.date)
+            let items = all.filter { $0.date >= today }
+            let weekEnd = Calendar.current.date(byAdding: .day, value: 7, to: today) ?? today
+            let week = items.filter { $0.date < weekEnd }.reduce(Decimal(0)) { $0 + $1.amount }
+            let hidden = snapshot.hidesAmounts
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Yaklaşan ödemeler").font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Text("7 günde \(WidgetFormat.money(week, hidden: hidden))")
+                        .font(.caption.weight(.semibold))
+                        .widgetAccentable()
+                }
+                if items.isEmpty {
+                    Text("Önümüzdeki 30 günde bilinen ödeme yok.").font(.subheadline).foregroundStyle(.secondary)
+                } else {
+                    ForEach(Array(items.prefix(3).enumerated()), id: \.offset) { _, item in
+                        HStack {
+                            Text(item.date, format: .dateTime.day().month(.abbreviated))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 52, alignment: .leading)
+                            Text(verbatim: item.title).lineLimit(1)
+                            if item.isEstimate { Text("tahmini").font(.caption2).foregroundStyle(.secondary) }
+                            Spacer()
+                            Text(verbatim: WidgetFormat.money(item.amount, hidden: hidden))
+                        }
+                        .font(.subheadline)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .monospacedDigit()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        } else {
+            EmptyWidgetView()
+        }
+    }
+}
+
 enum DeepLinkURL {
+    static let calendar = URL(string: "kumbara://calendar")!
     static let add = URL(string: "kumbara://add")!
     static let scan = URL(string: "kumbara://scan")!
     static let budget = URL(string: "kumbara://budget")!
