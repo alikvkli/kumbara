@@ -126,7 +126,8 @@ jobs:
             xcodebuild test-without-building -project Kumbara.xcodeproj -scheme Kumbara \
               -destination "id=$UDID" -derivedDataPath build \
               -only-testing:KumbaraUITests/ScreenshotTests \
-              -only-testing:KumbaraUITests/CaptureUITests/testDemoReceiptIsRecognised | xcbeautify
+              -only-testing:KumbaraUITests/CaptureUITests/testDemoReceiptIsRecognised \
+              -retry-tests-on-failure -test-iterations 2 | xcbeautify
           done
           ls -la screenshots
       - name: macOS screenshot

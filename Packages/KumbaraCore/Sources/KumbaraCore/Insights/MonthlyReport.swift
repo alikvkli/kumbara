@@ -90,7 +90,7 @@ public struct MonthlyReport: Hashable, Sendable {
     public var previousExpense: Decimal?
     /// Önceki aya göre gider değişimi.
     public var change: Decimal?
-    /// Önceki (en çok) üç ayın ortalama gideri; o aylarda hiç gider yoksa `nil`.
+    /// Önceki (en çok) üç dolu ayın ortalama gideri; dolu ay yoksa `nil`.
     public var averageExpense: Decimal?
     public var averageMonths: Int
     public var changeFromAverage: Decimal? {
@@ -127,7 +127,10 @@ public struct MonthlyReport: Hashable, Sendable {
         var cursor = month.previous
         for _ in 0..<3 {
             let summary = MonthlySummary(entries: entries, month: cursor, currency: currency, calendar: calendar)
-            if summary.expense.amount > 0 { pastMonths.append(summary.expense.amount) }
+            // Yalnız "dolu" aylar: geliri kayıtlı ya da en az 5 kaydı olan (birkaç abonelikten ibaret ay ortalamayı bozmasın).
+            if summary.expense.amount > 0, summary.income.amount > 0 || summary.entryCount >= 5 {
+                pastMonths.append(summary.expense.amount)
+            }
             cursor = cursor.previous
         }
         averageMonths = pastMonths.count

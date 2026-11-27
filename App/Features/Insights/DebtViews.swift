@@ -125,11 +125,11 @@ struct PersonDetailView: View {
         let balance = history.reduce(Decimal(0)) { $0 + $1.amount }
         List {
             Section {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: person.name).font(.title2.weight(.semibold))
-                    BalanceText(balance: balance).font(.title3.weight(.medium)).monospacedDigit()
-                }
-                .padding(.vertical, 4)
+                // Ad zaten başlıkta; burada yalnız bakiye.
+                BalanceText(balance: balance)
+                    .font(.title2.weight(.semibold))
+                    .monospacedDigit()
+                    .padding(.vertical, 4)
                 if balance != 0 {
                     Button(balance > 0 ? "Ödedi" : "Ödedim", systemImage: "checkmark.circle") { action = .settlement }
                 }

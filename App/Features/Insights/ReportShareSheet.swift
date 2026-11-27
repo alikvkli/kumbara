@@ -124,6 +124,8 @@ struct ReportShareCard: View {
                     if let ratio = change.ratio {
                         Text(verbatim: ratio.formattedPercent(locale: locale, fractionDigits: 0, sign: .always))
                             .monospacedDigit()
+                    } else {
+                        Text("yeni")
                     }
                 }
                 .font(.footnote)

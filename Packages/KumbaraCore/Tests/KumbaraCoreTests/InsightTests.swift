@@ -147,7 +147,10 @@ struct MonthlyReportTests {
     @Test("Üç ay ortalaması yalnız gideri olan aylardan; en sık satıcı en az 2 ziyaretle")
     func averageAndMerchant() throws {
         let entries = [
+            income(10_000, 2026, 8), income(10_000, 2026, 10),
             expense(3_000, market, 2026, 8, 3), expense(5_000, market, 2026, 10, 3),
+            // Eylül: tek abonelik, gelir yok → ortalamaya girmez.
+            expense(99, market, 2026, 9, 12),
             expense(400, market, 2026, 11, 2, merchant: "Kahve Dünyası"),
             expense(200, market, 2026, 11, 9, merchant: "KAHVE DÜNYASI"),
             expense(5_000, market, 2026, 11, 12, merchant: "Migros"),
