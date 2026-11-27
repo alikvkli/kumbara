@@ -39,7 +39,7 @@ struct KumbaraApp: App {
         if arguments.contains("-demo-inbox"),
            let url = Bundle.main.url(forResource: "DemoReceipt", withExtension: "jpg"),
            let data = try? Data(contentsOf: url) {
-            try? inbox.deposit(data, fileExtension: "jpg")
+            _ = try? inbox.deposit(data, fileExtension: "jpg")
         }
         return inbox
     }
