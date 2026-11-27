@@ -16,12 +16,12 @@ test/senaryo ile kanıtlanınca "bitti" sayılır.
       aksesuar yer tutucu), macOS `NavigationSplitView` + inspector + `Commands` (06 §6–7).
 
 ## M1 — Defter (2 hafta)
-- [ ] T1.1 SwiftData modelleri: Account, Category, Transaction (REQ-L1, L2, L3).
-- [ ] T1.2 Varsayılan Türkçe kategori seti (REQ-L5).
-- [ ] T1.3 Hızlı ekleme sayfası, 2 dokunuş kuralı + UI testi (REQ-L4).
-- [ ] T1.4 İşlem listesi (iOS `List`, macOS `Table`), arama, filtre.
-- [ ] T1.5 Satıcı → kategori öğrenme (REQ-L6).
-- [ ] T1.6 Özet ekranı (REQ-B3, B4).
+- [x] T1.1 SwiftData modelleri: Account, Category, Transaction (REQ-L1, L2, L3).
+- [x] T1.2 Varsayılan Türkçe kategori seti (REQ-L5).
+- [x] T1.3 Hızlı ekleme sayfası, 2 dokunuş kuralı + UI testi (REQ-L4).
+- [x] T1.4 İşlem listesi (iOS `List`, macOS `Table`), arama, filtre.
+- [x] T1.5 Satıcı → kategori öğrenme (REQ-L6).
+- [x] T1.6 Özet ekranı (REQ-B3, B4).
 
 ## M2 — Piyasa ve Birikim (2 hafta)
 - [ ] T2.0 Canlı piyasa şeridi alt aksesuarı (inline/expanded) (REQ-X8).
