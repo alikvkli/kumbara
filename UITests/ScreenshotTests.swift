@@ -63,6 +63,14 @@ final class ScreenshotTests: XCTestCase {
         if gram.waitForExistence(timeout: 3) {
             gram.tap()
             try shot("6-gram-altin")
+            let bell = app.buttons["Alarm kur"].firstMatch
+            if bell.waitForExistence(timeout: 2) {
+                bell.tap()
+                if app.textFields["alert.threshold"].waitForExistence(timeout: 3) {
+                    try shot("14-alarm")
+                    app.buttons["Vazgeç"].firstMatch.tap()
+                }
+            }
             app.navigationBars.buttons.firstMatch.tap()
         }
 

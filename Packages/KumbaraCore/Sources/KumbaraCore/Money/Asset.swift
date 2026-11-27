@@ -31,7 +31,7 @@ public enum PreciousMetal: String, Sendable, Codable, CaseIterable {
 ///
 /// Kalıcı biçim `id` String'idir: `gold.gram24`, `metal.silver`, `fx.USD`,
 /// `crypto.bitcoin`, `custom.<kullanıcı-kimliği>`.
-public enum AssetCode: Hashable, Sendable {
+public enum AssetCode: Hashable, Sendable, Identifiable {
     case gold(GoldKind)
     case metal(PreciousMetal)
     case fx(CurrencyCode)

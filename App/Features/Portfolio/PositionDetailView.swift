@@ -15,6 +15,13 @@ struct PositionDetailView: View {
     @AppStorage(SettingsKey.costMethod) private var costMethod: CostMethod = .averageCost
     @State private var editing: AssetTrade?
     @State private var adding = false
+    @State private var settingAlert = false
+
+    /// Serbest varlığın fiyatı elle girilir; alarm anlamsız.
+    private var isCustomAsset: Bool {
+        if case .custom = asset { return true }
+        return false
+    }
     @State private var pendingDeletion: AssetTrade?
     @State private var deletionError = false
     @State private var editingPrice = false
@@ -113,10 +120,16 @@ struct PositionDetailView: View {
         }
         .navigationTitle(Text(verbatim: asset.displayName(customName: custom?.name)))
         .toolbar {
+            if !isCustomAsset {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Alarm kur", systemImage: "bell") { settingAlert = true }
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button("Alım/satım ekle", systemImage: "plus") { adding = true }
             }
         }
+        .sheet(isPresented: $settingAlert) { PriceAlertEditor(asset: asset) }
         .sheet(isPresented: $adding) { TradeEditor(mode: .create(asset)) }
         .sheet(item: $editing) { TradeEditor(mode: .edit($0)) }
         .sheet(isPresented: $editingPrice) {

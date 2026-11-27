@@ -48,6 +48,12 @@ targets:
       - package: KumbaraMarket
       - package: KumbaraCapture
       - target: KumbaraShare        # PlugIns/ içine gömülür (REQ-C2)
+    # Arka plan fiyat yenilemesi (REQ-M2, BGAppRefreshTask). Diğer anahtarlar INFOPLIST_KEY_* ile üretilir.
+    info:
+      path: Config/Kumbara-Info.plist
+      properties:
+        BGTaskSchedulerPermittedIdentifiers: [com.alikvkli.kumbara.refresh]
+        UIBackgroundModes: [fetch]
     entitlements:
       path: Config/Kumbara.entitlements
       properties:

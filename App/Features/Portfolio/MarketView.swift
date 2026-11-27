@@ -1,4 +1,5 @@
 import KumbaraCore
+import SwiftData
 import SwiftUI
 
 /// Piyasa sayfası: tüm altın türleri, metaller ve dövizlerde alış/satış ve fiyatların tazeliği (REQ-M3).
@@ -6,6 +7,8 @@ struct MarketView: View {
     @Environment(PriceBoard.self) private var board
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
+    @State private var alertAsset: AssetCode?
+    @Query(filter: #Predicate<PriceAlert> { $0.isActive }) private var activeAlerts: [PriceAlert]
 
     var body: some View {
         NavigationStack {
@@ -13,6 +16,9 @@ struct MarketView: View {
                 Section {
                     ForEach(PriceBoard.marketAssets, id: \.self) { asset in
                         row(asset)
+                            .contextMenu {
+                                Button("Alarm kur", systemImage: "bell") { alertAsset = asset }
+                            }
                     }
                 } header: {
                     HStack {
@@ -36,6 +42,7 @@ struct MarketView: View {
                 ToolbarItem(placement: .confirmationAction) { Button("Bitti") { dismiss() } }
             }
             .refreshable { await board.refresh(including: Set(PriceBoard.marketAssets)) }
+            .sheet(item: $alertAsset) { asset in PriceAlertEditor(asset: asset) }
             .task {
                 // Sayfa açıkken tüm piyasa varlıkları periyodik yenilemeye katılır.
                 let token = board.watch(Set(PriceBoard.marketAssets))
@@ -70,7 +77,15 @@ struct MarketView: View {
         let isLate = freshness == .stale || freshness == .delayed
         return HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: asset.displayName())
+                HStack(spacing: 4) {
+                    Text(verbatim: asset.displayName())
+                    if activeAlerts.contains(where: { $0.rule?.asset == asset }) {
+                        Image(systemName: "bell.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .accessibilityLabel(Text("Alarm kurulu"))
+                    }
+                }
                 // Yalnız olağan dışı satırlar not taşır: tahmini/elle fiyat, ya da diğerlerinden eski fiyat.
                 if let quote, quote.originNote != nil || isLate {
                     HStack(spacing: 4) {

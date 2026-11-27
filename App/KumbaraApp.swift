@@ -59,6 +59,12 @@ struct KumbaraApp: App {
         #if os(macOS)
         .commands { KumbaraCommands(router: router, capture: capture) }
         #endif
+        #if os(iOS)
+        .backgroundTask(.appRefresh(BackgroundRefresh.identifier)) { [board] in
+            await board.refresh()
+            await MainActor.run { BackgroundRefresh.schedule() }
+        }
+        #endif
 
         #if os(macOS)
         Settings {
@@ -99,6 +105,9 @@ struct RootView: View {
         .onAppear { BudgetMonitor.shared.start() }
         // Vadesi gelen tekrarlar taslak olur ve sıradaki vadelerin hatırlatması kurulur (REQ-L7).
         .onChange(of: scenePhase, initial: true) { _, phase in
+            #if os(iOS)
+            if phase == .background { BackgroundRefresh.schedule() }
+            #endif
             guard phase == .active else { return }
             let store = RecurringStore(context: context)
             _ = try? store.generateDrafts()

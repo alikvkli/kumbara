@@ -50,6 +50,11 @@ struct SettingsView: View {
                 } label: {
                     Label("Tekrarlayan işlemler", systemImage: "repeat")
                 }
+                NavigationLink {
+                    PriceAlertsView()
+                } label: {
+                    Label("Fiyat alarmları", systemImage: "bell")
+                }
             }
             Section {
                 NavigationLink {

@@ -13,7 +13,7 @@ public enum SchemaV1: VersionedSchema {
 
     public static var models: [any PersistentModel.Type] {
         [LedgerAccount.self, LedgerCategory.self, LedgerTransaction.self, MerchantMemory.self,
-         AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self, RecurringRule.self]
+         AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self, RecurringRule.self, PriceAlert.self]
     }
 
     @Model
@@ -319,6 +319,38 @@ extension SchemaV1 {
     }
 }
 
+extension SchemaV1 {
+    /// Fiyat alarmı (REQ-M4, specs/08 §5). Bir kez çalar; kullanıcı yeniden kurabilir.
+    @Model
+    public final class PriceAlert {
+        public var id: UUID = UUID()
+        var assetID: String = ""
+        var directionRaw: String = PriceAlertRule.Direction.above.rawValue
+        var thresholdRaw: String = "0"
+        var priceKindRaw: String = PriceKind.bid.rawValue
+        /// Son gerçek fiyattaki durum (geçiş tespiti için); `nil` = henüz fiyat görülmedi.
+        public var lastSatisfied: Bool?
+        public var isActive: Bool = true
+        public var firedAt: Date?
+        public var firedPrice: String?
+        public var createdAt: Date = Date.now
+
+        public init(rule: PriceAlertRule) {
+            self.assetID = rule.asset.id
+            self.directionRaw = rule.direction.rawValue
+            self.thresholdRaw = rule.threshold.canonicalString
+            self.priceKindRaw = rule.priceKind.rawValue
+        }
+
+        public var rule: PriceAlertRule? {
+            guard let asset = AssetCode(id: assetID), let threshold = Decimal(canonical: thresholdRaw) else { return nil }
+            return PriceAlertRule(asset: asset, direction: PriceAlertRule.Direction(rawValue: directionRaw) ?? .above,
+                                  threshold: threshold, priceKind: PriceKind(rawValue: priceKindRaw) ?? .bid)
+        }
+    }
+}
+
+public typealias PriceAlert = SchemaV1.PriceAlert
 public typealias RecurringRule = SchemaV1.RecurringRule
 public typealias Budget = SchemaV1.Budget
 public typealias NotificationLog = SchemaV1.NotificationLog

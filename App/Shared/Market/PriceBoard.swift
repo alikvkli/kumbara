@@ -82,7 +82,8 @@ final class PriceBoard {
 
     private func performRefresh(including extra: Set<AssetCode>) async {
         let held = (try? store.heldAssets()) ?? []
-        let wanted = held.union(Self.tickerAssets).union(extra).union(watched.values.flatMap { $0 })
+        let alerted = (try? PriceAlertStore(context: container.mainContext).activeAssets()) ?? []
+        let wanted = held.union(Self.tickerAssets).union(extra).union(watched.values.flatMap { $0 }).union(alerted)
         let result = await service.refresh(wanted)
 
         lastAttempt = .now
@@ -91,6 +92,10 @@ final class PriceBoard {
         unavailable = result.missing.union(result.rejected)
         for (asset, quote) in result.quotes { quotes[asset] = quote }
         try? store.record(result.quotes.values)
+        // Fiyat alarmları her başarılı yenilemede (ön planda 60 sn, arka planda fırsat buldukça) (REQ-M4).
+        if let fired = try? PriceAlertStore(context: container.mainContext).evaluate(result.quotes) {
+            for (alert, quote) in fired { Reminders.priceAlertFired(alert, quote: quote) }
+        }
         // Serbest varlıklar elle fiyatlarıyla (kullanıcı güncellemiş olabilir).
         for (asset, quote) in (try? store.latestQuotes()) ?? [:] where quote.source == .manual {
             quotes[asset] = quote

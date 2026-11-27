@@ -70,6 +70,23 @@ enum Reminders {
         }
     }
 
+    /// Çalan fiyat alarmı: hemen gösterilir.
+    static func priceAlertFired(_ alert: PriceAlert, quote: Quote, locale: Locale = .current) {
+        guard !isUITesting, let rule = alert.rule else { return }
+        let content = UNMutableNotificationContent()
+        let price = rule.asset.formatPrice(quote.price(rule.priceKind), locale: locale)
+        let threshold = rule.asset.formatPrice(rule.threshold, locale: locale)
+        content.title = String(localized: "\(rule.asset.displayName()) \(price) ₺")
+        content.body = rule.direction == .above
+            ? String(localized: "\(threshold) ₺ üstüne çıktı · alarm kapandı, istersen yeniden kur.")
+            : String(localized: "\(threshold) ₺ altına düştü · alarm kapandı, istersen yeniden kur.")
+        content.sound = .default
+        content.threadIdentifier = "price-alert"
+        UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "price-alert:\(alert.id.uuidString)",
+                                                                     content: content, trigger: nil),
+                                               withCompletionHandler: nil)
+    }
+
     static func cancel(_ rule: RecurringRule) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier(for: rule)])
     }
