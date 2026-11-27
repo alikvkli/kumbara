@@ -19,8 +19,10 @@ final class ScreenshotTests: XCTestCase {
 
         func tapTab(_ title: String) {
             let tab = app.tabBars.buttons[title]
-            if !tab.waitForExistence(timeout: 3) || !tab.isHittable {
-                app.swipeDown()
+            // Kaydırınca küçülen sekme çubuğu: açılana kadar aşağı çek; alt sayfadaysak geri dön.
+            for attempt in 0..<5 where !(tab.waitForExistence(timeout: 2) && tab.isHittable) {
+                let back = app.navigationBars.buttons.firstMatch
+                if attempt >= 2, back.exists, back.isHittable { back.tap() } else { app.swipeDown() }
             }
             tab.tap()
         }
