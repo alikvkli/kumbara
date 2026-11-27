@@ -1,8 +1,24 @@
 name: CI
 
+# Dakika bütçesi: macOS çalıştırıcıları Linux'un 10 katı sayılır.
+# - Her push: yalnız Linux (Core + Market testleri).
+# - macOS (Data testleri, iOS + macOS derleme, UI testleri): commit mesajında [mac] ya da
+#   [screenshots] varsa, PR'da veya elle (workflow_dispatch) başlatılınca.
+# - Ekran görüntüleri aynı macOS işinde, aynı derlemeyle alınır (ikinci bir derleme yok).
+# - Yalnız doküman değişen push'lar CI başlatmaz.
 on:
   push:
+    paths-ignore:
+      - 'specs/**'
+      - '**/*.md'
+      - 'Design/**'
   pull_request:
+  workflow_dispatch:
+    inputs:
+      screenshots:
+        description: 'Ekran görüntüleri de alınsın'
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -22,7 +38,14 @@ jobs:
 
   app-apple:
     name: App (iOS + macOS)
+    needs: core-linux
+    if: >-
+      github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[mac]') ||
+      contains(github.event.head_commit.message, '[screenshots]')
     runs-on: macos-26
+    env:
+      SCREENSHOTS: ${{ contains(github.event.head_commit.message, '[screenshots]') || inputs.screenshots == true }}
     steps:
       - uses: actions/checkout@v5
       - name: Select newest Xcode
@@ -35,18 +58,8 @@ jobs:
         run: |
           brew install xcodegen
           xcodegen generate
-      - name: Test KumbaraCore (macOS)
-        run: swift test --package-path Packages/KumbaraCore
-      - name: Test KumbaraData (macOS)
+      - name: Test KumbaraData (macOS, SwiftData)
         run: swift test --package-path Packages/KumbaraData
-      - name: Test KumbaraMarket (macOS)
-        run: swift test --package-path Packages/KumbaraMarket
-      - name: Build iOS
-        run: >
-          set -o pipefail &&
-          xcodebuild build -project Kumbara.xcodeproj -scheme Kumbara
-          -destination 'generic/platform=iOS Simulator'
-          CODE_SIGNING_ALLOWED=NO | xcbeautify
       - name: Build macOS
         run: >
           set -o pipefail &&
@@ -58,20 +71,25 @@ jobs:
           APP=$(find build-mac/Build/Products -maxdepth 2 -name 'Kumbara.app' | head -1)
           plutil -p "$APP/Contents/Info.plist" | grep -E 'CFBundleIconName|CFBundleIdentifier'
           plutil -p "$APP/Contents/Info.plist" | grep -q 'CFBundleIconName'
-      - name: UI test (iOS Simulator)
+      - name: Build iOS for testing
         run: |
           set -o pipefail
           UDID=$(xcrun simctl list devices available -j | python3 -c '
           import json, sys
           devices = json.load(sys.stdin)["devices"]
           phones = [(runtime, d) for runtime, items in devices.items() if ".iOS-" in runtime
-                    for d in items if d["name"].startswith("iPhone")]
+                    for d in items if d["name"].startswith("iPhone") and "Pro" in d["name"] and "Max" not in d["name"]]
           version = lambda r: [int(x) for x in r.split(".iOS-")[1].split("-")]
           phones.sort(key=lambda p: (version(p[0]), p[1]["name"]))
           print(phones[-1][1]["udid"])')
-          echo "Simulator: $UDID"
-          xcodebuild test -project Kumbara.xcodeproj -scheme Kumbara \
-            -destination "id=$UDID" -resultBundlePath ui-tests.xcresult CODE_SIGNING_ALLOWED=NO | xcbeautify
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcodebuild build-for-testing -project Kumbara.xcodeproj -scheme Kumbara \
+            -destination "id=$UDID" -derivedDataPath build CODE_SIGNING_ALLOWED=NO | xcbeautify
+      - name: UI test (iOS Simulator)
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building -project Kumbara.xcodeproj -scheme Kumbara \
+            -destination "id=$UDID" -derivedDataPath build -resultBundlePath ui-tests.xcresult | xcbeautify
       - name: Crash logs and test results on failure
         if: failure()
         run: |
@@ -85,37 +103,15 @@ jobs:
           path: failure
           if-no-files-found: ignore
 
-  # Commit mesajında [screenshots] varsa iOS (açık + koyu) ve macOS ekran görüntüleri üretir.
-  screenshots:
-    name: Screenshots
-    needs: app-apple
-    if: contains(github.event.head_commit.message, '[screenshots]')
-    runs-on: macos-26
-    steps:
-      - uses: actions/checkout@v5
-      - name: Select newest Xcode
-        run: sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
-      - name: Generate project
-        run: |
-          brew install xcodegen
-          xcodegen generate
+      # Ekran görüntüleri: aynı derleme, açık + koyu; macOS penceresi.
       - name: iOS screenshots
+        if: env.SCREENSHOTS == 'true'
         run: |
           set -o pipefail
-          UDID=$(xcrun simctl list devices available -j | python3 -c '
-          import json, sys
-          devices = json.load(sys.stdin)["devices"]
-          phones = [(runtime, d) for runtime, items in devices.items() if ".iOS-" in runtime
-                    for d in items if d["name"].startswith("iPhone") and "Pro" in d["name"] and "Max" not in d["name"]]
-          version = lambda r: [int(x) for x in r.split(".iOS-")[1].split("-")]
-          phones.sort(key=lambda p: (version(p[0]), p[1]["name"]))
-          print(phones[-1][1]["udid"])')
           xcrun simctl boot "$UDID" || true
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3
           mkdir -p "$PWD/screenshots"
-          xcodebuild build-for-testing -project Kumbara.xcodeproj -scheme Kumbara \
-            -destination "id=$UDID" -derivedDataPath build CODE_SIGNING_ALLOWED=NO | xcbeautify
           for APPEARANCE in light dark; do
             xcrun simctl ui "$UDID" appearance "$APPEARANCE"
             TEST_RUNNER_SCREENSHOT_DIR="$PWD/screenshots" TEST_RUNNER_SCREENSHOT_SUFFIX="$APPEARANCE" \
@@ -126,22 +122,18 @@ jobs:
           done
           ls -la screenshots
       - name: macOS screenshot
-        if: always()
+        if: env.SCREENSHOTS == 'true'
         continue-on-error: true
         run: |
-          set -o pipefail
-          xcodebuild build -project Kumbara.xcodeproj -scheme Kumbara -destination 'platform=macOS' \
-            -derivedDataPath build-mac CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= | xcbeautify
           APP=$(find build-mac/Build/Products -maxdepth 2 -name 'Kumbara.app' | head -1)
-          plutil -p "$APP/Contents/Info.plist" | grep -i -E 'icon|identifier' || true
+          codesign --force --deep -s - "$APP"
           open -n "$APP" --args -ui-testing -demo-data -AppleLanguages '(tr)' -AppleLocale tr_TR
           sleep 10
           osascript -e 'tell application "System Events" to tell process "Kumbara" to set frontmost to true' || true
           sleep 2
           screencapture -x screenshots/macos-1-ozet-light.png
-          ls -la screenshots
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: env.SCREENSHOTS == 'true'
         with:
           name: screenshots
           path: screenshots/
