@@ -11,6 +11,7 @@
 | D6 | Kâr/zarar varsayılan fiyatı: bozdurma (kuyumcu alış). |
 | D7 | Maliyet yöntemi: ağırlıklı ortalama (FIFO opsiyonel). |
 | D8 | Arayüz TR + EN; kod ve kimlikler İngilizce. |
+| D11 | M4 kararları: taksit bütçede aylık sayılır, planlanmış taksit kendiliğinden kesinleşir, bütçe devretme yok, Kestirmeler v1.x'e ertelendi (2026-11-27). |
 | D10 | Yayına kadar şema `SchemaV1` içinde genişletilir; ilk yayından sonra her değişiklik yeni `VersionedSchema` + göç planı ister (2026-11-27). |
 | D9 | Bundle ID `com.alikvkli.kumbara` (2026-11-27). CloudKit container ve App Group bundan türetilir: `iCloud.com.alikvkli.kumbara`, `group.com.alikvkli.kumbara`. |
 

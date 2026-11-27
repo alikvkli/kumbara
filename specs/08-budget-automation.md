@@ -1,6 +1,7 @@
 # 08 — Bütçe ve Otomasyon (M4)
 
-Durum: **taslak, onay bekliyor** (2026-11-27). Kapsam: REQ-B1, B2, L7, L8, L9, C7, M2, M4.
+Durum: **onaylandı** (2026-11-27). Kapsam: REQ-B1, B2, L7, L8, L9, M2, M4.
+Kestirmeler (REQ-C7, eski T4.4) kullanıcı kararıyla v1.x'e ertelendi.
 Tüm hesaplar `Decimal` (C3); hiçbir otomatik kayıt onaysız kesinleşmez (C5);
 her şey cihazda, bildirimler yereldir (C1, C2).
 
@@ -93,19 +94,8 @@ her şey cihazda, bildirimler yereldir (C1, C2).
 - Planı düzenlemek/silmek: kalan taksitler birlikte değişir; geçmiş taksitler
   korunur.
 
-## 4. Kestirmeler (T4.4 — REQ-C7)
-
-App Intents ve App Shortcuts (Türkçe ve İngilizce ifadeler):
-- **Harcama ekle** — tutar (zorunlu), kategori, satıcı, hesap (opsiyonel; yoksa
-  varsayılan hesap). "Kumbara'ya 250 lira market harcaması ekle". Kullanıcı
-  tutarı kendisi söylediği için **doğrudan kaydedilir**; Siri sonuç kartında
-  "Geri al" sunar.
-- **Gelir ekle** — aynı alanlar.
-- **Fişi oku** — görüntü/PDF parametresi; Kestirmeler otomasyonuyla ekran
-  görüntüsü → Kumbara. Sonuç **gelen kutusuna** düşer (M3 akışı), onay uygulamada.
-- **Bu ay ne kadar harcadım / kalan bütçe** — salt okunur yanıt.
-- **Gram altın kaç lira** — son fiyat ve tazeliği ("az önce 6.005 ₺").
-- Kayıtların kaynağı `TransactionOrigin.intent`.
+## 4. Kestirmeler — ertelendi
+REQ-C7 v1.x adayıdır (2026-11-27 kararı). `TransactionOrigin.intent` ileride kullanılmak üzere kalır.
 
 ## 5. Fiyat alarmı ve arka plan yenilemesi (T4.5 — REQ-M2, M4)
 
@@ -145,16 +135,11 @@ Hepsi CloudKit uyumlu (opsiyonel ilişkiler, `unique` yok).
   ekstresine düşer.
 - **AC-L8-1** Kesim 15: 15 Kasım'daki harcama Kasım dönemine, 16 Kasım'daki
   Aralık dönemine yazılır.
-- **AC-C7-1** "Kumbara'ya 250 lira market ekle" → varsayılan hesapta ₺250 Market
-  gideri, kaynak `intent`.
 - **AC-M4-1** Gram altın "6.100 üstü" alarmı: 6.120 gelince bir bildirim, 6.130'da
   yeni bildirim yok; tahmini fiyat 6.200 olsa bile bildirim yok.
 
-## 8. Onay bekleyen kararlar
-- **K1** Bütçe sayımında taksit: o aya düşen taksit (önerilen) mi, alımın tamamı mı?
-- **K2** Siri/Kestirme ile söylenen harcama doğrudan kaydedilsin (önerilen) mi,
-  taslak olarak mı beklesin?
-- **K3** Planlanmış taksitler tarihi gelince kendiliğinden kesinleşsin (önerilen)
-  mi, her taksit için onay mı istensin?
-- **K4** Bütçede devretme (kullanılmayanın sonraki aya geçmesi) v1'de olmasın
-  (önerilen) mı?
+## 8. Kararlar (2026-11-27)
+- **K1** Bütçede taksitli alımın yalnız o aya düşen taksiti sayılır.
+- **K2** (Kestirmeler ertelendi; karar gerekmedi.)
+- **K3** Planlanmış taksitler tarihi gelince kendiliğinden kesinleşir.
+- **K4** Bütçe devretme v1'de yok; her ay sıfırdan.

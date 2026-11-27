@@ -51,7 +51,7 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - [ ] T4.1 Bütçeler ve yerel bildirimler (REQ-B1, B2).
 - [ ] T4.2 Tekrarlayan işlemler → taslak (REQ-L7).
 - [ ] T4.3 Taksit planı, kart ekstre dönemi (REQ-L8, L9).
-- [ ] T4.4 App Intents / Kestirmeler (REQ-C7).
+- ~~T4.4 App Intents / Kestirmeler (REQ-C7)~~ → v1.x (2026-11-27 kararı).
 - [ ] T4.5 Fiyat alarmı (REQ-M4) ve arka plan fiyat yenilemesi (REQ-M2, BGAppRefreshTask).
 
 ## M5 — Yayın hazırlığı (2 hafta)
@@ -66,5 +66,5 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
       ile çok katmanlı Liquid Glass ikonu (06 §8), mağaza metni.
 
 ## Sonrası (v1.x adayları)
-Canlı tarama (DataScanner), BIST/fon fiyatları (kaynak bulunursa), ortak bütçe
+Kestirmeler / App Intents (REQ-C7), canlı tarama (DataScanner), BIST/fon fiyatları (kaynak bulunursa), ortak bütçe
 (CloudKit paylaşımı), Apple Watch hızlı ekleme, Vision Pro yok.
