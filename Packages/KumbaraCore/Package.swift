@@ -12,7 +12,7 @@ let package = Package(
     ],
     targets: [
         .target(name: "KumbaraCore"),
-        .testTarget(name: "KumbaraCoreTests", dependencies: ["KumbaraCore"]),
+        .testTarget(name: "KumbaraCoreTests", dependencies: ["KumbaraCore"], resources: [.copy("Fixtures")]),
     ],
     swiftLanguageModes: [.v6]
 )
