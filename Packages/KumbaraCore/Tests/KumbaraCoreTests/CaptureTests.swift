@@ -161,6 +161,18 @@ struct CaptureUnitTests {
         #expect(rows.map(\.text) == ["TOPLAM *1.249,90", "KREDİ KARTI"])
     }
 
+    @Test("Eğik fotoğraf: sağ uç ~2° yukarıda olsa da satırlar doğru gruplanır")
+    func skewedRows() {
+        // 2°: genişliğin %70'i boyunca ~0,0125 yükseklik farkı; satır yüksekliği 0,02, satır aralığı 0,03
+        let lines = [
+            TextLine(text: "TOPKDV", box: TextBox(x: 0.05, y: 0.420, width: 0.12, height: 0.02)),
+            TextLine(text: "*170,12", box: TextBox(x: 0.75, y: 0.4075, width: 0.15, height: 0.02)),
+            TextLine(text: "TOPLAM", box: TextBox(x: 0.05, y: 0.450, width: 0.12, height: 0.02)),
+            TextLine(text: "*1.249,90", box: TextBox(x: 0.72, y: 0.4375, width: 0.18, height: 0.02)),
+        ]
+        #expect(TextRow.group(lines).map(\.text) == ["TOPKDV *170,12", "TOPLAM *1.249,90"])
+    }
+
     @Test("Bulanık anahtar kelime: OCR hataları")
     func fuzzy() {
         #expect(CaptureText.contains("t0plam *214,85", word: "toplam") == (true, false))

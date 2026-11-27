@@ -38,7 +38,14 @@ struct MarketView: View {
                 ToolbarItem(placement: .confirmationAction) { Button("Bitti") { dismiss() } }
             }
             .refreshable { await board.refresh(including: Set(PriceBoard.marketAssets)) }
-            .task { await board.refresh(including: Set(PriceBoard.marketAssets)) }
+            .task {
+                // Sayfa açıkken tüm piyasa varlıkları periyodik yenilemeye katılır.
+                let token = board.watch(Set(PriceBoard.marketAssets))
+                defer { board.unwatch(token) }
+                await board.refresh(including: Set(PriceBoard.marketAssets))
+                // Görev sayfa kapanınca iptal edilir; o ana kadar izleme sürer.
+                while !Task.isCancelled { try? await Task.sleep(for: .seconds(3600)) }
+            }
         }
     }
 

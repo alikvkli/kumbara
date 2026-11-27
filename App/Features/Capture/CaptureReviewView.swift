@@ -83,6 +83,7 @@ private struct SingleDraftReview: View {
                                 .font(.title.weight(.semibold))
                                 .monospacedDigit()
                                 .focused($focus, equals: .amount)
+                                .accessibilityIdentifier("review.amount")
                                 #if os(iOS)
                                 .keyboardType(.decimalPad)
                                 #endif
@@ -91,6 +92,7 @@ private struct SingleDraftReview: View {
                     }
                     reviewField(lowConfidence: suggestion.merchant?.isLowConfidence ?? true) {
                         TextField("Satıcı", text: $merchant).focused($focus, equals: .merchant)
+                            .accessibilityIdentifier("review.merchant")
                     }
                     reviewField(lowConfidence: suggestion.date.isLowConfidence) {
                         DatePicker("Tarih", selection: $date).focused($focus, equals: .date)

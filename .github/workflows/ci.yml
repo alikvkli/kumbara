@@ -109,7 +109,8 @@ jobs:
             TEST_RUNNER_SCREENSHOT_DIR="$PWD/screenshots" TEST_RUNNER_SCREENSHOT_SUFFIX="$APPEARANCE" \
             xcodebuild test-without-building -project Kumbara.xcodeproj -scheme Kumbara \
               -destination "id=$UDID" -derivedDataPath build \
-              -only-testing:KumbaraUITests/ScreenshotTests | xcbeautify
+              -only-testing:KumbaraUITests/ScreenshotTests \
+              -only-testing:KumbaraUITests/CaptureUITests | xcbeautify
           done
           ls -la screenshots
       - name: macOS screenshot

@@ -24,6 +24,11 @@ final class PriceBoard {
     static let marketAssets: [AssetCode] = GoldKind.allCases.map { .gold($0) }
         + PreciousMetal.allCases.map { .metal($0) } + [.fx(.USD), .fx(.EUR), .fx(.GBP), .fx(.CHF)]
 
+    /// Görünür ekranların istediği ek varlıklar (ör. piyasa sayfası). Periyodik yenilemeye de girer.
+    private var watched: [UUID: Set<AssetCode>] = [:]
+    /// Yenileme sürerken gelen istekler; bitince hemen bir tur daha atılır (istek kaybolmaz).
+    private var pending: Set<AssetCode>?
+
     private let service: MarketService
     private let container: ModelContainer
     private let calendar: Calendar
@@ -51,13 +56,33 @@ final class PriceBoard {
         Task { await service.seed(seed) }
     }
 
-    func refresh(including extra: Set<AssetCode> = []) async {
-        guard !isRefreshing else { return }
-        isRefreshing = true
-        defer { isRefreshing = false }
+    /// Ekran görünürken `assets` periyodik yenilemeye katılır; dönen kimlikle bırakılır.
+    func watch(_ assets: Set<AssetCode>) -> UUID {
+        let token = UUID()
+        watched[token] = assets
+        return token
+    }
 
+    func unwatch(_ token: UUID) { watched[token] = nil }
+
+    func refresh(including extra: Set<AssetCode> = []) async {
+        guard !isRefreshing else {
+            // Kaybolmasın: mevcut tur bitince bu varlıklarla bir tur daha.
+            pending = (pending ?? []).union(extra)
+            return
+        }
+        isRefreshing = true
+        await performRefresh(including: extra)
+        while let next = pending {
+            pending = nil
+            await performRefresh(including: next)
+        }
+        isRefreshing = false
+    }
+
+    private func performRefresh(including extra: Set<AssetCode>) async {
         let held = (try? store.heldAssets()) ?? []
-        let wanted = held.union(Self.tickerAssets).union(extra)
+        let wanted = held.union(Self.tickerAssets).union(extra).union(watched.values.flatMap { $0 })
         let result = await service.refresh(wanted)
 
         lastAttempt = .now

@@ -47,6 +47,14 @@ struct CaptureEntry: ViewModifier {
             .sheet(item: $session.review) { review in
                 CaptureReviewView(review: review)
             }
+            .task {
+                // UI testi / ekran görüntüsü: örnek fiş gerçek Vision OCR'ından geçer.
+                let arguments = ProcessInfo.processInfo.arguments
+                guard arguments.contains("-ui-testing"), arguments.contains("-demo-capture"),
+                      let url = Bundle.main.url(forResource: "DemoReceipt", withExtension: "jpg"),
+                      let data = try? Data(contentsOf: url) else { return }
+                await session.process(data: data, contentType: .jpeg)
+            }
             .overlay {
                 if session.isProcessing {
                     ProgressView("Okunuyor…")

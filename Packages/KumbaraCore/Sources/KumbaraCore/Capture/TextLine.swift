@@ -53,7 +53,10 @@ public struct TextRow: Hashable, Sendable {
         for line in lines.sorted(by: { $0.box.midY < $1.box.midY }) {
             if let index = rows.lastIndex(where: { row in
                 let height = (row.map(\.box.height).reduce(0, +) / Double(row.count) + line.box.height) / 2
-                return abs(row[0].box.midY - line.box.midY) < height * 0.5
+                // 0,7 × satır yüksekliği: ~2°'lik eğik fotoğrafta aynı satırın uçları ayrılmaz;
+                // fişte satır aralığı ≥ 1,4 × yükseklik olduğundan komşu satırlar birleşmez.
+                let rowMid = row.map(\.box.midY).reduce(0, +) / Double(row.count)
+                return abs(rowMid - line.box.midY) < height * 0.7
             }) {
                 rows[index].append(line)
             } else {
