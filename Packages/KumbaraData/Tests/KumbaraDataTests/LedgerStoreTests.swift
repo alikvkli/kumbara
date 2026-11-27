@@ -134,3 +134,27 @@ struct LedgerStoreTests {
         #expect(try store.recentCategories(kind: .income).map(\.seedKey) == ["salary"])
     }
 }
+
+@MainActor
+@Suite("Örnek veri")
+struct DemoDataTests {
+    @Test("Örnek veri geçerli kayıtlar üretir ve gelecek tarih eklemez")
+    func loads() throws {
+        let container = try KumbaraContainer.make(inMemory: true)
+        let context = container.mainContext
+        try LedgerSeeder.seedIfNeeded(context, locale: Locale(identifier: "tr_TR"))
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Istanbul")!
+        let now = calendar.date(from: DateComponents(year: 2026, month: 11, day: 27, hour: 12))!
+        try DemoData.load(into: context, now: now, calendar: calendar)
+
+        let all = try context.fetch(FetchDescriptor<LedgerTransaction>())
+        #expect(all.count == 23)
+        #expect(all.allSatisfy { $0.date <= now })
+        let summary = try LedgerStore(context: context).summary(
+            for: LedgerMonth(year: 2026, month: 11), currency: .TRY, calendar: calendar)
+        #expect(summary.income == Money(69_500, .TRY))
+        #expect(summary.expense == Money(Decimal(canonical: "35805.69")!, .TRY))
+        #expect(try LedgerStore(context: context).suggestedCategory(forMerchant: "migros")?.seedKey == "market.food")
+    }
+}

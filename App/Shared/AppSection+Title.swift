@@ -10,7 +10,7 @@ extension AppSection {
         }
     }
 
-    @ViewBuilder
+    @MainActor @ViewBuilder
     var rootView: some View {
         switch self {
         case .summary: SummaryView()

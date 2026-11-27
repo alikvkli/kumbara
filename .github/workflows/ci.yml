@@ -47,8 +47,13 @@ jobs:
         run: >
           set -o pipefail &&
           xcodebuild build -project Kumbara.xcodeproj -scheme Kumbara
-          -destination 'generic/platform=macOS'
+          -destination 'generic/platform=macOS' -derivedDataPath build-mac
           CODE_SIGNING_ALLOWED=NO | xcbeautify
+      - name: Verify app icon is compiled
+        run: |
+          APP=$(find build-mac/Build/Products -maxdepth 2 -name 'Kumbara.app' | head -1)
+          plutil -p "$APP/Contents/Info.plist" | grep -E 'CFBundleIconName|CFBundleIdentifier'
+          plutil -p "$APP/Contents/Info.plist" | grep -q 'CFBundleIconName'
       - name: UI test (iOS Simulator)
         run: |
           set -o pipefail
@@ -63,3 +68,63 @@ jobs:
           echo "Simulator: $UDID"
           xcodebuild test -project Kumbara.xcodeproj -scheme Kumbara \
             -destination "id=$UDID" CODE_SIGNING_ALLOWED=NO | xcbeautify
+
+  # Commit mesajında [screenshots] varsa iOS (açık + koyu) ve macOS ekran görüntüleri üretir.
+  screenshots:
+    name: Screenshots
+    needs: app-apple
+    if: contains(github.event.head_commit.message, '[screenshots]')
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Select newest Xcode
+        run: sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+      - name: Generate project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+      - name: iOS screenshots
+        run: |
+          set -o pipefail
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          phones = [(runtime, d) for runtime, items in devices.items() if ".iOS-" in runtime
+                    for d in items if d["name"].startswith("iPhone") and "Pro" in d["name"] and "Max" not in d["name"]]
+          version = lambda r: [int(x) for x in r.split(".iOS-")[1].split("-")]
+          phones.sort(key=lambda p: (version(p[0]), p[1]["name"]))
+          print(phones[-1][1]["udid"])')
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3
+          mkdir -p "$PWD/screenshots"
+          xcodebuild build-for-testing -project Kumbara.xcodeproj -scheme Kumbara \
+            -destination "id=$UDID" -derivedDataPath build CODE_SIGNING_ALLOWED=NO | xcbeautify
+          for APPEARANCE in light dark; do
+            xcrun simctl ui "$UDID" appearance "$APPEARANCE"
+            TEST_RUNNER_SCREENSHOT_DIR="$PWD/screenshots" TEST_RUNNER_SCREENSHOT_SUFFIX="$APPEARANCE" \
+            xcodebuild test-without-building -project Kumbara.xcodeproj -scheme Kumbara \
+              -destination "id=$UDID" -derivedDataPath build \
+              -only-testing:KumbaraUITests/ScreenshotTests | xcbeautify
+          done
+          ls -la screenshots
+      - name: macOS screenshot
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          xcodebuild build -project Kumbara.xcodeproj -scheme Kumbara -destination 'platform=macOS' \
+            -derivedDataPath build-mac CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= | xcbeautify
+          APP=$(find build-mac/Build/Products -maxdepth 2 -name 'Kumbara.app' | head -1)
+          plutil -p "$APP/Contents/Info.plist" | grep -i -E 'icon|identifier' || true
+          open -n "$APP" --args -ui-testing -demo-data -AppleLanguages '(tr)' -AppleLocale tr_TR
+          sleep 10
+          osascript -e 'tell application "System Events" to tell process "Kumbara" to set frontmost to true' || true
+          sleep 2
+          screencapture -x screenshots/macos-1-ozet-light.png
+          ls -la screenshots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: screenshots/
+          if-no-files-found: warn

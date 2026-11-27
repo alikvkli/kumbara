@@ -9,10 +9,15 @@ struct KumbaraApp: App {
 
     init() {
         // UI testleri her çalıştırmada boş, bellek içi bir depoyla başlar.
-        let isUITesting = ProcessInfo.processInfo.arguments.contains("-ui-testing")
+        // `-demo-data` örnek veriyi yükler (ekran görüntüleri); yalnız bellek içi depoda.
+        let arguments = ProcessInfo.processInfo.arguments
+        let isUITesting = arguments.contains("-ui-testing")
         do {
             container = try KumbaraContainer.make(inMemory: isUITesting)
             try LedgerSeeder.seedIfNeeded(container.mainContext)
+            if isUITesting, arguments.contains("-demo-data") {
+                try DemoData.load(into: container.mainContext)
+            }
         } catch {
             // TODO(M5): kurtarma ekranı ve dışa aktarma önerisi.
             fatalError("Veri deposu açılamadı: \(error)")

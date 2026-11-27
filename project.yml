@@ -2,7 +2,7 @@
 # .xcodeproj depoya eklenmez; tek doğruluk kaynağı bu dosyadır.
 name: Kumbara
 options:
-  bundleIdPrefix: app.kumbara            # TODO(Q10): Apple Developer hesabına göre güncellenecek
+  bundleIdPrefix: com.alikvkli
   developmentLanguage: tr
   createIntermediateGroups: true
   deploymentTarget:
@@ -16,7 +16,7 @@ settings:
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     SWIFT_EMIT_LOC_STRINGS: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
-    DEVELOPMENT_TEAM: ""                 # TODO(Q10)
+    DEVELOPMENT_TEAM: ""                 # TODO(Q10): Apple Developer Team ID
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
 
@@ -32,6 +32,12 @@ targets:
     supportedDestinations: [iOS, macOS]
     sources:
       - path: App
+        excludes:
+          - Resources/AppIcon.icon
+      # Icon Composer paketi tek dosya olarak eklenir (klasör olarak gezilmez).
+      - path: App/Resources/AppIcon.icon
+        type: file
+        buildPhase: resources
     dependencies:
       - package: KumbaraCore
       - package: KumbaraData
@@ -40,7 +46,7 @@ targets:
         - KumbaraUITests
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.kumbara.Kumbara   # TODO(Q10)
+        PRODUCT_BUNDLE_IDENTIFIER: com.alikvkli.kumbara
         PRODUCT_NAME: Kumbara
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Kumbara
@@ -52,7 +58,7 @@ targets:
           UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         INFOPLIST_KEY_NSCameraUsageDescription: Fişini tarayıp harcamayı otomatik oluşturmak için kamera kullanılır. Görüntü cihazından çıkmaz.
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        ASSETCATALOG_COMPILER_APPICON_NAME: ""          # TODO(T5.7): Icon Composer ikonu
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon      # App/Resources/AppIcon.icon (Icon Composer)
         TARGETED_DEVICE_FAMILY: "1,2"
         # macOS sandbox (specs/00 C1: yalnız giden ağ + kullanıcının seçtiği dosyalar)
         ENABLE_APP_SANDBOX: YES
@@ -69,6 +75,6 @@ targets:
       - target: Kumbara
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.kumbara.KumbaraUITests   # TODO(Q10)
+        PRODUCT_BUNDLE_IDENTIFIER: com.alikvkli.kumbara.uitests
         GENERATE_INFOPLIST_FILE: YES
         TEST_TARGET_NAME: Kumbara

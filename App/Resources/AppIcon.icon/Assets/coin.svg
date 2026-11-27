@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Yuvaya giren altın sikke; yuva çizgisinin altı kesilir. -->
+  <defs><clipPath id="slot"><rect width="1024" height="464"/></clipPath></defs>
+  <g clip-path="url(#slot)">
+    <circle cx="512" cy="420" r="184" fill="#E2B13C"/>
+    <circle cx="512" cy="420" r="132" fill="none" stroke="#B8862A" stroke-width="18"/>
+  </g>
+</svg>

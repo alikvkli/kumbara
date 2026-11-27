@@ -11,9 +11,10 @@
 | D6 | Kâr/zarar varsayılan fiyatı: bozdurma (kuyumcu alış). |
 | D7 | Maliyet yöntemi: ağırlıklı ortalama (FIFO opsiyonel). |
 | D8 | Arayüz TR + EN; kod ve kimlikler İngilizce. |
+| D9 | Bundle ID `com.alikvkli.kumbara` (2026-11-27). CloudKit container ve App Group bundan türetilir: `iCloud.com.alikvkli.kumbara`, `group.com.alikvkli.kumbara`. |
 
 ## Açık
 | # | Soru |
 |---|---|
 | Q9 | Uygulama adı "Kumbara" kesin mi? App Store'da çakışma kontrolü yapılacak. |
-| Q10 | Apple Developer hesabı ve bundle ID? CloudKit container adı ve App Group buna bağlı. |
+| Q10 | Apple Developer Team ID? (Cihazda çalıştırma, iCloud ve App Store için gerekli.) |
