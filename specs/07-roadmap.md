@@ -56,7 +56,7 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 
 ## M5 — Yayın hazırlığı (2 hafta) — ayrıntı: 09
 - [x] T5.0 Veri deposu App Group kapsayıcısında (widget/kontrol/uzantı ortak okur).
-- [ ] T5.1 iCloud eşitleme açma/kapama (REQ-X2).
+- [x] T5.1 iCloud eşitleme açma/kapama (REQ-X2) — kod hazır; Team ID ile `ICLOUD` bayrağı açılınca etkin (README).
 - [x] T5.2 Kilit + bulanık önizleme (REQ-X3).
 - [x] T5.3 CSV/JSON dışa aktarma, CSV içe aktarma (REQ-X4).
 - [x] T5.4 Widget'lar (tüm rendering modları), Denetim Merkezi kontrolleri,

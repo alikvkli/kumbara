@@ -36,6 +36,20 @@ open Kumbara.xcodeproj
 swift test --package-path Packages/KumbaraCore
 ```
 
+### iCloud eşitlemeyi açma (Team ID gelince)
+
+Eşitleme kodu hazırdır ama varsayılan derlemede kapalıdır: iCloud yetkisi Apple Developer hesabıyla
+imzalama ister (specs/09 §1, Q10). Açmak için `project.yml`'de üç satır:
+
+1. `settings.base.DEVELOPMENT_TEAM`: Team ID'n (ör. `"AB12CD34EF"`).
+2. `targets.Kumbara.entitlements.path`: `Config/Kumbara-iCloud.entitlements` (App Group + CloudKit
+   kapsayıcısı `iCloud.com.alikvkli.kumbara` + push). `properties:` bloğunu sil; dosya olduğu gibi kullanılır.
+3. `targets.Kumbara.settings.base` altına: `SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) ICLOUD"`.
+
+Sonra `xcodegen generate`, Xcode'da Signing & Capabilities'te kapsayıcının oluştuğunu kontrol et ve
+uygulamayı cihazda çalıştır: Ayarlar › iCloud görünür. Mağazaya göndermeden önce entitlements'taki
+`aps-environment` değerini `production` yap. Bayrak olmadan derlenen sürümde ayar görünmez, veri yalnız cihazdadır.
+
 Yapı:
 
 ```

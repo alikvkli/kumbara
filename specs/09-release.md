@@ -20,8 +20,9 @@ kopyalanır. Bu iş T5.1–T5.4'ün önündedir.
 - Değişiklik depo yeniden açılarak uygulanır ("Uygulama yeniden başlayacak").
 - Durum satırı: "Son eşitleme az önce" / "iCloud hesabı yok" / "Depolama dolu". Hata
   sessizce yutulmaz.
-- **Engel:** CloudKit kapsayıcısı Team ID ister (Q10). Kod yazılır, test cihazda Team ID
-  gelince yapılır; CI imzasız derler.
+- **Engel:** CloudKit kapsayıcısı Team ID ister (Q10). Kod hazır, `ICLOUD` derleme bayrağının
+  arkasında; bayrak ve Team ID README'deki üç adımla eklenir. Bayraksız derlemede ayar görünmez.
+  "iCloud'daki kopyayı sil" v1'de sistemin iCloud depolama ayarına yönlendirir (uygulama içi silme v1.x).
 
 ## 2. Kilit (T5.2 — REQ-X3)
 - Ayarlar › Kilit: kapalı (varsayılan) | Face ID / Touch ID (yedek: cihaz parolası,

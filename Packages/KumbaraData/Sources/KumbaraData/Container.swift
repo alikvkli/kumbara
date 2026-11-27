@@ -6,11 +6,16 @@ public enum KumbaraContainer {
     /// Uygulama, paylaş uzantısı ve widget'ların ortak kapsayıcısı (specs/09 §0).
     public static let appGroup = CaptureInbox.appGroup
     static let storeName = "Kumbara"
+    /// CloudKit kapsayıcısı (REQ-X2, specs/09 §1). Etkinleştirme: README › "iCloud eşitlemeyi açma".
+    public static let cloudContainer = "iCloud.com.alikvkli.kumbara"
 
     /// Uygulamanın kalıcı deposu. App Group kapsayıcısında durur ki widget'lar ve kontroller aynı
     /// veriyi okuyabilsin; kapsayıcı yoksa (imzasız derleme) uygulamanın kendi klasörüne düşer.
-    /// iCloud eşitleme M5'te (REQ-X2) opsiyonel olarak açılır.
-    public static func make(inMemory: Bool = false) throws -> ModelContainer {
+    ///
+    /// `iCloudSync`: aynı yerel depo kullanıcının özel iCloud veritabanıyla eşitlenir (varsayılan kapalı).
+    /// Uygulama iCloud yetkisiyle imzalanmadıysa açılmamalıdır; çağıran taraf bunu derleme bayrağıyla
+    /// (`ICLOUD`) güvenceye alır.
+    public static func make(inMemory: Bool = false, iCloudSync: Bool = false) throws -> ModelContainer {
         let schema = Schema(versionedSchema: SchemaV1.self)
         let configuration: ModelConfiguration
         if inMemory {
@@ -19,7 +24,8 @@ public enum KumbaraContainer {
                                                isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         } else {
             let url = try storeURL()
-            configuration = ModelConfiguration(storeName, schema: schema, url: url, cloudKitDatabase: .none)
+            configuration = ModelConfiguration(storeName, schema: schema, url: url,
+                                               cloudKitDatabase: iCloudSync ? .private(cloudContainer) : .none)
         }
         return try ModelContainer(for: schema, migrationPlan: KumbaraMigrationPlan.self,
                                   configurations: configuration)

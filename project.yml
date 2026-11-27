@@ -16,7 +16,7 @@ settings:
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     SWIFT_EMIT_LOC_STRINGS: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
-    DEVELOPMENT_TEAM: ""                 # TODO(Q10): Apple Developer Team ID
+    DEVELOPMENT_TEAM: ""                 # TODO(Q10): Apple Developer Team ID — README › "iCloud eşitlemeyi açma"
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
 
@@ -54,7 +54,7 @@ targets:
       path: Config/Kumbara-Info.plist
       properties:
         BGTaskSchedulerPermittedIdentifiers: [com.alikvkli.kumbara.refresh]
-        UIBackgroundModes: [fetch]
+        UIBackgroundModes: [fetch, remote-notification]   # remote-notification: iCloud eşitleme bildirimleri
         # Widget, Denetim Merkezi ve menü çubuğu bağlantıları (specs/09 §4).
         CFBundleURLTypes:
           - CFBundleURLName: com.alikvkli.kumbara

@@ -60,6 +60,13 @@ struct SettingsView: View {
                 }
             }
             Section {
+                if ICloudSync.isAvailableInBuild {
+                    NavigationLink {
+                        ICloudSettingsView()
+                    } label: {
+                        Label("iCloud", systemImage: "icloud")
+                    }
+                }
                 NavigationLink {
                     LockSettingsView()
                 } label: {

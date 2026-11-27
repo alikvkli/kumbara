@@ -21,7 +21,7 @@ struct KumbaraApp: App {
         let arguments = ProcessInfo.processInfo.arguments
         let isUITesting = arguments.contains("-ui-testing")
         do {
-            container = try KumbaraContainer.make(inMemory: isUITesting)
+            container = try KumbaraContainer.make(inMemory: isUITesting, iCloudSync: !isUITesting && ICloudSync.isEnabled)
             try LedgerSeeder.seedIfNeeded(container.mainContext)
             if isUITesting, arguments.contains("-demo-data") {
                 try DemoData.load(into: container.mainContext)
