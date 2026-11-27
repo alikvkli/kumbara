@@ -160,8 +160,8 @@ struct DemoDataTests {
         try DemoData.load(into: context, now: now, calendar: calendar)
 
         let all = try context.fetch(FetchDescriptor<LedgerTransaction>())
-        // 23 kayıt + spor salonu (geçen ay + bu ayın taslağı) + 6 taksit (2 kesin, 4 planlı).
-        #expect(all.count == 31)
+        // 23 kayıt + spor salonu (geçen ay + bu ayın taslağı) + 6 taksit (2 kesin, 4 planlı) + kart ödemesi.
+        #expect(all.count == 32)
         #expect(all.filter { $0.status == .draft }.map(\.merchant) == ["MacFit"])
         #expect(all.filter { $0.status == .planned }.count == 4)
         #expect(all.filter { $0.status != .planned }.allSatisfy { $0.date <= now })
@@ -170,6 +170,12 @@ struct DemoDataTests {
         #expect(summary.income == Money(69_500, .TRY))
         #expect(summary.expense == Money(Decimal(canonical: "37805.69")!, .TRY))  // + bu ayın taksiti ₺2.000
         #expect(try LedgerStore(context: context).suggestedCategory(forMerchant: "migros")?.seedKey == "market.food")
+
+        // Son ekstre ödenmiş: borç yok, bu dönemin harcaması duruyor.
+        let card = try #require(try context.fetch(FetchDescriptor<LedgerAccount>()).first { $0.kind == .card })
+        let statement = try #require(try InstallmentStore(context: context).statement(for: card, now: now, calendar: calendar))
+        #expect(statement.remainingDue.amount == 0)
+        #expect(statement.lastStatement.amount > 0)
 
         let portfolio = PortfolioStore(context: context, calendar: calendar)
         #expect(try portfolio.allTrades().count == 7)

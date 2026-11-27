@@ -113,6 +113,17 @@ public enum DemoData {
                 TransactionDraft(amount: 12_000, date: date, account: card.ref, category: electronics.ref, merchant: "MediaMarkt"),
                 count: 6, now: now, calendar: calendar)
         }
+        // Kart ödemesi: son ekstre son ödeme gününden 2 gün önce maaş hesabından tam ödenmiş olsun
+        // (ekran görüntüleri gecikmiş borç göstermesin).
+        let installments = InstallmentStore(context: context)
+        if let statement = try installments.statement(for: card, now: now, calendar: calendar),
+           statement.remainingDue.amount > 0,
+           let paid = calendar.date(byAdding: .day, value: -2, to: statement.last.due),
+           paid > statement.last.closing, paid <= now {
+            try store.save(TransactionDraft(kind: .transfer, amount: statement.remainingDue.amount,
+                                            date: calendar.date(bySettingHour: 11, minute: 0, second: 0, of: paid) ?? paid,
+                                            account: bank.ref, toAccount: card.ref), now: now)
+        }
         try loadPortfolio(into: context, now: now, calendar: calendar)
     }
 

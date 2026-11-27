@@ -15,7 +15,7 @@ struct MarketView: View {
         NavigationStack {
             List {
                 Section {
-                    ForEach(PriceBoard.marketAssets, id: \.self) { asset in
+                    ForEach(shownAssets, id: \.self) { asset in
                         row(asset)
                             .contextMenu {
                                 Button("Alarm kur", systemImage: "bell") { alertAsset = asset }
@@ -32,6 +32,25 @@ struct MarketView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         updateStatus
                         Text("Alış: kuyumcunun/bankanın senden aldığı (bozdurma). Satış: sana sattığı. Tahmini fiyatlar ons ve dolar kurundan hesaplanır.")
+                    }
+                }
+                // Fiyatı gelmeyenler tek satırda: tablo boyunca "—" dizmek yerine ne olduğunu söyle.
+                if !missingAssets.isEmpty {
+                    Section {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Label("Şu an alınamadı", systemImage: "exclamationmark.icloud")
+                                .font(.subheadline.weight(.semibold))
+                            Text(verbatim: missingAssets.map { $0.displayName() }.formatted(.list(type: .and)))
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        .accessibilityElement(children: .combine)
+                        Button("Yeniden dene", systemImage: "arrow.clockwise") {
+                            Task { await board.refresh(including: Set(PriceBoard.marketAssets)) }
+                        }
+                        .disabled(board.isRefreshing)
+                    } footer: {
+                        Text("Kaynak bu fiyatları şu an vermiyor. Sayfa açıkken kendiliğinden tekrar denenir.")
                     }
                 }
             }
@@ -53,6 +72,14 @@ struct MarketView: View {
                 while !Task.isCancelled { try? await Task.sleep(for: .seconds(3600)) }
             }
         }
+    }
+
+    /// Fiyatı olan ya da hâlâ yüklenen varlıklar tabloda; gerçekten alınamayanlar ayrı bölümde.
+    private var shownAssets: [AssetCode] { PriceBoard.marketAssets.filter { !isMissing($0) } }
+    private var missingAssets: [AssetCode] { PriceBoard.marketAssets.filter(isMissing) }
+    private func isMissing(_ asset: AssetCode) -> Bool {
+        // Yalnız son yenilemede kaynağın vermediği varlık; henüz denenmemiş olan tabloda yer tutucuyla kalır.
+        board.quote(asset) == nil && board.unavailable.contains(asset)
     }
 
     /// En yeni otomatik fiyatın zamanı, sayfada bir kez: her satırda aynı saati tekrarlamak gürültü.
