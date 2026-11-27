@@ -1,0 +1,110 @@
+{
+  "description" : "bank_screen şablonu, üretilmiş",
+  "expect" : {
+    "drafts" : [
+      {
+        "amount" : "2863.04",
+        "date" : "2026-11-27",
+        "kind" : "income"
+      },
+      {
+        "amount" : "7220.74",
+        "date" : "2026-11-27",
+        "kind" : "income"
+      },
+      {
+        "amount" : "2339.71",
+        "category" : "dining.delivery",
+        "date" : "2026-11-27",
+        "kind" : "expense",
+        "merchant" : "Yemeksepeti"
+      },
+      {
+        "amount" : "661.83",
+        "category" : "market.food",
+        "date" : "2026-11-26",
+        "kind" : "expense",
+        "merchant" : "Migros"
+      }
+    ],
+    "kind" : "bankList"
+  },
+  "generator" : "Tools\/corpus\/generate.py",
+  "lines" : [
+    [
+      "Hesap Hareketleri",
+      0.050000000000000003,
+      0.070999999999999994,
+      1
+    ],
+    [
+      "Kullanılabilir Bakiye 16.109,24 TL",
+      0.0458,
+      0.1132,
+      1
+    ],
+    [
+      "27 Kasım 2026",
+      0.0458,
+      0.16120000000000001,
+      1
+    ],
+    [
+      "FAST GELEN TRANSFER",
+      0.0458,
+      0.19389999999999999,
+      1
+    ],
+    [
+      "FAST GELEN TRANSFER",
+      0.0458,
+      0.23419999999999999,
+      1
+    ],
+    [
+      "YEMEKSEPETI",
+      0.0458,
+      0.2762,
+      1
+    ],
+    [
+      "26 Kasım 2026",
+      0.0458,
+      0.33210000000000001,
+      1
+    ],
+    [
+      "MİGROS ATAŞEHİR",
+      0.0458,
+      0.36280000000000001,
+      1
+    ],
+    [
+      "+2,863,04 TL",
+      0.72499999999999998,
+      0.19389999999999999,
+      1
+    ],
+    [
+      "+7.220,74 TL",
+      0.72499999999999998,
+      0.23799999999999999,
+      1
+    ],
+    [
+      "-2.339,71 TL",
+      0.73329999999999995,
+      0.27629999999999999,
+      1
+    ],
+    [
+      "-661,83 TL",
+      0.76229999999999998,
+      0.36230000000000001,
+      1
+    ]
+  ],
+  "now" : "2026-11-27T18:00:00+03:00",
+  "seed" : 2026,
+  "source" : "vision-synthetic"
+}

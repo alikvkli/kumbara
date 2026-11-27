@@ -29,11 +29,13 @@ struct KumbaraApp: App {
 
     var body: some Scene {
         WindowGroup {
+            // CaptureEntry ortamdan CaptureSession okur: ortam değerleri yalnız içeriye akar, bu yüzden
+            // değiştirici `.environment` çağrılarının İÇİNDE kalmalı (dışında kalırsa açılışta çöker).
             RootView()
+                .modifier(CaptureEntry())
                 .environment(router)
                 .environment(board)
                 .environment(capture)
-                .modifier(CaptureEntry())
         }
         .modelContainer(container)
         #if os(macOS)

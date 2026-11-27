@@ -1,0 +1,158 @@
+{
+  "description" : "bank_screen şablonu, üretilmiş",
+  "expect" : {
+    "drafts" : [
+      {
+        "amount" : "1379.66",
+        "category" : "transport.fuel",
+        "date" : "2026-11-26",
+        "kind" : "expense",
+        "merchant" : "Opet"
+      },
+      {
+        "amount" : "1426.04",
+        "category" : "transport.fuel",
+        "date" : "2026-11-26",
+        "kind" : "expense",
+        "merchant" : "Opet"
+      },
+      {
+        "amount" : "55.61",
+        "category" : "transport.fuel",
+        "date" : "2026-11-26",
+        "kind" : "expense",
+        "merchant" : "Shell"
+      },
+      {
+        "amount" : "1331.75",
+        "category" : "market.food",
+        "date" : "2026-11-24",
+        "kind" : "expense",
+        "merchant" : "A101"
+      },
+      {
+        "amount" : "797.29",
+        "category" : "transport.fuel",
+        "date" : "2026-11-24",
+        "kind" : "expense",
+        "merchant" : "Opet"
+      },
+      {
+        "amount" : "734.46",
+        "category" : "dining.cafe",
+        "date" : "2026-11-23",
+        "kind" : "expense",
+        "merchant" : "Starbucks"
+      }
+    ],
+    "kind" : "bankList"
+  },
+  "generator" : "Tools\/corpus\/generate.py",
+  "lines" : [
+    [
+      "Hesap Hareketleri",
+      0.050000000000000003,
+      0.070999999999999994,
+      1
+    ],
+    [
+      "Kullanılabilir Bakiye 13.543,82 TL",
+      0.0458,
+      0.1113,
+      1
+    ],
+    [
+      "26 Kasım 2026",
+      0.0458,
+      0.16120000000000001,
+      1
+    ],
+    [
+      "OPET KADIKÖY",
+      0.0458,
+      0.19189999999999999,
+      1
+    ],
+    [
+      "OPET KADIKÖY",
+      0.0458,
+      0.23419999999999999,
+      1
+    ],
+    [
+      "SHELL MASLAK",
+      0.0458,
+      0.27829999999999999,
+      0.5
+    ],
+    [
+      "24 Kasım 2026",
+      0.0458,
+      0.33400000000000002,
+      1
+    ],
+    [
+      "A101 MODA",
+      0.045699999999999998,
+      0.36259999999999998,
+      1
+    ],
+    [
+      "OPET KADIKÖY",
+      0.0458,
+      0.40500000000000003,
+      1
+    ],
+    [
+      "23 Kasım 2026",
+      0.0458,
+      0.46450000000000002,
+      1
+    ],
+    [
+      "STARBUCKS ZORLU",
+      0.050000000000000003,
+      0.49519999999999997,
+      1
+    ],
+    [
+      "-1.379,66 TL",
+      0.72909999999999997,
+      0.18990000000000001,
+      1
+    ],
+    [
+      "-1.426,04 TL",
+      0.72919999999999996,
+      0.23419999999999999,
+      1
+    ],
+    [
+      "-55,61 TL",
+      0.7792,
+      0.27829999999999999,
+      1
+    ],
+    [
+      "-1.331,75 TL",
+      0.72909999999999997,
+      0.36259999999999998,
+      1
+    ],
+    [
+      "-797,29 TL",
+      0.7621,
+      0.40429999999999999,
+      1
+    ],
+    [
+      "-734,46 TL",
+      0.75819999999999999,
+      0.49490000000000001,
+      1
+    ]
+  ],
+  "now" : "2026-11-27T18:00:00+03:00",
+  "seed" : 2026,
+  "source" : "vision-synthetic"
+}

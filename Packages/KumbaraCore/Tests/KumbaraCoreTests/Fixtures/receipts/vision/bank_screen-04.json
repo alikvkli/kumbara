@@ -1,0 +1,112 @@
+{
+  "description" : "bank_screen şablonu, üretilmiş",
+  "expect" : {
+    "drafts" : [
+      {
+        "amount" : "7622.20",
+        "date" : "2026-11-27",
+        "kind" : "income"
+      },
+      {
+        "amount" : "1540.89",
+        "category" : "transport.fuel",
+        "date" : "2026-11-27",
+        "kind" : "expense",
+        "merchant" : "Shell"
+      },
+      {
+        "amount" : "815.38",
+        "category" : "market.food",
+        "date" : "2026-11-25",
+        "kind" : "expense",
+        "merchant" : "Migros"
+      },
+      {
+        "amount" : "2225.11",
+        "category" : "housing.internet",
+        "date" : "2026-11-25",
+        "kind" : "expense",
+        "merchant" : "Turkcell"
+      }
+    ],
+    "kind" : "bankList"
+  },
+  "generator" : "Tools\/corpus\/generate.py",
+  "lines" : [
+    [
+      "Hesap Hareketleri",
+      0.050000000000000003,
+      0.070999999999999994,
+      1
+    ],
+    [
+      "Kullanılabilir Bakiye 28.287,71 TL",
+      0.0458,
+      0.1113,
+      1
+    ],
+    [
+      "27 Kasım 2026",
+      0.0458,
+      0.16120000000000001,
+      1
+    ],
+    [
+      "FAST GELEN TRANSFER",
+      0.0458,
+      0.19,
+      1
+    ],
+    [
+      "SHELL MASLAK",
+      0.0458,
+      0.23419999999999999,
+      0.5
+    ],
+    [
+      "25 Kasım 2026",
+      0.0458,
+      0.2898,
+      1
+    ],
+    [
+      "MIGROS ATAŞEHİR",
+      0.0458,
+      0.31859999999999999,
+      1
+    ],
+    [
+      "TURKCELL FATURA",
+      0.0458,
+      0.36280000000000001,
+      1
+    ],
+    [
+      "+7.622,20 TL",
+      0.7248,
+      0.19339999999999999,
+      1
+    ],
+    [
+      "-1.540,89 TL",
+      0.72909999999999997,
+      0.2339,
+      1
+    ],
+    [
+      "-815,38 TL",
+      0.76249999999999996,
+      0.31859999999999999,
+      1
+    ],
+    [
+      "-2.225,11 TL",
+      0.7329,
+      0.36009999999999998,
+      1
+    ]
+  ],
+  "now" : "2026-11-27T18:00:00+03:00",
+  "seed" : 2026,
+  "source" : "vision-synthetic"
+}

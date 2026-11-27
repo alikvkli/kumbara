@@ -110,9 +110,15 @@ public struct CaptureParser: Sendable {
                 guard match.found else { continue }
                 if Self.excludedForTotal.contains(where: { key.contains($0) }) && !key.contains("genel toplam") { continue }
                 // Tutar aynı satırda; yoksa hemen alttaki satırda (dar fişlerde kayabilir).
-                let candidates = Extract.amounts(in: row.text).map { ($0, row) }
-                    + (index + 1 < rows.count && Extract.amounts(in: row.text).isEmpty
-                        ? Extract.amounts(in: rows[index + 1].text).map { ($0, rows[index + 1]) } : [])
+                // Tutar aynı satırda; yoksa hemen altta (dar fişlerde kayar). Altta yoksa üstte: eğik
+                // fişte tutar etiketin üstüne de kayabilir. Kendi etiketi olan komşu satır atlanır.
+                var candidates = Extract.amounts(in: row.text).map { ($0, row) }
+                if candidates.isEmpty {
+                    let neighbours = [index + 1, index - 1].filter { rows.indices.contains($0) && !Self.isLabelled(keys[$0]) }
+                    if let nearest = neighbours.first(where: { !Extract.amounts(in: rows[$0].text).isEmpty }) {
+                        candidates = Extract.amounts(in: rows[nearest].text).map { ($0, rows[nearest]) }
+                    }
+                }
                 guard let (found, sourceRow) = candidates.last else { continue }
                 var confidence = match.exact ? baseConfidence : baseConfidence - 0.12
                 // Ödeme satırı aynı tutarı söylüyorsa güven artar.
@@ -144,6 +150,12 @@ public struct CaptureParser: Sendable {
                              date: date(in: rows, keys: keys), merchant: merchant(in: rows, keys: keys),
                              categoryKey: nil, vat: vat)
             .withCategory(from: rows)
+    }
+
+    /// Satırda kendi etiketi var mı (KDV, ödeme, toplam…): komşu tutar ararken bunlar atlanır.
+    private static func isLabelled(_ key: String) -> Bool {
+        key.contains(where: \.isLetter) && (excludedForTotal.contains(where: key.contains)
+            || paymentLabels.contains(where: key.contains) || totalLabels.contains { key.contains($0.label) })
     }
 
     private func currency(in keys: [String]) -> CurrencyCode {
@@ -183,7 +195,13 @@ public struct CaptureParser: Sendable {
         let suffixes: Set<String> = ["a.ş.", "a.s.", "aş", "a.ş", "ltd.", "ltd", "şti.", "şti", "sti.", "tic.", "tic", "san.", "san",
                                      "ve", "anonim", "şirketi", "limited", "pazarlama", "a.s"]
         var words = raw.split(separator: " ").map(String.init)
-        while let last = words.last, suffixes.contains(last.lowercased(with: Locale(identifier: "tr_TR"))) {
+        // "SAMSUN SPOR KUL.DER.İKT." → kısaltma zinciri (noktalı kısa parçalar) unvandır.
+        func isAbbreviation(_ word: String) -> Bool {
+            let parts = word.split(separator: ".", omittingEmptySubsequences: true)
+            return word.contains(".") && parts.count >= 2 && parts.allSatisfy { $0.count <= 4 && $0.allSatisfy(\.isLetter) }
+        }
+        while let last = words.last,
+              suffixes.contains(last.lowercased(with: Locale(identifier: "tr_TR"))) || (words.count > 1 && isAbbreviation(last)) {
             words.removeLast()
         }
         let turkish = Locale(identifier: "tr_TR")
@@ -196,8 +214,10 @@ public struct CaptureParser: Sendable {
 
     func date(in rows: [TextRow], keys: [String]) -> Suggestion<Date> {
         let year = calendar.component(.year, from: now)
-        var best: (date: Date, confidence: Double, box: TextBox)?
+        var best: (date: Date, confidence: Double, rank: Int, box: TextBox)?
         for (index, key) in keys.enumerated() {
+            // "19 MAYIS VD" vergi dairesi adıdır, tarih değil.
+            if !key.contains("tarih"), key.range(of: #"\bv\.?\s?d\b|vergi"#, options: .regularExpression) != nil { continue }
             for match in Extract.dates(in: key, defaultYear: year) {
                 var components = match.components
                 // Saat aynı satırda ya da hemen altta
@@ -207,9 +227,15 @@ public struct CaptureParser: Sendable {
                 components.minute = time?.minute ?? 0
                 guard let date = calendar.date(from: components),
                       calendar.component(.day, from: date) == match.components.day else { continue }
-                var confidence = key.contains("tarih") ? 0.92 : 0.85
-                if date > now.addingTimeInterval(86_400) || date < now.addingTimeInterval(-366 * 86_400) { confidence = 0.3 }
-                if best == nil || confidence > best!.confidence { best = (date, confidence, rows[index].box) }
+                let labelled = key.contains("tarih")
+                var confidence = labelled ? 0.92 : 0.85
+                // Beklenmedik derecede eski/ileri tarih: yine de önerilir ama düşük güvenle (kullanıcı onaylar).
+                let plausible = date <= now.addingTimeInterval(86_400) && date >= now.addingTimeInterval(-366 * 86_400)
+                if !plausible { confidence = 0.3 }
+                // Sıra: etiketli > makul aralıkta > diğerleri. Etiketli ama eski bir tarih, etiketsiz bir
+                // ifadeden ("19 Mayıs") daha güvenilirdir.
+                let rank = (labelled ? 2 : 0) + (plausible ? 1 : 0)
+                if best == nil || rank > best!.rank { best = (date, confidence, rank, rows[index].box) }
             }
         }
         if let best { return Suggestion(best.date, confidence: best.confidence, boxes: [best.box]) }

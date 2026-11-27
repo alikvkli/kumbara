@@ -1,0 +1,40 @@
+{
+  "description" : "sms şablonu, üretilmiş",
+  "expect" : {
+    "amount" : "1781.44",
+    "category" : "market.food",
+    "date" : "2026-11-17T16:47",
+    "kind" : "notification",
+    "merchant" : "Migros"
+  },
+  "generator" : "Tools\/corpus\/generate.py",
+  "lines" : [
+    [
+      "Kartınızdan 17.11.2026 16:47 tarihinde",
+      0.067799999999999999,
+      0.1686,
+      1
+    ],
+    [
+      "MIGROS TIC işyerinde 1.781,44 TL",
+      0.064399999999999999,
+      0.2114,
+      1
+    ],
+    [
+      "tutarında harcama yapılmıştır.",
+      0.064399999999999999,
+      0.2571,
+      1
+    ],
+    [
+      "Bankam",
+      0.067699999999999996,
+      0.30249999999999999,
+      1
+    ]
+  ],
+  "now" : "2026-11-27T18:00:00+03:00",
+  "seed" : 2026,
+  "source" : "vision-synthetic"
+}

@@ -71,7 +71,19 @@ jobs:
           print(phones[-1][1]["udid"])')
           echo "Simulator: $UDID"
           xcodebuild test -project Kumbara.xcodeproj -scheme Kumbara \
-            -destination "id=$UDID" CODE_SIGNING_ALLOWED=NO | xcbeautify
+            -destination "id=$UDID" -resultBundlePath ui-tests.xcresult CODE_SIGNING_ALLOWED=NO | xcbeautify
+      - name: Crash logs and test results on failure
+        if: failure()
+        run: |
+          mkdir -p failure
+          cp -R ui-tests.xcresult failure/ 2>/dev/null || true
+          cp ~/Library/Logs/DiagnosticReports/Kumbara*.ips failure/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: ui-test-failure
+          path: failure
+          if-no-files-found: ignore
 
   # Commit mesajında [screenshots] varsa iOS (açık + koyu) ve macOS ekran görüntüleri üretir.
   screenshots:

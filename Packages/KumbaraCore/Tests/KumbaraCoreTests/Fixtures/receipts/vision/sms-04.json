@@ -1,0 +1,40 @@
+{
+  "description" : "sms şablonu, üretilmiş",
+  "expect" : {
+    "amount" : "2275.50",
+    "category" : "market.food",
+    "date" : "2026-11-19T11:34",
+    "kind" : "notification",
+    "merchant" : "A101"
+  },
+  "generator" : "Tools\/corpus\/generate.py",
+  "lines" : [
+    [
+      "Kartınızdan 19.11.2026 11:34 tarihinde",
+      0.067799999999999999,
+      0.1686,
+      1
+    ],
+    [
+      "A101 YENİ MAGAZACILIK işyerinde 2.275,50 TL",
+      0.064100000000000004,
+      0.20580000000000001,
+      1
+    ],
+    [
+      "tutarında harcama yapılmıştır.",
+      0.064399999999999999,
+      0.2571,
+      1
+    ],
+    [
+      "Bankam",
+      0.067699999999999996,
+      0.30249999999999999,
+      1
+    ]
+  ],
+  "now" : "2026-11-27T18:00:00+03:00",
+  "seed" : 2026,
+  "source" : "vision-synthetic"
+}

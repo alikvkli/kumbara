@@ -128,6 +128,8 @@ struct CaptureUnitTests {
         ("38,46 LT X 52,00", ["38.46", "52"]), ("TEL: 0216 555 12 12", []), ("FİŞ NO: 0042", []), ("%18", []),
         ("1 249,90", ["1249.9"]), ("$5.45", ["5.45"]), ("12.480,22 TL", ["12480.22"]),
         ("27.11.2026 13:05", []), ("Kartınızdan 27.11.2026 tarihinde 642,50 TL", ["642.5"]),
+        // Gerçek OCR hataları (korpus): grup ayırıcısı virgül okunmuş, ayırıcıdan sonra boşluk.
+        ("+2,863,04 TL", ["2863.04"]), ("520, 76", ["520.76"]), ("1,249.90", ["1249.9"]),
     ])
     func amounts(text: String, expected: [String]) {
         #expect(Extract.amounts(in: text).map(\.value) == expected.map { Decimal(canonical: $0)! })

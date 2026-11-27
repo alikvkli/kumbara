@@ -1,0 +1,101 @@
+{
+  "description" : "bank_screen şablonu, üretilmiş",
+  "expect" : {
+    "drafts" : [
+      {
+        "amount" : "385.22",
+        "category" : "market.food",
+        "date" : "2026-11-22",
+        "kind" : "expense",
+        "merchant" : "A101"
+      },
+      {
+        "amount" : "228.94",
+        "category" : "housing.internet",
+        "date" : "2026-11-21",
+        "kind" : "expense",
+        "merchant" : "Turkcell"
+      },
+      {
+        "amount" : "1999.00",
+        "category" : "market.food",
+        "date" : "2026-11-20",
+        "kind" : "expense",
+        "merchant" : "Migros"
+      }
+    ],
+    "kind" : "bankList"
+  },
+  "generator" : "Tools\/corpus\/generate.py",
+  "lines" : [
+    [
+      "Hesap Hareketleri",
+      0.050000000000000003,
+      0.070999999999999994,
+      1
+    ],
+    [
+      "Kullanılabilir Bakiye 8.993,76 TL",
+      0.0458,
+      0.1113,
+      1
+    ],
+    [
+      "22 Kasım 2026",
+      0.0458,
+      0.16120000000000001,
+      1
+    ],
+    [
+      "A101 MODA",
+      0.045699999999999998,
+      0.19159999999999999,
+      1
+    ],
+    [
+      "21 Kasım 2026",
+      0.0458,
+      0.24759999999999999,
+      1
+    ],
+    [
+      "TURKCELL FATURA",
+      0.0458,
+      0.27639999999999998,
+      1
+    ],
+    [
+      "20 Kasım 2026",
+      0.045699999999999998,
+      0.33169999999999999,
+      1
+    ],
+    [
+      "MİGROS ATAŞEHİR",
+      0.0458,
+      0.36280000000000001,
+      1
+    ],
+    [
+      "-385,22 TL",
+      0.73740000000000006,
+      0.18990000000000001,
+      1
+    ],
+    [
+      "-228,94 TL",
+      0.73750000000000004,
+      0.27450000000000002,
+      1
+    ],
+    [
+      "-1.999,00 TL",
+      0.70399999999999996,
+      0.36049999999999999,
+      1
+    ]
+  ],
+  "now" : "2026-11-27T18:00:00+03:00",
+  "seed" : 2026,
+  "source" : "vision-synthetic"
+}

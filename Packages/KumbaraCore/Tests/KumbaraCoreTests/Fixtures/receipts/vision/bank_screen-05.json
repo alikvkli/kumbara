@@ -1,0 +1,95 @@
+{
+  "description" : "bank_screen şablonu, üretilmiş",
+  "expect" : {
+    "drafts" : [
+      {
+        "amount" : "244.39",
+        "category" : "transport.fuel",
+        "date" : "2026-11-25",
+        "kind" : "expense",
+        "merchant" : "Shell"
+      },
+      {
+        "amount" : "1674.84",
+        "category" : "dining.delivery",
+        "date" : "2026-11-25",
+        "kind" : "expense",
+        "merchant" : "Yemeksepeti"
+      },
+      {
+        "amount" : "2358.49",
+        "category" : "transport.fuel",
+        "date" : "2026-11-24",
+        "kind" : "expense",
+        "merchant" : "Shell"
+      }
+    ],
+    "kind" : "bankList"
+  },
+  "generator" : "Tools\/corpus\/generate.py",
+  "lines" : [
+    [
+      "Hesap Hareketleri",
+      0.050000000000000003,
+      0.070999999999999994,
+      1
+    ],
+    [
+      "Kullanılabilir Bakiye 8.894,59 TL",
+      0.0458,
+      0.1113,
+      1
+    ],
+    [
+      "25 Kasım 2026",
+      0.0458,
+      0.16120000000000001,
+      1
+    ],
+    [
+      "SHELL MASLAK",
+      0.0458,
+      0.19,
+      0.5
+    ],
+    [
+      "YEMEKSEPETI",
+      0.0458,
+      0.23419999999999999,
+      1
+    ],
+    [
+      "24 Kasım 2026",
+      0.0458,
+      0.2898,
+      1
+    ],
+    [
+      "SHELL MASLAK",
+      0.0458,
+      0.32050000000000001,
+      0.5
+    ],
+    [
+      "-244,39 TL",
+      0.74139999999999995,
+      0.18959999999999999,
+      1
+    ],
+    [
+      "-1.674,84 TL",
+      0.70830000000000004,
+      0.23419999999999999,
+      1
+    ],
+    [
+      "-2.358,49 TL",
+      0.69979999999999998,
+      0.31809999999999999,
+      1
+    ]
+  ],
+  "now" : "2026-11-27T18:00:00+03:00",
+  "seed" : 2026,
+  "source" : "vision-synthetic"
+}

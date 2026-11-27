@@ -6,7 +6,7 @@ enum Extract {
     /// Fiş ve banka ekranlarında tutar her zaman 2 küsurat basamaklıdır; bu, adet/kod/telefon gibi
     /// sayıları eler.
     private static let amountPattern = try! NSRegularExpression(
-        pattern: #"(?<![\d.,])([+\-−])?\s?[*₺$€]?\s?(\d{1,3}(?:[.\s]\d{3})+|\d+)([.,]\d{2})(?![\d]|[.,]\d)\s?(?:TL|TRY|₺)?"#,
+        pattern: #"(?<![\d.,])([+\-−])?\s?[*₺$€]?\s?(\d{1,3}(?:[.,\s]\d{3})+|\d+)([.,] ?\d{2})(?![\d]|[.,]\d)\s?(?:TL|TRY|₺)?"#,
         options: [.caseInsensitive])
 
     struct Amount: Equatable {
@@ -29,7 +29,8 @@ enum Extract {
                 sign = .none
             }
             let integer = ns.substring(with: match.range(at: 2)).replacingOccurrences(of: " ", with: "")
-            let fraction = ns.substring(with: match.range(at: 3))
+            // OCR: "520, 76" (ayırıcıdan sonra boşluk) ve "2,863,04" (grup ayırıcısı virgül okunmuş).
+            let fraction = ns.substring(with: match.range(at: 3)).replacingOccurrences(of: " ", with: "")
             // Ondalık ayırıcı kesin: son 2 hane. Gruplamayı kaldırıp kanonik biçime çevir.
             let digits = integer.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: "")
             guard let value = Decimal(canonical: digits + "." + fraction.dropFirst()) ?? parser.parse(integer + fraction),
@@ -109,6 +110,7 @@ public enum MerchantDirectory {
         ("sok marketler", Entry(displayName: "Şok", categoryKey: "market.food")),
         ("sok", Entry(displayName: "Şok", categoryKey: "market.food")),
         ("carrefoursa", Entry(displayName: "CarrefourSA", categoryKey: "market.food")),
+        ("carrefour", Entry(displayName: "CarrefourSA", categoryKey: "market.food")),
         ("file market", Entry(displayName: "File", categoryKey: "market.food")),
         ("hakmar", Entry(displayName: "Hakmar", categoryKey: "market.food")),
         ("metro gross", Entry(displayName: "Metro", categoryKey: "market.food")),
@@ -166,6 +168,14 @@ public enum MerchantDirectory {
         for (chain, entry) in chains {
             let chainWords = chain.split(separator: " ").map(String.init)
             if words.starts(with: chainWords) || key == chain { return entry }
+        }
+        // Başta OCR çöpü olabilir ("EFOURSA CARREFOUR …"): uzun zincir adları satırın içinde de aranır.
+        for (chain, entry) in chains where chain.count >= 6 {
+            let chainWords = chain.split(separator: " ").map(String.init)
+            guard words.count > chainWords.count else { continue }
+            for start in 1...(words.count - chainWords.count) where Array(words[start..<start + chainWords.count]) == chainWords {
+                return entry
+            }
         }
         return nil
     }

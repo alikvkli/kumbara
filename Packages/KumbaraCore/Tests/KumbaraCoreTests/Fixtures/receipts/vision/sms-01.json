@@ -1,0 +1,40 @@
+{
+  "description" : "sms şablonu, üretilmiş",
+  "expect" : {
+    "amount" : "1494.91",
+    "category" : "dining.cafe",
+    "date" : "2026-11-26T10:38",
+    "kind" : "notification",
+    "merchant" : "Starbucks"
+  },
+  "generator" : "Tools\/corpus\/generate.py",
+  "lines" : [
+    [
+      "Kartınızdan 26.11.2026 10:38 tarihinde",
+      0.067799999999999999,
+      0.1686,
+      1
+    ],
+    [
+      "STARBUCKS işyerinde 1.494,91 TL",
+      0.064399999999999999,
+      0.2114,
+      1
+    ],
+    [
+      "tutarında harcama yapılmıştır.",
+      0.064399999999999999,
+      0.2571,
+      1
+    ],
+    [
+      "Bankam",
+      0.067400000000000002,
+      0.30149999999999999,
+      1
+    ]
+  ],
+  "now" : "2026-11-27T18:00:00+03:00",
+  "seed" : 2026,
+  "source" : "vision-synthetic"
+}
