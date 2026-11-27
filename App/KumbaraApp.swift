@@ -6,6 +6,7 @@ import SwiftUI
 struct KumbaraApp: App {
     @State private var router = AppRouter()
     @State private var board: PriceBoard
+    @State private var capture = CaptureSession()
     private let container: ModelContainer
 
     init() {
@@ -31,10 +32,12 @@ struct KumbaraApp: App {
             RootView()
                 .environment(router)
                 .environment(board)
+                .environment(capture)
+                .modifier(CaptureEntry())
         }
         .modelContainer(container)
         #if os(macOS)
-        .commands { KumbaraCommands(router: router) }
+        .commands { KumbaraCommands(router: router, capture: capture) }
         #endif
 
         #if os(macOS)

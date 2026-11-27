@@ -65,7 +65,7 @@ struct QuickActionsToolbar: ViewModifier {
                     Button("Ayarlar", systemImage: "gearshape") { showsSettings = true }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Fiş tara", systemImage: "doc.viewfinder") { router.isImportingReceipt = true }
+                    CaptureMenu()
                 }
                 ToolbarItem(placement: .primaryAction) {
                     if section == .portfolio {

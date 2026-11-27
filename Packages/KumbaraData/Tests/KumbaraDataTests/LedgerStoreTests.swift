@@ -123,6 +123,17 @@ struct LedgerStoreTests {
         #expect(try store.defaultAccount()?.name == "Banka")
     }
 
+    @Test("Seed anahtarıyla kategori ve tarih çevresindeki kayıtlar")
+    func captureHelpers() throws {
+        #expect(try store.category(seedKey: "transport.fuel")?.name == "Yakıt")
+        #expect(try store.category(seedKey: "yok") == nil)
+        let cash = try #require(try store.defaultAccount())
+        let day = Date(timeIntervalSince1970: 1_795_700_000)
+        try store.save(TransactionDraft(amount: 10, date: day, account: cash.ref, merchant: "Migros"))
+        try store.save(TransactionDraft(amount: 20, date: day.addingTimeInterval(5 * 86_400), account: cash.ref))
+        #expect(try store.entries(around: day.addingTimeInterval(86_400)).map(\.amount.amount) == [10])
+    }
+
     @Test func recentCategories() throws {
         let cash = try #require(try store.defaultAccount())
         let market = try category("market"), fuel = try category("transport.fuel"), salary = try category("salary")

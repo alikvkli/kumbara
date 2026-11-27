@@ -94,6 +94,22 @@ public struct LedgerStore {
         return try context.fetch(descriptor).first
     }
 
+    /// Varsayılan kategoriyi kalıcı anahtarıyla bulur (OCR önerisi → kategori).
+    public func category(seedKey: String) throws -> LedgerCategory? {
+        var descriptor = FetchDescriptor<LedgerCategory>(predicate: #Predicate { $0.seedKey == seedKey })
+        descriptor.fetchLimit = 1
+        return try context.fetch(descriptor).first.flatMap { $0.isArchived ? nil : $0 }
+    }
+
+    /// Bir tarihin ±`days` gün çevresindeki kayıtlar (mükerrer kontrolü, REQ-C6).
+    public func entries(around date: Date, days: Int = 1, calendar: Calendar = .current) throws -> [LedgerEntry] {
+        let day = calendar.startOfDay(for: date)
+        let start = calendar.date(byAdding: .day, value: -days, to: day)!
+        let end = calendar.date(byAdding: .day, value: days + 1, to: day)!
+        return try context.fetch(FetchDescriptor<LedgerTransaction>(predicate: #Predicate { $0.date >= start && $0.date < end }))
+            .map(\.entry)
+    }
+
     public func activeAccounts() throws -> [LedgerAccount] {
         try context.fetch(FetchDescriptor<LedgerAccount>(
             predicate: #Predicate { !$0.isArchived },

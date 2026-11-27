@@ -4,6 +4,7 @@ import SwiftUI
 /// macOS kök pencere: kenar çubuğu · içerik · denetçi (specs/06 §7).
 struct RootSplitView: View {
     @Environment(AppRouter.self) private var router
+    @Environment(CaptureSession.self) private var capture
     @State private var showsInspector = false
 
     var body: some View {
@@ -49,7 +50,7 @@ struct RootSplitView: View {
                 } else {
                     Button("Yeni işlem", systemImage: "plus") { router.isPresentingQuickAdd = true }
                 }
-                Button("Fiş içe aktar", systemImage: "doc.viewfinder") { router.isImportingReceipt = true }
+                Button("Fiş içe aktar", systemImage: "doc.viewfinder") { capture.requestedSource = .files }
             }
             ToolbarSpacer(.fixed, placement: .primaryAction)
             ToolbarItem(placement: .primaryAction) {
@@ -81,9 +82,11 @@ struct RootSplitView: View {
             section.rootView
         case .inbox:
             ContentUnavailableView {
-                Label("Gelen kutusu boş", systemImage: "tray")
+                Label("Fiş bırak", systemImage: "tray.and.arrow.down")
             } description: {
-                Text("Fiş fotoğrafını, ekran görüntüsünü veya PDF'i bu pencereye sürükle.")
+                Text("Fiş fotoğrafını, banka ekran görüntüsünü veya e-arşiv PDF'ini bu pencereye sürükle. Okuma tamamen bu Mac'te yapılır.")
+            } actions: {
+                Button("Dosya seç…") { capture.requestedSource = .files }
             }
             .navigationTitle("Gelen fişler")
         case .search:
@@ -95,6 +98,7 @@ struct RootSplitView: View {
 /// Menü çubuğu komutları ve klavye kısayolları (specs/06 §7).
 struct KumbaraCommands: Commands {
     let router: AppRouter
+    let capture: CaptureSession
 
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
@@ -102,7 +106,7 @@ struct KumbaraCommands: Commands {
                 .keyboardShortcut("n")
             Button("Yeni alım/satım") { router.isPresentingTradeEditor = true }
                 .keyboardShortcut("n", modifiers: [.command, .shift])
-            Button("Fiş aç…") { router.isImportingReceipt = true }
+            Button("Fiş aç…") { capture.requestedSource = .files }
                 .keyboardShortcut("o")
             Divider()
             Button("Piyasa fiyatları") { router.isPresentingMarket = true }
