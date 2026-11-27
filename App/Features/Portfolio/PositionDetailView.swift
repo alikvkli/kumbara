@@ -82,17 +82,15 @@ struct PositionDetailView: View {
                                 .monospacedDigit()
                         }
                     }
-                    if let usdNow = board.quote(.fx(.USD))?.price(priceKind), position.isOpen,
-                       let benchmark = RealReturn.usdBenchmark(trades: trades, usdTRYNow: usdNow), let valuation {
-                        LabeledContent("USD'de tutsaydın") { amount(benchmark) }
-                        LabeledContent("USD'ye göre") {
-                            PnLText(amount: valuation.value - benchmark, ratio: benchmark > 0 ? (valuation.value - benchmark) / benchmark : nil)
-                        }
-                    }
                 } footer: {
                     if quote?.isDerived == true {
                         Text("Fiyat ons fiyatından türetildi; kuyumcu makası bilinmediği için yaklaşıktır.")
                     }
+                }
+
+                if position.isOpen, let valuation {
+                    RealReturnSection(trades: trades, value: valuation.value,
+                                      usdTRYNow: board.quote(.fx(.USD))?.price(priceKind))
                 }
 
                 if custom != nil {
@@ -179,5 +177,59 @@ private struct TradeRow: View {
             }
             .accessibilityElement(children: .combine)
         }
+    }
+}
+
+/// "Gerçekte ne kazandın" (REQ-P7, specs/09 §5): aynı parayla dolar alsaydın ve enflasyon kadar
+/// artsaydı karşılaştırması. Nominal TL kârı yüksek enflasyonda yanıltıcıdır.
+struct RealReturnSection: View {
+    let trades: [Trade]
+    let value: Decimal
+    let usdTRYNow: Decimal?
+    @Environment(\.locale) private var locale
+    @Environment(\.calendar) private var calendar
+
+    var body: some View {
+        let usd = usdTRYNow.flatMap { RealReturn.usdBenchmark(trades: trades, usdTRYNow: $0) }
+        let cpiTable = CPIData.turkey
+        let firstBuy = trades.filter { $0.side == .buy }.map(\.date).min()
+        // Bir aydan kısa pozisyonda enflasyon karşılaştırması anlamsız; gösterilmez.
+        let cpi: Decimal? = {
+            guard let latest = cpiTable.latest, let firstBuy,
+                  LedgerMonth(containing: firstBuy, calendar: calendar) < latest.month else { return nil }
+            return RealReturn.cpiBenchmark(trades: trades, cpi: cpiTable, calendar: calendar)
+        }()
+        if usd != nil || cpi != nil {
+            Section {
+                if let usd, usd > 0 {
+                    comparison("Dolar karşısında", benchmark: usd,
+                               detail: "Aynı parayla o gün dolar alsaydın bugün \(Money(usd, .TRY).formatted(locale: locale, fractionDigits: 0))")
+                }
+                if let cpi, cpi > 0 {
+                    comparison("Enflasyon karşısında", benchmark: cpi,
+                               detail: "Paran fiyatlar kadar artsaydı \(Money(cpi, .TRY).formatted(locale: locale, fractionDigits: 0))")
+                }
+            } header: {
+                Text("Gerçekte ne kazandın")
+            } footer: {
+                if cpi != nil, let latest = cpiTable.latest {
+                    let month = latest.month.interval(in: calendar).start.formatted(.dateTime.month(.wide).year())
+                    Text("Enflasyon verisi TÜİK TÜFE; son açıklanan ay: \(month). Sonrası tahmin edilmez.")
+                }
+            }
+        }
+    }
+
+    private func comparison(_ title: LocalizedStringKey, benchmark: Decimal, detail: String) -> some View {
+        let difference = value - benchmark
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(title)
+                Spacer()
+                PnLText(amount: difference, ratio: difference / benchmark)
+            }
+            Text(verbatim: detail).font(.footnote).foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
     }
 }

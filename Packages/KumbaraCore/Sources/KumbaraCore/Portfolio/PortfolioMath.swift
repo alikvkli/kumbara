@@ -196,7 +196,9 @@ public enum RealReturn {
             switch trade.side {
             case .buy:
                 let month = LedgerMonth(containing: trade.date, calendar: calendar)
-                guard let base = cpi.index[month], base > 0 else { return nil }
+                // Tablonun son ayından sonraki alımlar için henüz enflasyon yok: son ay kullanılır.
+                let base = cpi.index[month] ?? (month > latest.month ? latest.value : nil)
+                guard let base, base > 0 else { return nil }
                 adjusted += trade.grossCost * latest.value / base
                 quantity += trade.quantity
             case .sell:
