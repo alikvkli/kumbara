@@ -25,6 +25,8 @@ packages:
     path: Packages/KumbaraCore
   KumbaraData:
     path: Packages/KumbaraData
+  KumbaraMarket:
+    path: Packages/KumbaraMarket
 
 targets:
   Kumbara:
@@ -41,6 +43,7 @@ targets:
     dependencies:
       - package: KumbaraCore
       - package: KumbaraData
+      - package: KumbaraMarket
     scheme:
       testTargets:
         - KumbaraUITests

@@ -31,6 +31,8 @@ final class AppRouter {
     var destination: Destination = .section(.summary)
     var isPresentingQuickAdd = false
     var isImportingReceipt = false
+    var isPresentingTradeEditor = false
+    var isPresentingMarket = false
     /// macOS denetçisi için tablodaki tekil seçim.
     var selectedTransactionID: UUID?
 

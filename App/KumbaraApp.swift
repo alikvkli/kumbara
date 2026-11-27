@@ -5,6 +5,7 @@ import SwiftUI
 @main
 struct KumbaraApp: App {
     @State private var router = AppRouter()
+    @State private var board: PriceBoard
     private let container: ModelContainer
 
     init() {
@@ -22,12 +23,14 @@ struct KumbaraApp: App {
             // TODO(M5): kurtarma ekranı ve dışa aktarma önerisi.
             fatalError("Veri deposu açılamadı: \(error)")
         }
+        _board = State(initialValue: PriceBoard(container: container))
     }
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(router)
+                .environment(board)
         }
         .modelContainer(container)
         #if os(macOS)
@@ -41,6 +44,7 @@ struct KumbaraApp: App {
             }
             .frame(minWidth: 480, minHeight: 420)
             .modelContainer(container)
+            .environment(board)
         }
         #endif
     }
@@ -48,11 +52,21 @@ struct KumbaraApp: App {
 
 /// Platforma göre kök gezinme (specs/06 §6.1, §7).
 struct RootView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(PriceBoard.self) private var board
+
     var body: some View {
-        #if os(iOS)
-        RootTabView()
-        #else
-        RootSplitView()
-        #endif
+        Group {
+            #if os(iOS)
+            RootTabView()
+            #else
+            RootSplitView()
+            #endif
+        }
+        // Ön plandayken fiyatlar 60 sn'de bir yenilenir; arka plana geçince görev iptal olur (REQ-M2).
+        .task(id: scenePhase) {
+            guard scenePhase == .active else { return }
+            await board.runWhileActive()
+        }
     }
 }

@@ -44,8 +44,16 @@ struct RootSplitView: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
-                Button("Yeni işlem", systemImage: "plus") { router.isPresentingQuickAdd = true }
+                if router.destination == .section(.portfolio) {
+                    Button("Alım/satım ekle", systemImage: "plus") { router.isPresentingTradeEditor = true }
+                } else {
+                    Button("Yeni işlem", systemImage: "plus") { router.isPresentingQuickAdd = true }
+                }
                 Button("Fiş içe aktar", systemImage: "doc.viewfinder") { router.isImportingReceipt = true }
+            }
+            ToolbarSpacer(.fixed, placement: .primaryAction)
+            ToolbarItem(placement: .primaryAction) {
+                Button("Piyasa", systemImage: "chart.bar.xaxis") { router.isPresentingMarket = true }
             }
             ToolbarSpacer(.fixed, placement: .primaryAction)
             ToolbarItem(placement: .primaryAction) {
@@ -55,6 +63,13 @@ struct RootSplitView: View {
         .sheet(isPresented: $router.isPresentingQuickAdd) {
             TransactionEditor(mode: .create(.expense))
                 .frame(minWidth: 460, minHeight: 480)
+        }
+        .sheet(isPresented: $router.isPresentingTradeEditor) {
+            TradeEditor(mode: .create(nil))
+        }
+        .sheet(isPresented: $router.isPresentingMarket) {
+            MarketView()
+                .frame(minWidth: 520, minHeight: 560)
         }
         .frame(minWidth: 820, minHeight: 520)
     }
@@ -85,8 +100,13 @@ struct KumbaraCommands: Commands {
         CommandGroup(replacing: .newItem) {
             Button("Yeni işlem") { router.isPresentingQuickAdd = true }
                 .keyboardShortcut("n")
+            Button("Yeni alım/satım") { router.isPresentingTradeEditor = true }
+                .keyboardShortcut("n", modifiers: [.command, .shift])
             Button("Fiş aç…") { router.isImportingReceipt = true }
                 .keyboardShortcut("o")
+            Divider()
+            Button("Piyasa fiyatları") { router.isPresentingMarket = true }
+                .keyboardShortcut("m", modifiers: [.command, .shift])
         }
         CommandGroup(before: .sidebar) {
             ForEach(Array(AppSection.allCases.enumerated()), id: \.element) { index, section in

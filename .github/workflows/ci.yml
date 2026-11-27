@@ -15,8 +15,10 @@ jobs:
     container: swift:6.2-noble
     steps:
       - uses: actions/checkout@v5
-      - name: Test
+      - name: Test KumbaraCore
         run: swift test --package-path Packages/KumbaraCore -Xswiftc -warnings-as-errors
+      - name: Test KumbaraMarket
+        run: swift test --package-path Packages/KumbaraMarket -Xswiftc -warnings-as-errors
 
   app-apple:
     name: App (iOS + macOS)
@@ -37,6 +39,8 @@ jobs:
         run: swift test --package-path Packages/KumbaraCore
       - name: Test KumbaraData (macOS)
         run: swift test --package-path Packages/KumbaraData
+      - name: Test KumbaraMarket (macOS)
+        run: swift test --package-path Packages/KumbaraMarket
       - name: Build iOS
         run: >
           set -o pipefail &&

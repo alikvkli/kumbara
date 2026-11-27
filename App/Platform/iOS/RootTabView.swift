@@ -1,4 +1,5 @@
 #if os(iOS)
+import KumbaraCore
 import SwiftUI
 
 /// iOS / iPadOS kök gezinme (specs/06 §6.1).
@@ -28,6 +29,9 @@ struct RootTabView: View {
         .tabViewBottomAccessory {
             MarketTickerAccessory()
         }
+        .sheet(isPresented: $router.isPresentingMarket) {
+            MarketView()
+        }
     }
 }
 
@@ -47,6 +51,13 @@ struct QuickActionsToolbar: ViewModifier {
         )
     }
 
+    private var isPresentingTradeEditor: Binding<Bool> {
+        Binding(
+            get: { router.isPresentingTradeEditor && router.destination == .section(section) },
+            set: { router.isPresentingTradeEditor = $0 }
+        )
+    }
+
     func body(content: Content) -> some View {
         content
             .toolbar {
@@ -57,7 +68,11 @@ struct QuickActionsToolbar: ViewModifier {
                     Button("Fiş tara", systemImage: "doc.viewfinder") { router.isImportingReceipt = true }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Yeni işlem", systemImage: "plus") { router.isPresentingQuickAdd = true }
+                    if section == .portfolio {
+                        Button("Alım/satım ekle", systemImage: "plus") { router.isPresentingTradeEditor = true }
+                    } else {
+                        Button("Yeni işlem", systemImage: "plus") { router.isPresentingQuickAdd = true }
+                    }
                 }
                 .matchedTransitionSource(id: "quick-add", in: transition)
             }
@@ -66,39 +81,68 @@ struct QuickActionsToolbar: ViewModifier {
                     .presentationDetents([.medium, .large])
                     .navigationTransition(.zoom(sourceID: "quick-add", in: transition))
             }
+            .sheet(isPresented: isPresentingTradeEditor) {
+                TradeEditor(mode: .create(nil))
+                    .navigationTransition(.zoom(sourceID: "quick-add", in: transition))
+            }
             .sheet(isPresented: $showsSettings) {
                 NavigationStack { SettingsView() }
             }
     }
 }
 
-/// Alt aksesuar: canlı piyasa şeridi (REQ-X8, specs/06 §6.1). Veri M2'de (T2.0) bağlanır.
+/// Alt aksesuar: canlı piyasa şeridi (REQ-X8, specs/06 §6.1). Dokununca piyasa sayfası açılır.
+/// Fiyat değişiminde yalnız sistemin rakam geçişi; yanıp sönme yok (specs/06 §5).
 struct MarketTickerAccessory: View {
     @Environment(\.tabViewBottomAccessoryPlacement) private var placement
+    @Environment(PriceBoard.self) private var board
+    @Environment(AppRouter.self) private var router
+    @Environment(\.locale) private var locale
+    @AppStorage(SettingsKey.priceKind) private var priceKind: PriceKind = .bid
+
+    private var assets: [AssetCode] {
+        placement == .inline ? [PriceBoard.tickerAssets[0]] : PriceBoard.tickerAssets
+    }
 
     var body: some View {
-        HStack(spacing: 12) {
-            TickerItem(title: "Gram", value: nil)
-            if placement != .inline {
-                TickerItem(title: "USD", value: nil)
-                TickerItem(title: "EUR", value: nil)
+        Button {
+            router.isPresentingMarket = true
+        } label: {
+            HStack(spacing: 14) {
+                ForEach(assets, id: \.self) { asset in
+                    TickerItem(title: asset.shortName, quote: board.quote(asset), priceKind: priceKind,
+                               isStale: board.freshness(of: asset) == .stale || board.isOffline)
+                }
             }
+            .font(.subheadline)
+            .monospacedDigit()
+            .padding(.horizontal)
         }
-        .font(.subheadline)
-        .monospacedDigit()
-        .padding(.horizontal)
-        .accessibilityElement(children: .combine)
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("Piyasa fiyatları"))
+        .accessibilityHint(Text("Tüm fiyatları göster"))
     }
 }
 
 private struct TickerItem: View {
-    let title: LocalizedStringKey
-    let value: String?
+    let title: String
+    let quote: Quote?
+    let priceKind: PriceKind
+    let isStale: Bool
+    @Environment(\.locale) private var locale
 
     var body: some View {
         HStack(spacing: 4) {
-            Text(title).foregroundStyle(.secondary)
-            Text(verbatim: value ?? "—")
+            Text(verbatim: title).foregroundStyle(.secondary)
+            if let quote {
+                let value = quote.price(priceKind)
+                Text(verbatim: value.formattedNumber(locale: locale, fractionDigits: value >= 1000 ? 0...0 : 2...2))
+                    .contentTransition(.numericText(value: (value as NSDecimalNumber).doubleValue))
+                    .animation(.default, value: value)
+                    .foregroundStyle(isStale ? Color.secondary : Color.primary)
+            } else {
+                Text(verbatim: "—")
+            }
         }
     }
 }

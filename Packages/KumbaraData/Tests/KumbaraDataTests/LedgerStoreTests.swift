@@ -156,5 +156,11 @@ struct DemoDataTests {
         #expect(summary.income == Money(69_500, .TRY))
         #expect(summary.expense == Money(Decimal(canonical: "35805.69")!, .TRY))
         #expect(try LedgerStore(context: context).suggestedCategory(forMerchant: "migros")?.seedKey == "market.food")
+
+        let portfolio = PortfolioStore(context: context, calendar: calendar)
+        #expect(try portfolio.allTrades().count == 7)
+        #expect(try portfolio.heldAssets().count == 4)
+        #expect(try portfolio.positions().first { $0.asset == .gold(.gram24) }?.quantity == Decimal(string: "17.5"))
+        #expect(try context.fetchCount(FetchDescriptor<PriceSnapshot>()) == 210 * 3)
     }
 }

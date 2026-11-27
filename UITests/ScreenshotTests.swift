@@ -56,14 +56,30 @@ final class ScreenshotTests: XCTestCase {
         app.buttons["Vazgeç"].firstMatch.tap()
 
         tapTab("Birikim")
-        try shot("5-birikim-bos")
+        Thread.sleep(forTimeInterval: 3) // canlı fiyatlar gelsin
+        try shot("5-birikim")
+
+        let gram = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Gram altın")).firstMatch
+        if gram.waitForExistence(timeout: 3) {
+            gram.tap()
+            try shot("6-gram-altin")
+            app.navigationBars.buttons.firstMatch.tap()
+        }
+
+        let ticker = app.buttons["Piyasa fiyatları"].firstMatch
+        if ticker.waitForExistence(timeout: 3) {
+            ticker.tap()
+            Thread.sleep(forTimeInterval: 2)
+            try shot("7-piyasa")
+            app.buttons["Bitti"].firstMatch.tap()
+        }
 
         tapTab("Özet")
         app.buttons["Ayarlar"].firstMatch.tap()
         let accounts = app.buttons["Hesaplar"].firstMatch
         if accounts.waitForExistence(timeout: 3) {
             accounts.tap()
-            try shot("6-hesaplar")
+            try shot("8-hesaplar")
         }
     }
 }

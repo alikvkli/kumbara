@@ -82,5 +82,59 @@ public enum DemoData {
             )
             try store.save(draft, now: date)
         }
+        try loadPortfolio(into: context, now: now, calendar: calendar)
+    }
+
+    /// Birikim örneği: gram altın, çeyrek, USD ve bir serbest fon; son 210 gün için **yapay**
+    /// günlük fiyat geçmişi (grafik görünsün diye). Güncel fiyat uygulama açılınca gerçek kaynaktan gelir.
+    private static func loadPortfolio(into context: ModelContext, now: Date, calendar: Calendar) throws {
+        let store = PortfolioStore(context: context, calendar: calendar)
+        func ago(_ days: Int) -> Date {
+            calendar.date(byAdding: .day, value: -days, to: calendar.startOfDay(for: now))!.addingTimeInterval(12 * 3600)
+        }
+        func dec(_ s: String) -> Decimal { Decimal(canonical: s)! }
+
+        let fund = CustomAsset(name: "Para piyasası fonu")
+        fund.manualPrice = dec("1.4218")
+        fund.manualPriceDate = ago(1)
+        context.insert(fund)
+        try context.save()
+
+        let trades: [(AssetCode, Trade.Side, String, String, String, Int, String)] = [
+            (.fx(.USD), .buy, "1200", "41.20", "0", 200, "41.20"),
+            (.gold(.gram24), .buy, "10", "4985", "0", 150, "41.85"),
+            (.gold(.quarter), .buy, "4", "8650", "0", 120, "43.10"),
+            (fund.code, .buy, "10000", "1.18", "0", 90, "45.30"),
+            (.gold(.gram24), .buy, "5", "5420", "120", 60, "47.40"),
+            (.gold(.quarter), .buy, "4", "9380", "0", 45, "48.60"),
+            (.gold(.gram24), .buy, "2.5", "5810", "0", 10, "50.55"),
+        ]
+        for (asset, side, quantity, price, fee, daysAgo, usd) in trades {
+            try store.save(TradeDraft(asset: asset, side: side, quantity: dec(quantity), unitPrice: dec(price),
+                                      fee: dec(fee), date: ago(daysAgo)), usdTRYAtTrade: dec(usd), now: now)
+        }
+
+        // Yapay fiyat eğrisi: doğrusal yükseliş + hafif dalga; bugün gerçek düzeye yakın biter.
+        let curves: [(AssetCode, Double, Double, Double)] = [
+            (.gold(.gram24), 4_850, 5_925, 0.012),
+            (.gold(.quarter), 8_400, 9_975, 0.012),
+            (.fx(.USD), 41.0, 50.75, 0.002),
+        ]
+        var quotes: [Quote] = []
+        for daysAgo in stride(from: 210, through: 1, by: -1) {
+            let t = Double(210 - daysAgo) / 209
+            for (asset, start, end, wobble) in curves {
+                let base = start + (end - start) * t
+                let value = base * (1 + wobble * sin(Double(daysAgo) / 9))
+                let rounded = (value * 100).rounded() / 100
+                let spread = asset == .gold(.quarter) ? 0.024 : 0.0015
+                if let quote = Quote(asset: asset, bid: Decimal(string: String(format: "%.2f", rounded))!,
+                                     ask: Decimal(string: String(format: "%.2f", rounded * (1 + spread)))!,
+                                     asOf: ago(daysAgo), source: .truncgil) {
+                    quotes.append(quote)
+                }
+            }
+        }
+        try store.record(quotes)
     }
 }
