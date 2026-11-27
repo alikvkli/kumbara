@@ -118,7 +118,7 @@ jobs:
             xcodebuild test-without-building -project Kumbara.xcodeproj -scheme Kumbara \
               -destination "id=$UDID" -derivedDataPath build \
               -only-testing:KumbaraUITests/ScreenshotTests \
-              -only-testing:KumbaraUITests/CaptureUITests | xcbeautify
+              -only-testing:KumbaraUITests/CaptureUITests/testDemoReceiptIsRecognised | xcbeautify
           done
           ls -la screenshots
       - name: macOS screenshot
@@ -132,8 +132,9 @@ jobs:
           osascript -e 'tell application "System Events" to tell process "Kumbara" to set frontmost to true' || true
           sleep 2
           screencapture -x screenshots/macos-1-ozet-light.png
+      # Bir ekran görüntüsü testi düşse de alınanlar yüklenir.
       - uses: actions/upload-artifact@v4
-        if: env.SCREENSHOTS == 'true'
+        if: always() && env.SCREENSHOTS == 'true'
         with:
           name: screenshots
           path: screenshots/

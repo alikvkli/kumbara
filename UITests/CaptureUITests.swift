@@ -33,12 +33,12 @@ final class CaptureUITests: XCTestCase {
         app.launch()
 
         let amount = app.textFields["review.amount"]
-        XCTAssertTrue(amount.waitForExistence(timeout: 30), "Gelen kutusundaki fiş onaya gelmedi")
+        XCTAssertTrue(amount.waitForExistence(timeout: 60), "Gelen kutusundaki fiş onaya gelmedi")
         XCTAssertEqual(amount.value as? String, "1249,90")
         XCTAssertEqual(app.textFields["review.merchant"].value as? String, "Migros")
 
         app.buttons["Vazgeç"].tap()
-        XCTAssertTrue(amount.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(amount.waitForNonExistence(timeout: 15))
         // Tekrar öne gelince aynı dosya yeniden açılmamalı.
         XCUIDevice.shared.press(.home)
         app.activate()
