@@ -85,6 +85,11 @@ public enum PortfolioHistory {
     public struct Point: Hashable, Sendable {
         public let date: Date
         public let value: Decimal
+
+        public init(date: Date, value: Decimal) {
+            self.date = date
+            self.value = value
+        }
     }
 
     /// `prices`: varlık → (gün, birim fiyat) listesi. `days`: hangi günler için nokta üretileceği.
