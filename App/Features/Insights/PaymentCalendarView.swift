@@ -195,7 +195,7 @@ private struct DayCell: View {
 
     var body: some View {
         let outgoing = items.contains { !$0.isIncome }
-        let incoming = items.contains(\.isIncome)
+        let incoming = items.contains(where: \.isIncome)
         VStack(spacing: 3) {
             Text(verbatim: "\(calendar.component(.day, from: day))")
                 .font(.callout.weight(isToday ? .bold : .regular))
