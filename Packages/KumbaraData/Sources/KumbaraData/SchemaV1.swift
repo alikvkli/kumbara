@@ -2,7 +2,8 @@ import Foundation
 import KumbaraCore
 import SwiftData
 
-/// Şema v1 (specs/05 §3).
+/// Şema v1 (specs/05 §3). İlk yayına kadar yerinde genişletilir; yayından sonra donar ve her
+/// değişiklik yeni `VersionedSchema` + göç aşamasıyla yapılır.
 ///
 /// CloudKit uyumu için: tüm özellikler varsayılan değerli veya opsiyonel, ilişkiler opsiyonel,
 /// `unique` kısıtı yok. `Decimal` alanlar kanonik `String` olarak saklanır (specs/00 C3).
@@ -11,7 +12,8 @@ public enum SchemaV1: VersionedSchema {
     public static var versionIdentifier: Schema.Version { Schema.Version(1, 0, 0) }
 
     public static var models: [any PersistentModel.Type] {
-        [LedgerAccount.self, LedgerCategory.self, LedgerTransaction.self, MerchantMemory.self]
+        [LedgerAccount.self, LedgerCategory.self, LedgerTransaction.self, MerchantMemory.self,
+         AssetTrade.self, CustomAsset.self, PriceSnapshot.self]
     }
 
     @Model
@@ -131,6 +133,87 @@ public enum SchemaV1: VersionedSchema {
     }
 }
 
+extension SchemaV1 {
+    /// Varlık alımı/satımı (REQ-P1). Fiyat ve ücret TRY.
+    @Model
+    public final class AssetTrade {
+        public var id: UUID = UUID()
+        /// `AssetCode.id` (`gold.gram24`, `custom.<uuid>`).
+        public var assetID: String = ""
+        var sideRaw: String = Trade.Side.buy.rawValue
+        var quantityRaw: String = "0"
+        var unitPriceRaw: String = "0"
+        var feeRaw: String = "0"
+        public var date: Date = Date.now
+        /// İşlem anındaki USD/TRY (reel getiri, specs/03 §4).
+        var usdTRYRaw: String?
+        public var note: String = ""
+        public var createdAt: Date = Date.now
+
+        public init(trade: Trade, note: String = "") {
+            self.id = trade.id
+            self.note = note
+            apply(trade)
+        }
+
+        func apply(_ trade: Trade) {
+            assetID = trade.asset.id
+            sideRaw = trade.side.rawValue
+            quantityRaw = trade.quantity.canonicalString
+            unitPriceRaw = trade.unitPrice.canonicalString
+            feeRaw = trade.fee.canonicalString
+            date = trade.date
+            usdTRYRaw = trade.usdTRYAtTrade?.canonicalString
+        }
+    }
+
+    /// Fiyatı elle girilen varlık: fon, hisse, mevduat… (REQ-P2).
+    @Model
+    public final class CustomAsset {
+        public var id: UUID = UUID()
+        public var name: String = ""
+        var manualPriceRaw: String?
+        public var manualPriceDate: Date?
+        public var createdAt: Date = Date.now
+
+        public init(name: String) {
+            self.name = name
+        }
+    }
+
+    /// Günlük fiyat kaydı (specs/02 §6): varlık başına günde bir satır, günün son fiyatı.
+    @Model
+    public final class PriceSnapshot {
+        public var assetID: String = ""
+        /// Günün başlangıcı (yerel takvim).
+        public var day: Date = Date.now
+        var bidRaw: String?
+        var askRaw: String?
+        var midRaw: String = "0"
+        var sourceRaw: String = ProviderID.manual.rawValue
+        public var asOf: Date = Date.now
+        public var isDerived: Bool = false
+
+        public init(quote: Quote, day: Date) {
+            self.assetID = quote.asset.id
+            self.day = day
+            apply(quote)
+        }
+
+        func apply(_ quote: Quote) {
+            bidRaw = quote.bid?.canonicalString
+            askRaw = quote.ask?.canonicalString
+            midRaw = quote.mid.canonicalString
+            sourceRaw = quote.source.rawValue
+            asOf = quote.asOf
+            isDerived = quote.isDerived
+        }
+    }
+}
+
+public typealias AssetTrade = SchemaV1.AssetTrade
+public typealias CustomAsset = SchemaV1.CustomAsset
+public typealias PriceSnapshot = SchemaV1.PriceSnapshot
 public typealias LedgerAccount = SchemaV1.LedgerAccount
 public typealias LedgerCategory = SchemaV1.LedgerCategory
 public typealias LedgerTransaction = SchemaV1.LedgerTransaction

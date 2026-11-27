@@ -152,3 +152,61 @@ struct PortfolioMathTests {
         #expect(RealReturn.cpiBenchmark(trades: trades, cpi: missing, calendar: cal) == nil)
     }
 }
+
+@Suite("Alım/satım taslağı (REQ-P1)")
+struct TradeDraftTests {
+    let now = day(10)
+
+    @Test func valid() {
+        let draft = TradeDraft(asset: gram, side: .buy, quantity: d("2.5"), unitPrice: 5900, date: day(9))
+        #expect(draft.issues(existing: [], now: now).isEmpty)
+        #expect(draft.total == d("14750"))
+    }
+
+    @Test func missingFields() {
+        let issues = TradeDraft(date: day(9)).issues(existing: [], now: now)
+        #expect(issues == [.missingAsset, .missingQuantity, .missingPrice])
+    }
+
+    @Test("Çeyrek altın küsuratlı adet olamaz")
+    func pieces() {
+        let draft = TradeDraft(asset: .gold(.quarter), quantity: d("1.5"), unitPrice: 10_000, date: day(9))
+        #expect(draft.issues(existing: [], now: now) == [.fractionalPieces])
+    }
+
+    @Test("Gelecek tarih reddedilir")
+    func future() {
+        let draft = TradeDraft(asset: gram, quantity: 1, unitPrice: 5000, date: day(11))
+        #expect(draft.issues(existing: [], now: now) == [.futureDate])
+    }
+
+    @Test("Elde olandan fazla satış uyarısı")
+    func oversell() {
+        let existing = [buy("3", "5000", on: 1)]
+        let draft = TradeDraft(asset: gram, side: .sell, quantity: 4, unitPrice: 6000, date: day(9))
+        #expect(draft.issues(existing: existing, now: now) == [.oversell(available: 3)])
+        let ok = TradeDraft(asset: gram, side: .sell, quantity: 3, unitPrice: 6000, fee: 50, date: day(9))
+        #expect(ok.issues(existing: existing, now: now).isEmpty)
+        #expect(ok.total == 17_950)
+    }
+}
+
+@Suite("Portföy geçmişi (REQ-P8)")
+struct PortfolioHistoryTests {
+    @Test("Gün gün eldeki miktar × son bilinen fiyat")
+    func series() {
+        let trades = [buy("10", "5000", on: 1), buy("5", "5600", on: 3), sell("3", "6000", on: 5)]
+        let prices: [AssetCode: [(date: Date, price: Decimal)]] = [gram: [(day(1), 5000), (day(3), 5600), (day(4), 5800)]]
+        let points = PortfolioHistory.series(trades: trades, prices: prices, days: [day(0), day(1), day(2), day(3), day(4), day(5)])
+        #expect(points.map(\.value) == [50_000, 50_000, 84_000, 87_000, 69_600])
+        #expect(points.first?.date == day(1), "işlem öncesi gün atlanır")
+    }
+
+    @Test("Fiyatı bilinmeyen varlık o gün toplama girmez")
+    func unknownPrice() {
+        let usd = Trade(asset: .fx(.USD), side: .buy, quantity: 100, unitPrice: 40, date: day(1))
+        let trades = [buy("1", "5000", on: 1), usd]
+        let points = PortfolioHistory.series(trades: trades, prices: [gram: [(day(1), 5000)]], days: [day(2)])
+        #expect(points.map(\.value) == [5000])
+    }
+}
