@@ -80,6 +80,12 @@ public enum CSV {
             if character == "\"" { inQuotes.toggle() }
             if !inQuotes, candidates.contains(character) { counts[character, default: 0] += 1 }
         }
-        return candidates.max { (counts[$0] ?? 0) < (counts[$1] ?? 0) }.flatMap { (counts[$0] ?? 0) > 0 ? $0 : nil } ?? ","
+        var best: Character = ","
+        var bestCount = 0
+        for candidate in candidates where (counts[candidate] ?? 0) > bestCount {
+            best = candidate
+            bestCount = counts[candidate] ?? 0
+        }
+        return best
     }
 }

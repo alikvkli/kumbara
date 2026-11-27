@@ -58,6 +58,11 @@ struct SettingsView: View {
             }
             Section {
                 NavigationLink {
+                    LockSettingsView()
+                } label: {
+                    Label("Kilit", systemImage: "lock")
+                }
+                NavigationLink {
                     DataExchangeView()
                 } label: {
                     Label("Dışa aktar ve yedekle", systemImage: "arrow.up.arrow.down.square")

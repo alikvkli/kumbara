@@ -238,11 +238,18 @@ public enum CSVImporter {
         case let .signed(column, _): [column]
         case let .split(debit, credit): [debit, credit]
         }
-        let description = headerIndex(["açıklama", "aciklama", "description", "işlem", "detay", "satıcı"])
-            .flatMap { amountColumns.contains($0) || $0 == dateColumn ? nil : $0 }
-            ?? (0..<columnCount).filter { !amountColumns.contains($0) && $0 != dateColumn }
-                .max { values($0).map(\.count).reduce(0, +) < values($1).map(\.count).reduce(0, +) }
-            ?? dateColumn
+        // Açıklama: başlıktan; yoksa tarih/tutar dışındaki en uzun metinli sütun.
+        var description = dateColumn
+        if let named = headerIndex(["açıklama", "aciklama", "description", "işlem", "detay", "satıcı"]),
+           !amountColumns.contains(named), named != dateColumn {
+            description = named
+        } else {
+            var longest = -1
+            for column in 0..<columnCount where !amountColumns.contains(column) && column != dateColumn {
+                let length = values(column).reduce(0) { $0 + $1.count }
+                if length > longest { longest = length; description = column }
+            }
+        }
 
         let amountSamples = amountColumns.flatMap(values)
         return CSVImportMapping(hasHeader: hasHeader, date: dateColumn, amount: amount, description: description,

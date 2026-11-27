@@ -9,6 +9,7 @@ struct KumbaraApp: App {
     @State private var router = AppRouter()
     @State private var board: PriceBoard
     @State private var capture: CaptureSession
+    @State private var lock = AppLock()
     private let container: ModelContainer
 
     init() {
@@ -51,6 +52,8 @@ struct KumbaraApp: App {
             // değiştirici `.environment` çağrılarının İÇİNDE kalmalı (dışında kalırsa açılışta çöker).
             RootView()
                 .modifier(CaptureEntry())
+                .modifier(AppLockGate())
+                .environment(lock)
                 .environment(router)
                 .environment(board)
                 .environment(capture)
@@ -74,6 +77,7 @@ struct KumbaraApp: App {
             .frame(minWidth: 480, minHeight: 420)
             .modelContainer(container)
             .environment(board)
+            .environment(lock)
         }
         #endif
     }
