@@ -54,7 +54,8 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - ~~T4.4 App Intents / Kestirmeler (REQ-C7)~~ → v1.x (2026-11-27 kararı).
 - [x] T4.5 Fiyat alarmı (REQ-M4) ve arka plan fiyat yenilemesi (REQ-M2, BGAppRefreshTask). Arka plan sıklığı iOS'a bağlı; cihazda Team ID ile denenecek.
 
-## M5 — Yayın hazırlığı (2 hafta)
+## M5 — Yayın hazırlığı (2 hafta) — ayrıntı: 09
+- [x] T5.0 Veri deposu App Group kapsayıcısında (widget/kontrol/uzantı ortak okur).
 - [ ] T5.1 iCloud eşitleme açma/kapama (REQ-X2).
 - [ ] T5.2 Kilit + bulanık önizleme (REQ-X3).
 - [ ] T5.3 CSV/JSON dışa aktarma, CSV içe aktarma (REQ-X4).

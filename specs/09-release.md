@@ -1,6 +1,6 @@
 # 09 — Yayın Hazırlığı (M5)
 
-Durum: **taslak** (2026-11-27). Kapsam: REQ-X2, X3, X4, X5, X6, X7, X8, X9, P7, P9, P10.
+Durum: **onaylandı** (2026-11-27). Kapsam: REQ-X2, X3, X4, X5, X6, X7, X8, X9, P7, P9, P10.
 İlkeler değişmez: her şey cihazda (C1), sunucu yok (C2), `Decimal` (C3), onaysız kayıt
 yok (C5), dürüst arayüz (C6).
 
@@ -120,11 +120,9 @@ kopyalanır. Bu iş T5.1–T5.4'ün önündedir.
 - **AC-X5-1** Widget vurgulu ve şeffaf modlarda okunur; kilit ekranında tutar gizleme
   açıkken tutar yerine "•••".
 
-## 10. Karar bekleyenler
-- **R1** Reel getiride TÜFE: gömülü tablo (öneri) mi, kullanıcının elle güncellediği tablo mu?
-- **R2** Hedefe sayılan birikim: alıma hedef atama (öneri) mi, varlığın tamamı mı?
-- **R3** CSV içe aktarmada banka hazır şablonları (Garanti, İş, Yapı Kredi, Akbank, Ziraat)
-  v1'de olsun mu, yoksa yalnız genel sütun eşleme mi (öneri: genel, şablonlar v1.x)?
-- **R4** Kilitte uygulamaya özel parola (Face ID'siz cihazlar / paylaşılan iPad) gerekli mi?
-  Öneri: hayır, cihaz parolası yeterli.
-- **Q9** Uygulama adı, **Q10** Team ID: iCloud, cihaz testi ve mağaza için gerekli.
+## 10. Kararlar (2026-11-27)
+- **R1** Reel getiride TÜFE: uygulamaya gömülü aylık tablo, her sürümle güncellenir.
+- **R2** Hedefe sayılan birikim: alım kaydına hedef atanır (varsayılan yok).
+- **R3** CSV içe aktarma v1'de genel sütun eşleme; banka şablonları v1.x.
+- **R4** Uygulamaya özel parola yok; cihaz parolası yedek.
+- Açık: **Q9** uygulama adı, **Q10** Team ID (iCloud, cihaz testi ve mağaza için).
