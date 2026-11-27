@@ -1,0 +1,59 @@
+# 07 — Yol Haritası ve Görevler
+
+Her görev bir veya daha fazla `REQ-…` maddesine bağlıdır. Bir görev, kabul kriteri
+test/senaryo ile kanıtlanınca "bitti" sayılır.
+
+## M0 — İskelet (1 hafta)
+- [ ] T0.1 Xcode projesi: multiplatform app, `Packages/` yerel paketleri, Swift 6.
+- [ ] T0.2 `KumbaraCore`: `Money`, `CurrencyCode`, `Quantity`, `AssetCode`,
+      TR biçimlendirici + testler (C3, REQ-X6).
+- [ ] T0.3 CI: Linux'ta `swift test` (Core), macOS'ta `xcodebuild test`.
+- [ ] T0.4 PR şablonu: REQ referansı + 06 §1 kontrol listesi + ekran görüntüleri.
+
+## M1 — Defter (2 hafta)
+- [ ] T1.1 SwiftData modelleri: Account, Category, Transaction (REQ-L1, L2, L3).
+- [ ] T1.2 Varsayılan Türkçe kategori seti (REQ-L5).
+- [ ] T1.3 Hızlı ekleme sayfası, 2 dokunuş kuralı + UI testi (REQ-L4).
+- [ ] T1.4 İşlem listesi (iOS `List`, macOS `Table`), arama, filtre.
+- [ ] T1.5 Satıcı → kategori öğrenme (REQ-L6).
+- [ ] T1.6 Özet ekranı (REQ-B3, B4).
+
+## M2 — Piyasa ve Birikim (2 hafta)
+- [ ] T2.1 Sağlayıcı ayrıştırıcıları + fixture testleri: truncgil, goldapi, tcmb,
+      frankfurter, coingecko (02 §1).
+- [ ] T2.2 Yedekleme zinciri, zaman aşımı, devre kesici, akla yatkınlık kontrolü
+      (02 §3–4, AC-M1-1).
+- [ ] T2.3 Portföy matematiği: ortalama maliyet, FIFO, P&L + test vektörleri (03).
+- [ ] T2.4 Asset/Trade modelleri, alım/satım formu, fiyat ön doldurma (REQ-P1, P5, P6).
+- [ ] T2.5 Birikim ekranı, fiyat tipi seçimi, makas bilgisi (REQ-P3, P4).
+- [ ] T2.6 PriceSnapshot ve grafik (REQ-P8, 02 §6).
+- [ ] T2.7 Çevrimdışı ve bayatlık etiketleri (C4, 02 §5, AC-C4).
+
+## M3 — Yakalama (3 hafta)
+- [ ] T3.1 Fiş korpusu toplama (≥ 40 OCR çıktısı, 04 §6).
+- [ ] T3.2 Ayrıştırıcılar: tutar, tarih, satıcı, sınıflandırıcı (Core, testli).
+- [ ] T3.3 Vision OCR sarmalayıcı, belge kamerası, PhotosPicker, sürükle-bırak.
+- [ ] T3.4 Onay ekranı: görüntü üstünde kutular, güven vurgusu (REQ-C4).
+- [ ] T3.5 Banka listesi → çoklu taslak (REQ-C5), mükerrer kontrolü (REQ-C6).
+- [ ] T3.6 Share Extension + gelen kutusu (REQ-C2).
+- [ ] T3.7 Foundation Models opsiyonel katmanı + çapraz kontrol (04 §2.5).
+
+## M4 — Bütçe ve otomasyon (2 hafta)
+- [ ] T4.1 Bütçeler ve yerel bildirimler (REQ-B1, B2).
+- [ ] T4.2 Tekrarlayan işlemler → taslak (REQ-L7).
+- [ ] T4.3 Taksit planı, kart ekstre dönemi (REQ-L8, L9).
+- [ ] T4.4 App Intents / Kestirmeler (REQ-C7).
+- [ ] T4.5 Fiyat alarmı (REQ-M4).
+
+## M5 — Yayın hazırlığı (2 hafta)
+- [ ] T5.1 iCloud eşitleme açma/kapama (REQ-X2).
+- [ ] T5.2 Kilit + bulanık önizleme (REQ-X3).
+- [ ] T5.3 CSV/JSON dışa aktarma, CSV içe aktarma (REQ-X4).
+- [ ] T5.4 Widget'lar (REQ-X5).
+- [ ] T5.5 Reel getiri: USD + TÜFE tablosu (REQ-P7).
+- [ ] T5.6 Hedefler (REQ-P9), gelirden birikime ayır (REQ-P10).
+- [ ] T5.7 Erişilebilirlik denetimi, İngilizce yerelleştirme, ikon, mağaza metni.
+
+## Sonrası (v1.x adayları)
+Canlı tarama (DataScanner), BIST/fon fiyatları (kaynak bulunursa), ortak bütçe
+(CloudKit paylaşımı), Apple Watch hızlı ekleme, Vision Pro yok.
