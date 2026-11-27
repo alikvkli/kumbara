@@ -192,6 +192,12 @@ public enum DemoData {
         try goals.assign(saved.filter { $0.asset == .gold(.quarter) }, to: wedding)
         try goals.assign(saved.filter { $0.asset == .gold(.gram24) }, to: home)
 
+        // Birikim planı (specs/10 §7): her ay son gram alımının gününde 2,5 gram, ev peşinatı için.
+        let planDay = calendar.component(.day, from: ago(10))
+        try PlanStore(context: context).save(SavingsPlanRule(
+            asset: .gold(.gram24), target: .quantity(dec("2.5")), trigger: .schedule(.monthly(day: planDay)),
+            start: calendar.startOfDay(for: ago(70)), goalID: home.id))
+
         // Yapay fiyat eğrisi: doğrusal yükseliş + hafif dalga; bugün gerçek düzeye yakın biter.
         let curves: [(AssetCode, Double, Double, Double)] = [
             (.gold(.gram24), 4_850, 5_925, 0.012),

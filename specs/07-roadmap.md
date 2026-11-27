@@ -70,7 +70,7 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - [x] T6.1 Aylık rapor: Özet kartı (ilk 7 gün), Aylık raporlar listesi, paylaşılan görsel (tutarlar varsayılan gizli), 1'inde bildirim (REQ-I1).
 - [x] T6.5 Ödeme takvimi: ay ızgarası, 30 günlük liste, gelir sayacı, bakiye uyarısı, "Yaklaşan ödemeler" widget'ı (REQ-I5).
 - [x] T6.3 "Alabilir miyim?": peşin / 3 / 6 taksit senaryoları, günlük hak, ilk son ödeme, hedef gecikmesi, "İşlem olarak ekle" (REQ-I3). Hızlı eklemeye giriş yerine Bütçe'den açılır.
-- [ ] T6.7 Altın birikim planı (REQ-I7).
+- [x] T6.7 Altın birikim planı: aylık ya da maaş tetikli kural, 09:00 hatırlatma → alım formu satış fiyatıyla dolu, uyum ("Alım: 10 / 12 vade"), ortalama maliyet, dolar karşılaştırması; maaşta "Birikime ayır" planla açılır (REQ-I7).
 - [ ] T6.4 Alacak / borç (REQ-I4).
 - [ ] T6.6 Hızlı ekleme önerisi (REQ-I6).
 

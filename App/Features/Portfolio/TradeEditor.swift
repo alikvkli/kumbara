@@ -12,6 +12,15 @@ struct TradeEditor: View {
     }
 
     let mode: Mode
+    /// Birikim planından açılınca (specs/10 §7): miktar ya da tutar, hedef. Fiyat o anki satış fiyatıdır;
+    /// kuyumcunun verdiğiyle değiştirilebilir, kaydetmek kullanıcıdadır (C5).
+    var preset: Preset? = nil
+
+    struct Preset {
+        var target: SavingsPlanRule.Target
+        var goalID: UUID?
+        var note: String
+    }
 
     @Environment(PriceBoard.self) private var board
     @Environment(\.modelContext) private var context
@@ -212,10 +221,11 @@ struct TradeEditor: View {
             date = draft.date
             note = draft.note
             goalID = editing.goalID
-        } else if case .create(let preset) = mode {
-            asset = preset
+        } else if case .create(let initial) = mode {
+            asset = initial
             prefillPrice()
             focus = asset == nil ? nil : .quantity
+            if let preset { apply(preset) }
         }
     }
 
@@ -226,6 +236,20 @@ struct TradeEditor: View {
             text = text.replacingOccurrences(of: grouping, with: "")
         }
         return text
+    }
+
+    private func apply(_ preset: Preset) {
+        goalID = preset.goalID
+        note = preset.note
+        switch preset.target {
+        case let .quantity(value):
+            quantityText = plain(value)
+        case .amount:
+            guard let asset, let price = parser.parse(priceText) else { break }
+            let rule = SavingsPlanRule(asset: asset, target: preset.target, trigger: .salary, start: .now)
+            if let quantity = rule.quantity(at: price) { quantityText = plain(quantity) }
+        }
+        focus = .price
     }
 
     private func prefillPrice() {

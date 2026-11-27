@@ -122,6 +122,30 @@ enum Reminders {
                                                withCompletionHandler: nil)
     }
 
+    /// Takvimli birikim planlarının sıradaki vadesi, 09:00 (specs/10 §7). Duraklatılan ya da silinen planın
+    /// bekleyen hatırlatması kaldırılır.
+    static func schedulePlans(_ plans: [SavingsPlan], now: Date = .now, calendar: Calendar = .current, locale: Locale = .current) {
+        guard !isUITesting else { return }
+        let center = UNUserNotificationCenter.current()
+        center.getPendingNotificationRequests { requests in
+            let stale = requests.map(\.identifier).filter { $0.hasPrefix("plan:") }
+            center.removePendingNotificationRequests(withIdentifiers: stale)
+        }
+        for plan in plans where plan.isActive {
+            guard let rule = plan.rule, let next = rule.schedule?.nextDue(after: now, calendar: calendar) else { continue }
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "Birikim planı: \(PlanText.title(rule, locale: locale))")
+            content.body = String(localized: "Bugün alım günü. Dokun, alım o anki satış fiyatıyla hazırlansın.")
+            content.threadIdentifier = "plan"
+            content.userInfo = ["link": DeepLink.plan.url.absoluteString, "planID": plan.id.uuidString]
+            var components = calendar.dateComponents([.year, .month, .day], from: next)
+            components.hour = 9
+            center.add(UNNotificationRequest(identifier: "plan:\(plan.id.uuidString)", content: content,
+                                             trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)),
+                       withCompletionHandler: nil)
+        }
+    }
+
     static func cancel(_ rule: RecurringRule) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier(for: rule)])
     }

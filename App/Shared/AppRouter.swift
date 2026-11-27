@@ -42,6 +42,8 @@ final class AppRouter {
     var reportMonth: LedgerMonth?
     /// Bütçe'de ödeme takvimini aç (widget bağlantısı).
     var isPresentingCalendar = false
+    /// Birikim planı hatırlatmasına dokunuldu: bu planın alım formu açılır.
+    var planToBuy: UUID?
 
     func show(_ section: AppSection) { destination = .section(section) }
 

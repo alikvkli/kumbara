@@ -32,6 +32,14 @@ struct PortfolioView: View {
             }
         }
         .navigationTitle("Birikim")
+        // Birikim planı hatırlatmasından: alım formu planla dolu (specs/10 §7).
+        .sheet(isPresented: Binding(get: { router.planToBuy != nil }, set: { if !$0 { router.planToBuy = nil } })) {
+            if let id = router.planToBuy,
+               let rule = (try? PlanStore(context: context).plans())?.first(where: { $0.id == id })?.rule {
+                TradeEditor(mode: .create(rule.asset),
+                            preset: .init(target: rule.target, goalID: rule.goalID, note: String(localized: "Birikim planı")))
+            }
+        }
         .navigationDestination(for: AssetCode.self) { asset in
             PositionDetailView(asset: asset)
         }
@@ -112,6 +120,7 @@ struct PortfolioView: View {
             }
 
             GoalsSection()
+            PlansSection()
 
             Section("Varlıklar") {
                 ForEach(rows) { row in

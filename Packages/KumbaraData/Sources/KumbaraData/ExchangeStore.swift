@@ -245,6 +245,17 @@ public struct ExchangeStore {
             context.insert(goal)
         }
 
+        let existingPlans = Set(try context.fetch(FetchDescriptor<SavingsPlan>()).map(\.id))
+        for record in backup.plans ?? [] where !existingPlans.contains(record.id) {
+            guard let asset = AssetCode(id: record.assetID), let target = SavingsPlanRule.target(canonical: record.target),
+                  let trigger = SavingsPlanRule.trigger(canonical: record.trigger) else { continue }
+            let plan = SavingsPlan(SavingsPlanRule(id: record.id, asset: asset, target: target, trigger: trigger,
+                                                   start: record.start, goalID: record.goalID))
+            plan.isActive = record.isActive
+            plan.createdAt = record.createdAt
+            context.insert(plan)
+        }
+
         let existingAlerts = Set(try context.fetch(FetchDescriptor<PriceAlert>()).map(\.id))
         for record in backup.priceAlerts where !existingAlerts.contains(record.id) {
             guard let asset = AssetCode(id: record.assetID), let threshold = Decimal(canonical: record.threshold) else { continue }
@@ -276,6 +287,7 @@ public struct ExchangeStore {
         try context.delete(model: PriceSnapshot.self)
         try context.delete(model: PriceAlert.self)
         try context.delete(model: Goal.self)
+        try context.delete(model: SavingsPlan.self)
         try context.save()
     }
 
@@ -334,6 +346,10 @@ public struct ExchangeStore {
             goals: try context.fetch(FetchDescriptor<Goal>()).map {
                 .init(id: $0.id, name: $0.name, kind: $0.kindRaw, assetID: $0.assetID, target: $0.targetRaw,
                       deadline: $0.deadline, isArchived: $0.isArchived, createdAt: $0.createdAt)
+            },
+            plans: try context.fetch(FetchDescriptor<SavingsPlan>()).map {
+                .init(id: $0.id, assetID: $0.assetID, target: $0.targetRaw, trigger: $0.triggerRaw, start: $0.start,
+                      goalID: $0.goalID, isActive: $0.isActive, createdAt: $0.createdAt)
             })
     }
 }
@@ -358,6 +374,8 @@ struct Backup: Codable {
     var priceAlerts: [Alert]
     /// Sonradan eklendi; eski yedeklerde yok.
     var goals: [GoalRecord]?
+    /// Sonradan eklendi (specs/10 §7); eski yedeklerde yok.
+    var plans: [PlanRecord]?
 
     struct Account: Codable {
         var id: UUID; var name: String; var kind: String; var currency: String; var openingBalance: String
@@ -398,6 +416,10 @@ struct Backup: Codable {
     struct GoalRecord: Codable {
         var id: UUID; var name: String; var kind: String; var assetID: String?; var target: String; var deadline: Date?
         var isArchived: Bool; var createdAt: Date
+    }
+    struct PlanRecord: Codable {
+        var id: UUID; var assetID: String; var target: String; var trigger: String; var start: Date; var goalID: UUID?
+        var isActive: Bool; var createdAt: Date
     }
     struct Alert: Codable {
         var id: UUID; var assetID: String; var direction: String; var threshold: String; var priceKind: String

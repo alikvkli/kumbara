@@ -22,17 +22,54 @@ struct SavingsSplitSheet: View {
     @State private var asset: AssetCode = .gold(.gram24)
     @State private var goalID: UUID?
     @State private var saveFailed = false
+    /// Maaş tetikli birikim planı varsa (specs/10 §7) sayfa planla dolu açılır.
+    @State private var plan: SavingsPlanRule?
+    @State private var usesPlan = false
 
     /// Alım fiyatın kuyumcunun/bankanın satış fiyatıdır.
     private var unitPrice: Decimal? { board.quote(asset)?.price(.ask) }
     private var budget: Decimal { SavingsSplit.amount(of: income, percent: percent) }
     private var quantity: Decimal {
-        unitPrice.map { SavingsSplit.quantity(for: budget, unitPrice: $0, wholeUnits: asset.unit == .piece) } ?? 0
+        if usesPlan, let plan, let unitPrice {
+            return plan.quantity(at: unitPrice) ?? 0
+        }
+        return unitPrice.map { SavingsSplit.quantity(for: budget, unitPrice: $0, wholeUnits: asset.unit == .piece) } ?? 0
+    }
+
+    private var assetChoices: [AssetCode] {
+        guard let asset = plan?.asset, !Self.assets.contains(asset) else { return Self.assets }
+        return Self.assets + [asset]
+    }
+
+    private var planText: String? {
+        guard let plan else { return nil }
+        switch plan.target {
+        case let .quantity(value):
+            return "\(plan.asset.formatQuantity(value, locale: locale)) \(plan.asset.unitLabel) \(plan.asset.displayName())"
+        case let .amount(value):
+            return "\(Money(value, .TRY).formatted(locale: locale, fractionDigits: 0)) · \(plan.asset.displayName())"
+        }
     }
 
     var body: some View {
         NavigationStack {
             Form {
+                if let planText {
+                    Section {
+                        Toggle(isOn: $usesPlan) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Birikim planına göre")
+                                Text(verbatim: planText).font(.footnote).foregroundStyle(.secondary)
+                            }
+                        }
+                        .onChange(of: usesPlan) { _, on in
+                            if on, let plan {
+                                asset = plan.asset
+                                goalID = plan.goalID
+                            }
+                        }
+                    }
+                }
                 Section {
                     Picker("Oran", selection: $percent) {
                         ForEach(Self.percents, id: \.self) { value in
@@ -40,8 +77,9 @@ struct SavingsSplitSheet: View {
                         }
                     }
                     .pickerStyle(.segmented)
+                    .disabled(usesPlan)
                     Picker("Varlık", selection: $asset) {
-                        ForEach(Self.assets, id: \.self) { Text(verbatim: $0.displayName()).tag($0) }
+                        ForEach(assetChoices, id: \.self) { Text(verbatim: $0.displayName()).tag($0) }
                     }
                     if !goals.isEmpty {
                         Picker("Hedef", selection: $goalID) {
@@ -50,7 +88,7 @@ struct SavingsSplitSheet: View {
                         }
                     }
                 } header: {
-                    Text("\(Money(income, .TRY).formatted(locale: locale, fractionDigits: 0)) gelir kaydedildi. Bir kısmını birikime ayıralım mı?")
+                    Text("\(Money(income, .TRY).formatted(locale: locale, fractionDigits: 0)) gelir kaydedildi. Bir kısmını birikime ayırmak ister misin?")
                         .textCase(nil)
                 } footer: {
                     summary
@@ -74,7 +112,15 @@ struct SavingsSplitSheet: View {
                 }
             }
             .alert("Alım kaydedilemedi", isPresented: $saveFailed) { Button("Tamam") {} }
-            .task { await board.refresh(including: Set(Self.assets)) }
+            .task {
+                if plan == nil, let rule = (try? PlanStore(context: context).salaryPlans())?.first?.rule {
+                    plan = rule
+                    usesPlan = true
+                    asset = rule.asset
+                    goalID = rule.goalID
+                }
+                await board.refresh(including: Set(Self.assets).union(plan.map { [$0.asset] } ?? []))
+            }
         }
     }
 
@@ -99,7 +145,7 @@ struct SavingsSplitSheet: View {
             do {
                 let record = try PortfolioStore(context: context).save(
                     TradeDraft(asset: asset, side: .buy, quantity: quantity, unitPrice: unitPrice, date: .now,
-                               note: String(localized: "Gelirden birikime")),
+                               note: usesPlan ? String(localized: "Birikim planı") : String(localized: "Gelirden birikime")),
                     usdTRYAtTrade: usdTRY)
                 if let goalID {
                     record.goalID = goalID

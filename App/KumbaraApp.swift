@@ -167,6 +167,7 @@ struct RootView: View {
             // Aylık rapor bildirimi ve abonelik zamları (specs/10 §1, §2).
             Reminders.scheduleMonthlyReport(enabled: UserDefaults.standard.object(forKey: SettingsKey.reportNotification) as? Bool ?? true)
             InsightMonitor.check(context)
+            Reminders.schedulePlans((try? PlanStore(context: context).plans()) ?? [])
         }
     }
 }
@@ -178,6 +179,8 @@ enum DeepLink: String {
     case report
     /// Bütçe › Ödeme takvimi (yaklaşan ödemeler widget'ı).
     case calendar
+    /// Birikim planı hatırlatması: plan alımını hazırla (specs/10 §7).
+    case plan
 
     static let scheme = "kumbara"
 
@@ -207,6 +210,9 @@ enum DeepLink: String {
         case .calendar:
             router.show(.budget)
             router.isPresentingCalendar = true
+        case .plan:
+            router.show(.portfolio)
+            router.planToBuy = BudgetMonitor.shared.pendingPlanID
         }
     }
 }

@@ -81,3 +81,36 @@ struct PaymentCalendarStoreTests {
         #expect(next.days == 4)
     }
 }
+
+@MainActor
+@Suite("Birikim planı deposu (specs/10 §7)")
+struct PlanStoreTests {
+    private let containers = ContainerBag()
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Istanbul")!
+        return calendar
+    }
+    private var now: Date { calendar.date(from: DateComponents(year: 2026, month: 11, day: 27, hour: 12))! }
+
+    @Test("Örnek plan: son alım vadeye sayılır; yedekten geri gelir")
+    func demoPlanAndBackup() throws {
+        let context = try containers.make()
+        try LedgerSeeder.seedIfNeeded(context, locale: Locale(identifier: "tr_TR"))
+        try DemoData.load(into: context, now: now, calendar: calendar)
+        let store = PlanStore(context: context)
+        let plan = try #require(try store.plans().first)
+        let progress = try #require(try store.progress(of: plan, now: now, calendar: calendar))
+        #expect(progress.dueCount >= 2)
+        #expect(progress.keptCount >= 1)
+        #expect(progress.nextDue != nil)
+        #expect(try store.salaryDates().count == 3)
+
+        let data = try ExchangeStore(context: context).backupJSON(now: now)
+        let other = try containers.make()
+        try ExchangeStore(context: other).restore(data, mode: .replace)
+        let restored = try PlanStore(context: other).plans()
+        #expect(restored.map(\.id) == [plan.id])
+        #expect(restored.first?.rule == plan.rule)
+    }
+}

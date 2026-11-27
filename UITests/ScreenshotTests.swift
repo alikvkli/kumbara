@@ -62,6 +62,15 @@ final class ScreenshotTests: XCTestCase {
         // Hedefler grafiğin altında: kaydır, hedefleri çek; varlıklar onların altında.
         app.swipeUp()
         try shot("5b-hedefler")
+        // Birikim planı (specs/10 §7)
+        let planRow = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Her ayın")).firstMatch
+        if planRow.waitForExistence(timeout: 2) {
+            if !planRow.isHittable { app.swipeUp() }
+            planRow.tap()
+            Thread.sleep(forTimeInterval: 1)
+            try shot("22-birikim-plani")
+            app.navigationBars.buttons.firstMatch.tap()
+        }
         let gram = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Gram altın")).firstMatch
         if !gram.isHittable { app.swipeUp() }
         if gram.waitForExistence(timeout: 3) {

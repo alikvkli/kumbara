@@ -14,7 +14,7 @@ public enum SchemaV1: VersionedSchema {
     public static var models: [any PersistentModel.Type] {
         [LedgerAccount.self, LedgerCategory.self, LedgerTransaction.self, MerchantMemory.self,
          AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self, RecurringRule.self, PriceAlert.self,
-         Goal.self]
+         Goal.self, SavingsPlan.self]
     }
 
     @Model
@@ -397,6 +397,7 @@ extension SchemaV1 {
 }
 
 public typealias Goal = SchemaV1.Goal
+public typealias SavingsPlan = SchemaV1.SavingsPlan
 public typealias PriceAlert = SchemaV1.PriceAlert
 public typealias RecurringRule = SchemaV1.RecurringRule
 public typealias Budget = SchemaV1.Budget
@@ -412,4 +413,40 @@ public typealias MerchantMemory = SchemaV1.MerchantMemory
 public enum KumbaraMigrationPlan: SchemaMigrationPlan {
     public static var schemas: [any VersionedSchema.Type] { [SchemaV1.self] }
     public static var stages: [MigrationStage] { [] }
+}
+
+extension SchemaV1 {
+    /// Düzenli alım planı (REQ-I7, specs/10 §7). Kayıt üretmez; vadesinde hatırlatır.
+    @Model
+    public final class SavingsPlan {
+        public var id: UUID = UUID()
+        public var assetID: String = ""
+        /// `q:2` | `a:5000` (SavingsPlanRule.targetCanonical).
+        var targetRaw: String = ""
+        /// `s:m:15:1` | `salary`.
+        var triggerRaw: String = ""
+        public var start: Date = Date.now
+        public var goalID: UUID?
+        public var isActive: Bool = true
+        public var createdAt: Date = Date.now
+
+        public init(_ rule: SavingsPlanRule) {
+            self.id = rule.id
+            apply(rule)
+        }
+
+        public func apply(_ rule: SavingsPlanRule) {
+            assetID = rule.asset.id
+            targetRaw = rule.targetCanonical
+            triggerRaw = rule.triggerCanonical
+            start = rule.start
+            goalID = rule.goalID
+        }
+
+        public var rule: SavingsPlanRule? {
+            guard let asset = AssetCode(id: assetID), let target = SavingsPlanRule.target(canonical: targetRaw),
+                  let trigger = SavingsPlanRule.trigger(canonical: triggerRaw) else { return nil }
+            return SavingsPlanRule(id: id, asset: asset, target: target, trigger: trigger, start: start, goalID: goalID)
+        }
+    }
 }
