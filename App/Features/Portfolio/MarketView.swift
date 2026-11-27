@@ -54,14 +54,14 @@ struct MarketView: View {
                 }
             }
             Spacer()
-            price(quote?.bid).frame(width: 84, alignment: .trailing)
-            price(quote?.ask).frame(width: 84, alignment: .trailing)
+            price(quote?.bid, asset).frame(width: 84, alignment: .trailing)
+            price(quote?.ask, asset).frame(width: 84, alignment: .trailing)
         }
         .accessibilityElement(children: .combine)
     }
 
-    private func price(_ value: Decimal?) -> some View {
-        Text(verbatim: value.map { $0.formattedNumber(locale: locale, fractionDigits: 0...2) } ?? "—")
+    private func price(_ value: Decimal?, _ asset: AssetCode) -> some View {
+        Text(verbatim: value.map { asset.formatPrice($0, locale: locale) } ?? "—")
             .monospacedDigit()
             .contentTransition(.numericText())
             .lineLimit(1)

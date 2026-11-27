@@ -202,6 +202,14 @@ struct PortfolioHistoryTests {
         #expect(points.first?.date == day(1), "işlem öncesi gün atlanır")
     }
 
+    @Test("Yatırılan tutar serisi: alımda artar, satışta ortalama maliyet kadar düşer")
+    func invested() {
+        let trades = [buy("10", "5000", on: 1), buy("5", "5600", on: 3), sell("3", "6000", on: 5)]
+        let points = PortfolioHistory.invested(trades: trades, days: [day(0), day(1), day(3), day(5)])
+        #expect(points.map(\.value) == [50_000, 78_000, 62_400])
+        #expect(points.first?.date == day(1))
+    }
+
     @Test("Fiyatı bilinmeyen varlık o gün toplama girmez")
     func unknownPrice() {
         let usd = Trade(asset: .fx(.USD), side: .buy, quantity: 100, unitPrice: 40, date: day(1))

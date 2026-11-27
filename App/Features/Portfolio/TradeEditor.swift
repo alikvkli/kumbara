@@ -288,7 +288,7 @@ struct AssetPicker: View {
                 Text(verbatim: asset.displayName(customName: name))
                 Spacer()
                 if let quote = board.quote(asset) {
-                    Text(verbatim: quote.price(.ask).formattedNumber(locale: locale, fractionDigits: 0...2))
+                    Text(verbatim: asset.formatPrice(quote.price(.ask), locale: locale))
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }

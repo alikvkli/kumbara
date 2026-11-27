@@ -209,9 +209,33 @@ private struct PositionRow: View {
 
     private var detail: String {
         let quantity = position.asset.formatQuantity(position.quantity, locale: locale)
-        let average = position.averageCost.map { $0.formattedNumber(locale: locale, fractionDigits: 0...2) } ?? "—"
-        let now = valuation.map { $0.unitPrice.formattedNumber(locale: locale, fractionDigits: 0...2) } ?? "—"
-        return String(localized: "\(quantity) \(position.asset.unitLabel) · ort. \(average) · şimdi \(now)")
+        let average = position.averageCost.map { position.asset.formatPrice($0, locale: locale) } ?? "—"
+        return String(localized: "\(quantity) \(position.asset.unitLabel) · ort. \(average)")
+    }
+}
+
+/// Grafik açıklaması: renkli düz çizgi = değer, gri kesikli = yatırdığın.
+private struct ChartKey: View {
+    var body: some View {
+        HStack(spacing: 16) {
+            key(Text("Değer"), color: .accentColor, dashed: false)
+            key(Text("Yatırdığın"), color: .secondary, dashed: true)
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .accessibilityHidden(true)
+    }
+
+    private func key(_ title: Text, color: Color, dashed: Bool) -> some View {
+        HStack(spacing: 6) {
+            Path { path in
+                path.move(to: CGPoint(x: 0, y: 4))
+                path.addLine(to: CGPoint(x: 16, y: 4))
+            }
+            .stroke(color, style: StrokeStyle(lineWidth: 1.5, dash: dashed ? [4, 3] : []))
+            .frame(width: 16, height: 8)
+            title
+        }
     }
 }
 
@@ -250,19 +274,29 @@ private struct PortfolioChart: View {
     @Environment(\.locale) private var locale
     @State private var selected: Date?
 
-    private var points: [PortfolioHistory.Point] {
+    @AppStorage(SettingsKey.costMethod) private var costMethod: CostMethod = .averageCost
+
+    /// Değer ve yatırılan tutar, aynı günler için.
+    private var series: (value: [PortfolioHistory.Point], invested: [PortfolioHistory.Point]) {
         let store = PortfolioStore(context: context, calendar: calendar)
         let prices = (try? store.priceHistory(priceKind: priceKind)) ?? [:]
         let start = range.start(from: .now, calendar: calendar) ?? trades.map(\.date).min() ?? .now
         var days = Set(prices.values.flatMap { $0.map(\.date) }.filter { $0 >= calendar.startOfDay(for: start) })
+        // Alım günleri de eklenir: yatırılan tutar basamağı alımın yapıldığı güne düşer.
         days.formUnion(trades.map { calendar.startOfDay(for: $0.date) }.filter { $0 >= start })
-        var series = PortfolioHistory.series(trades: trades, prices: prices, days: Array(days))
-        if current > 0 { series.append(.init(date: .now, value: current)) }
-        return series
+        var value = PortfolioHistory.series(trades: trades, prices: prices, days: Array(days))
+        let valueDays = value.map(\.date)
+        var invested = PortfolioHistory.invested(trades: trades, days: valueDays, method: costMethod)
+        if current > 0 {
+            value.append(.init(date: .now, value: current))
+            invested += PortfolioHistory.invested(trades: trades, days: [.now], method: costMethod)
+        }
+        return (value, invested)
     }
 
     var body: some View {
-        let points = points
+        let series = series
+        let points = series.value
         if points.count < 2 {
             Text("Grafik, uygulama birkaç gün fiyat kaydettikçe oluşur.")
                 .font(.footnote)
@@ -270,9 +304,18 @@ private struct PortfolioChart: View {
                 .frame(maxWidth: .infinity, minHeight: 120)
         } else {
             Chart {
+                ForEach(series.invested, id: \.date) { point in
+                    LineMark(x: .value("Tarih", point.date),
+                             y: .value("Tutar", (point.value as NSDecimalNumber).doubleValue),
+                             series: .value("Seri", "invested"))
+                        .interpolationMethod(.stepEnd)
+                        .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                        .foregroundStyle(Color.secondary)
+                }
                 ForEach(points, id: \.date) { point in
                     LineMark(x: .value("Tarih", point.date),
-                             y: .value("Değer", (point.value as NSDecimalNumber).doubleValue))
+                             y: .value("Tutar", (point.value as NSDecimalNumber).doubleValue),
+                             series: .value("Seri", "value"))
                         .interpolationMethod(.monotone)
                         .foregroundStyle(Color.accentColor)
                 }
@@ -295,10 +338,12 @@ private struct PortfolioChart: View {
                 }
             }
             .chartXSelection(value: $selected)
+            .chartLegend(.hidden)
             .chartYAxis { AxisMarks(position: .trailing) }
             .chartYScale(domain: .automatic(includesZero: false))
             .frame(height: 180)
-            .accessibilityLabel(Text("Portföy değeri grafiği"))
+            .accessibilityLabel(Text("Portföy değeri ve yatırılan tutar grafiği"))
+            ChartKey()
         }
     }
 }

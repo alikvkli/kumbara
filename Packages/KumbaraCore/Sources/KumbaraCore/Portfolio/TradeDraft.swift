@@ -92,6 +92,21 @@ public enum PortfolioHistory {
         }
     }
 
+    /// Her gün için o güne kadarki işlemlerle eldeki pozisyonların maliyeti ("yatırdığın").
+    /// Değer serisiyle birlikte çizilince alımdan kaynaklanan sıçrama kâr sanılmaz.
+    public static func invested(trades: [Trade], days: [Date], method: CostMethod = .averageCost) -> [Point] {
+        let byAsset = Dictionary(grouping: trades, by: \.asset)
+        return days.sorted().compactMap { day in
+            var total: Decimal = 0
+            for (asset, assetTrades) in byAsset {
+                let upToDay = assetTrades.filter { $0.date <= day }
+                guard !upToDay.isEmpty, let position = try? Position(asset: asset, trades: upToDay, method: method) else { continue }
+                total += position.costBasis
+            }
+            return total > 0 ? Point(date: day, value: total) : nil
+        }
+    }
+
     /// `prices`: varlık → (gün, birim fiyat) listesi. `days`: hangi günler için nokta üretileceği.
     public static func series(trades: [Trade], prices: [AssetCode: [(date: Date, price: Decimal)]],
                               days: [Date]) -> [Point] {

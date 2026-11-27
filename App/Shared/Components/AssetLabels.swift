@@ -87,6 +87,11 @@ extension AssetCode {
         }
     }
 
+    /// Birim fiyat gösterimi: adetli altın küsuratsız (₺10.229), diğerleri her zaman 2 hane (₺5.906,50).
+    func formatPrice(_ value: Decimal, locale: Locale) -> String {
+        value.formattedNumber(locale: locale, fractionDigits: unit == .piece ? 0...0 : 2...2)
+    }
+
     static let cryptoNames: [String: String] = ["bitcoin": "Bitcoin", "ethereum": "Ethereum", "tether": "Tether",
                                                 "solana": "Solana", "ripple": "XRP", "avalanche-2": "Avalanche"]
     static let cryptoSymbols: [String: String] = ["bitcoin": "BTC", "ethereum": "ETH", "tether": "USDT",

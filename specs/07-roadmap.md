@@ -24,16 +24,19 @@ test/senaryo ile kanıtlanınca "bitti" sayılır.
 - [x] T1.6 Özet ekranı (REQ-B3, B4).
 
 ## M2 — Piyasa ve Birikim (2 hafta)
-- [ ] T2.0 Canlı piyasa şeridi alt aksesuarı (inline/expanded) (REQ-X8).
-- [ ] T2.1 Sağlayıcı ayrıştırıcıları + fixture testleri: truncgil, goldapi, tcmb,
+- [x] T2.0 Canlı piyasa şeridi alt aksesuarı (inline/expanded) (REQ-X8).
+- [x] T2.1 Sağlayıcı ayrıştırıcıları + fixture testleri: truncgil, goldapi, tcmb,
       frankfurter, coingecko (02 §1).
-- [ ] T2.2 Yedekleme zinciri, zaman aşımı, devre kesici, akla yatkınlık kontrolü
+- [x] T2.2 Yedekleme zinciri, zaman aşımı, devre kesici, akla yatkınlık kontrolü
       (02 §3–4, AC-M1-1).
-- [ ] T2.3 Portföy matematiği: ortalama maliyet, FIFO, P&L + test vektörleri (03).
-- [ ] T2.4 Asset/Trade modelleri, alım/satım formu, fiyat ön doldurma (REQ-P1, P5, P6).
-- [ ] T2.5 Birikim ekranı, fiyat tipi seçimi, makas bilgisi (REQ-P3, P4).
-- [ ] T2.6 PriceSnapshot ve grafik (REQ-P8, 02 §6).
-- [ ] T2.7 Çevrimdışı ve bayatlık etiketleri (C4, 02 §5, AC-C4).
+- [x] T2.3 Portföy matematiği: ortalama maliyet, FIFO, P&L + test vektörleri (03).
+- [x] T2.4 Asset/Trade modelleri, alım/satım formu, fiyat ön doldurma (REQ-P1, P5, P6).
+- [x] T2.5 Birikim ekranı, fiyat tipi seçimi, makas bilgisi (REQ-P3, P4).
+- [x] T2.6 PriceSnapshot ve grafik (REQ-P8, 02 §6).
+- [x] T2.7 Çevrimdışı ve bayatlık etiketleri (C4, 02 §5, AC-C4).
+
+Not: Arka plan yenilemesi (REQ-M2'nin `BGAppRefreshTask` kısmı) fiyat alarmıyla
+birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 
 ## M3 — Yakalama (3 hafta)
 - [ ] T3.1 Fiş korpusu toplama (≥ 40 OCR çıktısı, 04 §6).
@@ -49,7 +52,7 @@ test/senaryo ile kanıtlanınca "bitti" sayılır.
 - [ ] T4.2 Tekrarlayan işlemler → taslak (REQ-L7).
 - [ ] T4.3 Taksit planı, kart ekstre dönemi (REQ-L8, L9).
 - [ ] T4.4 App Intents / Kestirmeler (REQ-C7).
-- [ ] T4.5 Fiyat alarmı (REQ-M4).
+- [ ] T4.5 Fiyat alarmı (REQ-M4) ve arka plan fiyat yenilemesi (REQ-M2, BGAppRefreshTask).
 
 ## M5 — Yayın hazırlığı (2 hafta)
 - [ ] T5.1 iCloud eşitleme açma/kapama (REQ-X2).
