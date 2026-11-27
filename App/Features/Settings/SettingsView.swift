@@ -32,14 +32,50 @@ struct SettingsView: View {
                     Label("Kategoriler", systemImage: "square.grid.2x2")
                 }
             }
-            Section("Veri kaynakları") {
-                LabeledContent("Altın ve döviz", value: "Truncgil Finans")
-                LabeledContent("Ons fiyatı", value: "gold-api.com")
-                LabeledContent("Resmî kur", value: "TCMB")
-                LabeledContent("Kripto", value: "CoinGecko")
+            Section {
+                NavigationLink {
+                    AboutView()
+                } label: {
+                    Label("Hakkında", systemImage: "info.circle")
+                }
             }
         }
         .formStyle(.grouped)
         .navigationTitle("Ayarlar")
+    }
+}
+
+/// Sürüm, gizlilik ve veri kaynakları. Kaynak adları yalnız burada, atıf için yer alır;
+/// ana arayüzde fiyatın tazeliği gösterilir (REQ-M3).
+struct AboutView: View {
+    private var version: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = info?["CFBundleVersion"] as? String ?? "—"
+        return "\(short) (\(build))"
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                LabeledContent("Sürüm", value: version)
+            } footer: {
+                // TODO(Q10): iCloud eşitleme açılınca "ve kendi iCloud hesabında" eklenecek.
+                Text("Kumbara'nın sunucusu yok. Kayıtların yalnızca cihazında durur; fiş görüntüleri de cihazında okunur.")
+            }
+            Section {
+                LabeledContent("Altın ve döviz", value: "Truncgil Finans")
+                LabeledContent("Ons fiyatı", value: "gold-api.com")
+                LabeledContent("Resmî kur", value: "TCMB")
+                LabeledContent("Yedek kur", value: "Frankfurter (ECB)")
+                LabeledContent("Kripto", value: "CoinGecko")
+            } header: {
+                Text("Veri kaynakları")
+            } footer: {
+                Text("Fiyatlar ücretsiz, herkese açık kaynaklardan alınır ve bilgi amaçlıdır; kuyumcu ve banka fiyatları farklı olabilir.")
+            }
+        }
+        .formStyle(.grouped)
+        .navigationTitle("Hakkında")
     }
 }
