@@ -119,7 +119,8 @@ struct SummaryView: View {
             }
 
             Section {
-                ForEach(transactions.prefix(5)) { transaction in
+                // Yalnız gerçekleşmiş kayıtlar: planlanmış gelecek taksitler ve onay bekleyen taslaklar burada değil.
+                ForEach(Array(transactions.filter { $0.status == .posted }.prefix(5))) { transaction in
                     TransactionRow(transaction: transaction)
                 }
                 Button("Tüm işlemler") { router.show(.ledger) }
