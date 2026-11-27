@@ -317,7 +317,7 @@ private struct MultiDraftReview: View {
             let category = row.category.flatMap { CategoryKind(row.draft.kind) == $0.kind ? $0 : nil }
             let draft = TransactionDraft(kind: row.draft.kind, amount: amount, date: row.draft.date.value,
                                          account: account.ref, category: category?.ref, merchant: row.draft.merchant?.value ?? "")
-            try? store.save(draft, origin: .ocr)
+            _ = try? store.save(draft, origin: .ocr)
         }
         dismiss()
     }
