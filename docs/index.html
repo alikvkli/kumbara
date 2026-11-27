@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Kumbara Destek</title>
+<meta name="description" content="Kumbara için destek ve sık sorulan sorular.">
+<style>
+:root{--accent:#1F5E5B;--bg:#ffffff;--fg:#1c1c1e;--muted:#5b5b60;--line:#e3e3e6;--card:#f5f6f6}
+@media (prefers-color-scheme:dark){:root{--accent:#6FB3AE;--bg:#111213;--fg:#ececee;--muted:#a3a3a8;--line:#2c2d2f;--card:#1a1b1c}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+main{max-width:680px;margin:0 auto;padding:40px 16px 64px}
+h1{font-size:2rem;line-height:1.2;margin:0 0 8px;color:var(--accent)}
+h2{font-size:1.25rem;margin:40px 0 12px}
+p{margin:0 0 14px}
+a{color:var(--accent)}
+.lead{color:var(--muted)}
+details{border-top:1px solid var(--line);padding:12px 0}
+details:last-of-type{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;font-weight:600;list-style-position:outside}
+details p{margin:10px 0 4px}
+.contact{background:var(--card);border-radius:12px;padding:16px}
+code{font:0.95em ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{margin-top:48px;color:var(--muted);font-size:0.9rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Kumbara Destek</h1>
+<p class="lead">Kumbara; gelirini, harcamalarını ve gram altın, çeyrek, döviz gibi birikimlerini Türkiye'nin gerçeklerine göre takip eden bir iPhone ve Mac uygulamasıdır. Sunucusu yoktur, hesap açman gerekmez; reklam ve takip yoktur. Kayıtların yalnızca cihazında durur.</p>
+
+<h2>Sık sorulan sorular</h2>
+
+<details>
+<summary>Verilerim nerede duruyor?</summary>
+<p>Yalnızca cihazında. Kumbara'nın kendine ait bir sunucusu yoktur; işlemlerin, bütçelerin, birikimlerin ve fiş görüntülerin hiçbir yere gönderilmez. Fişler de cihazında okunur. Ayrıntılar için <a href="privacy.html">gizlilik politikasına</a> bakabilirsin.</p>
+</details>
+
+<details>
+<summary>Nasıl yedek alırım, yedeği nasıl geri yüklerim?</summary>
+<p><strong>Ayarlar › Dışa aktar ve yedekle</strong> bölümünden "Tam yedek al" ile tek dosyalık bir yedek oluşturup Dosyalar'a ya da istediğin yere kaydedebilirsin. Yedek; hesapları, kategorileri, işlemleri, bütçeleri, birikimleri, hedefleri ve alarmları içerir, fiş görüntülerini içermez. İşlemlerini Excel ve Numbers'da açılan bir tabloya (CSV) da aktarabilirsin.</p>
+<p>Geri yüklemek için aynı yerden "Yedekten geri yükle…" seç. İki seçenek çıkar: <em>Birleştir</em> yedekte olup cihazda olmayanları ekler; <em>Mevcut verinin yerine koy</em> buradaki veriyi silip yedeği yükler, ama önce mevcut verinin bir yedeğini Dosyalar'a kaydeder.</p>
+</details>
+
+<details>
+<summary>Bankamın CSV ekstresini nasıl içe aktarırım?</summary>
+<p>Ekstreyi bankanın internet şubesinden CSV olarak indir (ya da Excel'den CSV olarak kaydet). Ardından <strong>Ayarlar › Dışa aktar ve yedekle › Banka ekstresi içe aktar (CSV)…</strong> ile dosyayı seç, tarih ve tutar sütunlarını eşle, hesabı seç ve önizlemeye bak. Satırlar taslak olarak gelir; İşlemler'de onaylayana kadar hiçbir toplama girmez. Daha önce alınmış satırlar atlanır.</p>
+</details>
+
+<details>
+<summary>Gösterilen altın fiyatı neden kuyumcumdakinden farklı?</summary>
+<p>Fiyatlar ücretsiz, herkese açık kaynaklardan alınır ve bilgi amaçlıdır; kuyumcu ve banka fiyatları farklı olabilir. Ayrıca iki ayrı fiyat vardır: <em>bozdurma</em> (kuyumcunun senden alış fiyatı, yani bugün satsan eline geçecek tutar) ve <em>satın alma</em> (senin kuyumcudan alış fiyatın). Kumbara birikimini varsayılan olarak bozdurma fiyatıyla değerler; bunu Ayarlar › Değerleme fiyatı'ndan değiştirebilirsin.</p>
+<p>Birincil kaynağa ulaşılamazsa bazı fiyatlar ons altın fiyatı ve kurdan hesaplanır; bu durumda fiyat "tahmini" olarak işaretlenir. Alım kaydederken kuyumcunun sana verdiği gerçek fiyatı yazabilirsin.</p>
+</details>
+
+<details>
+<summary>"Gerçekte ne kazandın" ve enflasyon karşılaştırması nasıl çalışır?</summary>
+<p>TL cinsinden kâr, yüksek enflasyonda yanıltıcı olabilir. Bu yüzden Kumbara her birikim için yan yana gösterir: aynı parayla o gün dolar alsaydın bugün ne ederdi ve paran enflasyon kadar artsaydı ne olurdu. Enflasyon verisi TÜİK TÜFE'dir ve uygulamanın içinde gelir; ekranda son açıklanan ay yazar. O aydan sonrası tahmin edilmez.</p>
+</details>
+
+<details>
+<summary>Uygulamayı Face ID ile kilitleyebilir miyim?</summary>
+<p>Evet. <strong>Ayarlar › Kilit</strong> bölümünden açabilirsin. Açıkken Kumbara, seçtiğin süre geçince kilidi sorar. Yüzün ya da parmak izin tanınmazsa cihaz parolası kullanılır; Kumbara'nın ayrı bir parolası yoktur. Uygulama değiştiricide Kumbara bulanık görünür. İstersen ana ekran ve kilit ekranı widget'larında bütçe ve birikim tutarları yerine ••• gösterilir.</p>
+</details>
+
+<details>
+<summary>Hangi widget'lar var?</summary>
+<p>Ana ekran ve kilit ekranı için: <em>Gram altın</em> (gram altın ve dolar, bozdurma fiyatıyla), <em>Bugün harcayabileceğin</em> (bütçene göre) ve <em>Birikim</em> (bozdurma değeri ve en büyük üç varlık). Denetim Merkezi, kilit ekranı ve Eylem Butonu için "Harcama ekle" ve "Fiş tara" kontrolleri de vardır. Mac'te gram altın fiyatı menü çubuğunda görünebilir.</p>
+<p>Widget eklemek için ana ekranda boş bir yere basılı tut, "Düzenle" › "Widget ekle" yolunu izle ve Kumbara'yı seç.</p>
+</details>
+
+<details>
+<summary>"Kayıtların açılamadı" ekranı çıktı. Verilerim silindi mi?</summary>
+<p>Hayır. Bu ekran, Kumbara verilerini okurken bir sorun çıktığında görünür; verilerin silinmez, cihazında durur. Bu ekrandan veri dosyasının bir kopyasını kaydedebilirsin. "Boş bir başlangıç yap" seçersen mevcut veri dosyaları silinmez, aynı klasörde ayrı bir adla kenara alınır. Bu durumda bizimle iletişime geçersen birlikte bakabiliriz.</p>
+</details>
+
+<details>
+<summary>iCloud ile cihazlarım arasında eşitleme var mı?</summary>
+<p>Henüz yok; yakında gelecek. Geldiğinde isteğe bağlı olacak ve varsayılan olarak kapalı olacak. Açarsan verilerin yalnızca senin kendi iCloud hesabındaki özel veritabanında tutulur; geliştirici bu veriye erişemez. O zamana kadar cihaz değiştirirken tam yedek alıp yeni cihazda geri yükleyebilirsin.</p>
+</details>
+
+<details>
+<summary>Fiyatlar için internet gerekir mi?</summary>
+<p>Uygulama internetsiz de tamamen kullanılabilir. Fiyatlar son bilinen değerle ve ne zaman alındığı görünerek gösterilir; fiyat eskiyse bu ekranda belirtilir.</p>
+</details>
+
+<h2>İletişim</h2>
+<div class="contact">
+<p>Sorun, öneri ya da soru için e-posta gönderebilirsin: <code>destek@ALAN-ADI</code></p>
+<p><!-- YAYINLAMADAN ÖNCE DEĞİŞTİR: "destek@ALAN-ADI" yer tutucudur, gerçek destek adresiyle değiştirilmelidir. --><small>(Bu adres yer tutucudur; yayınlamadan önce gerçek destek adresiyle değiştirilecek.)</small></p>
+</div>
+
+<footer>
+<p><a href="privacy.html">Gizlilik politikası</a></p>
+</footer>
+</main>
+</body>
+</html>

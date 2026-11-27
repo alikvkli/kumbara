@@ -87,5 +87,6 @@ Not: Varsayılan ekran görüntüleri 6,3" (iPhone Pro). Mağaza boyutu için co
 simülatörle (iPhone 17 Pro Max) bir tur daha alınmalı.
 
 ## Destek
-- Destek URL'si (zorunlu): henüz yok. Basit bir sayfa yeterli (ör. GitHub Pages): iletişim e-postası, SSS.
-- Gizlilik politikası URL'si (zorunlu): "Kumbara veri toplamaz…" metniyle tek sayfa.
+- Destek URL'si (zorunlu): `https://<kullanıcı>.github.io/kumbara/` (kaynak: `docs/index.html`, SSS ve iletişim).
+- Gizlilik politikası URL'si (zorunlu): `https://<kullanıcı>.github.io/kumbara/privacy.html` (kaynak: `docs/privacy.html`).
+- GitHub Pages `/docs` klasöründen yayımlanır (bkz. `docs/README.md`). İletişim adresi `destek@ALAN-ADI` yer tutucudur; göndermeden önce değiştirilmeli.
