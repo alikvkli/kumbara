@@ -62,7 +62,7 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - [x] T5.4 Widget'lar (tüm rendering modları), Denetim Merkezi kontrolleri,
       macOS menü çubuğu öğesi (REQ-X5, X8, X9).
 - [x] T5.5 Reel getiri: USD + TÜFE tablosu (REQ-P7).
-- [ ] T5.6 Hedefler (REQ-P9), gelirden birikime ayır (REQ-P10).
+- [x] T5.6 Hedefler (REQ-P9), gelirden birikime ayır (REQ-P10).
 - [x] T5.7 Çok katmanlı Liquid Glass ikonu (koyu varyant), mağaza metni (Design/AppStore). İngilizce ve erişilebilirlik denetimi kullanıcı kararıyla kapsam dışı (2026-11-27).
 
 ## Sonrası (v1.x adayları)
