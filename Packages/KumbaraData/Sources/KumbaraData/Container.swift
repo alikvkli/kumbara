@@ -44,6 +44,34 @@ public enum KumbaraContainer {
         return directory.appending(path: "\(storeName).store")
     }
 
+    /// Deponun dosyaları (ana dosya ve SQLite yan dosyaları); kurtarma ekranı paylaşmak için kullanır.
+    public static func storeFiles(fileManager: FileManager = .default) -> [URL] {
+        guard let main = try? storeURL(fileManager: fileManager) else { return [] }
+        return ["", "-wal", "-shm"].map { URL(fileURLWithPath: main.path + $0) }
+            .filter { fileManager.fileExists(atPath: $0.path) }
+    }
+
+    /// Açılamayan depoyu silmeden kenara alır: dosyalar `Kumbara-acilamayan-<zaman>.store*` adıyla
+    /// aynı klasörde kalır; bir sonraki açılışta yeni, boş bir depo oluşur. Taşınan ana dosyayı döndürür.
+    @discardableResult
+    public static func setAsideStore(now: Date = .now, fileManager: FileManager = .default) throws -> URL? {
+        let main = try storeURL(fileManager: fileManager)
+        return try setAside(main, now: now, fileManager: fileManager)
+    }
+
+    static func setAside(_ main: URL, now: Date, fileManager: FileManager) throws -> URL? {
+        guard fileManager.fileExists(atPath: main.path) else { return nil }
+        let stamp = Int(now.timeIntervalSince1970)
+        let directory = main.deletingLastPathComponent()
+        let target = directory.appending(path: "\(storeName)-acilamayan-\(stamp).store")
+        for suffix in ["", "-wal", "-shm"] {
+            let from = URL(fileURLWithPath: main.path + suffix)
+            guard fileManager.fileExists(atPath: from.path) else { continue }
+            try fileManager.moveItem(at: from, to: URL(fileURLWithPath: target.path + suffix))
+        }
+        return target
+    }
+
     /// Eski depoyu (ana dosya + `-wal`, `-shm`) yeni klasöre taşır. Hedefte depo varsa dokunmaz
     /// (veri asla üzerine yazılmaz); kaynakta yoksa bir şey yapmaz.
     static func moveLegacyStore(from source: URL, to destination: URL, fileManager: FileManager = .default) throws {

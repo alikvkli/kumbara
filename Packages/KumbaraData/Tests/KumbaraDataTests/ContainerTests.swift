@@ -34,6 +34,18 @@ struct ContainerTests {
         #expect(FileManager.default.fileExists(atPath: source.appending(path: "Kumbara.store").path))
     }
 
+    @Test("Açılamayan depo silinmez, yan dosyalarıyla kenara alınır")
+    func setAsideKeepsData() throws {
+        let directory = try temporaryDirectory()
+        let main = directory.appending(path: "Kumbara.store")
+        for suffix in ["", "-wal", "-shm"] { try Data("v\(suffix)".utf8).write(to: URL(fileURLWithPath: main.path + suffix)) }
+        let target = try #require(try KumbaraContainer.setAside(main, now: Date(timeIntervalSince1970: 1_793_000_000),
+                                                                fileManager: .default))
+        #expect(target.lastPathComponent == "Kumbara-acilamayan-1793000000.store")
+        #expect(!FileManager.default.fileExists(atPath: main.path))
+        #expect(try Data(contentsOf: URL(fileURLWithPath: target.path + "-wal")) == Data("v-wal".utf8))
+    }
+
     @Test("Kaynakta depo yoksa bir şey yapılmaz")
     func noLegacyStore() throws {
         let source = try temporaryDirectory(), destination = try temporaryDirectory()

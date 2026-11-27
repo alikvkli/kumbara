@@ -14,21 +14,37 @@ struct KumbaraApp: App {
     @AppStorage("menubar.enabled") private var showsMenuBar = true
     #endif
     private let container: ModelContainer
+    /// Depo açılamadıysa nedeni; kurtarma ekranı gösterilir (specs/09 §0).
+    private var storeFailure: String?
 
     init() {
         // UI testleri her çalıştırmada boş, bellek içi bir depoyla başlar.
         // `-demo-data` örnek veriyi yükler (ekran görüntüleri); yalnız bellek içi depoda.
         let arguments = ProcessInfo.processInfo.arguments
         let isUITesting = arguments.contains("-ui-testing")
-        do {
-            container = try KumbaraContainer.make(inMemory: isUITesting, iCloudSync: !isUITesting && ICloudSync.isEnabled)
-            try LedgerSeeder.seedIfNeeded(container.mainContext)
-            if isUITesting, arguments.contains("-demo-data") {
-                try DemoData.load(into: container.mainContext)
+        // Açılış sırası: iCloud açıksa önce onunla; olmazsa yalnız yerel; o da olmazsa kurtarma ekranı.
+        // Uygulama hiçbir durumda veri silmez ya da açıklamasız kapanmaz.
+        var failure: (any Error)?
+        var opened: ModelContainer?
+        let attempts = isUITesting ? [false] : (ICloudSync.isEnabled ? [true, false] : [false])
+        for sync in attempts where opened == nil {
+            do {
+                let candidate = try KumbaraContainer.make(inMemory: isUITesting, iCloudSync: sync)
+                try LedgerSeeder.seedIfNeeded(candidate.mainContext)
+                opened = candidate
+            } catch {
+                failure = error
             }
-        } catch {
-            // TODO(M5): kurtarma ekranı ve dışa aktarma önerisi.
-            fatalError("Veri deposu açılamadı: \(error)")
+        }
+        if let opened {
+            container = opened
+            if isUITesting, arguments.contains("-demo-data") {
+                try? DemoData.load(into: opened.mainContext)
+            }
+        } else {
+            // Kurtarma ekranı çalışsın diye boş, bellek içi bir depo; kullanıcının dosyalarına dokunulmaz.
+            container = (try? KumbaraContainer.make(inMemory: true))!
+            storeFailure = failure.map { String(describing: $0) } ?? "?"
         }
         _board = State(initialValue: PriceBoard(container: container))
         _capture = State(initialValue: CaptureSession(inbox: Self.makeInbox(arguments: arguments)))
@@ -53,6 +69,9 @@ struct KumbaraApp: App {
         WindowGroup(id: "main") {
             // CaptureEntry ortamdan CaptureSession okur: ortam değerleri yalnız içeriye akar, bu yüzden
             // değiştirici `.environment` çağrılarının İÇİNDE kalmalı (dışında kalırsa açılışta çöker).
+            if let storeFailure {
+                StoreRecoveryView(detail: storeFailure)
+            } else {
             RootView()
                 .modifier(CaptureEntry())
                 .modifier(AppLockGate())
@@ -60,6 +79,7 @@ struct KumbaraApp: App {
                 .environment(router)
                 .environment(board)
                 .environment(capture)
+            }
         }
         .modelContainer(container)
         #if os(macOS)
