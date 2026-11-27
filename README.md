@@ -18,3 +18,31 @@ onaylanır, kod her zaman bir spec maddesine (`REQ-…`) referans verir.
 | [06-design-language](specs/06-design-language.md) | Arayüz dili — "AI slop" olmayan tasarım kuralları |
 | [07-roadmap](specs/07-roadmap.md) | Kilometre taşları ve görev listesi |
 | [open-questions](specs/open-questions.md) | Karar bekleyen sorular |
+
+## Geliştirme
+
+Gereksinimler: Xcode 27 (iOS 27 / macOS 27 SDK), [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+(yalnız proje üretimi için; uygulamaya bağımlılık olarak girmez).
+
+```sh
+brew install xcodegen
+xcodegen generate          # project.yml → Kumbara.xcodeproj
+open Kumbara.xcodeproj
+```
+
+Çekirdek iş kuralları (`Packages/KumbaraCore`) Xcode olmadan da test edilir (macOS veya Linux):
+
+```sh
+swift test --package-path Packages/KumbaraCore
+```
+
+Yapı:
+
+```
+App/                  SwiftUI uygulaması (tek multiplatform target)
+  Features/           Bölümler (Özet, İşlemler, Birikim, Bütçe, Arama, Hızlı ekleme, Ayarlar)
+  Platform/iOS        TabView, alt aksesuar, araç çubuğu (specs/06 §6)
+  Platform/macOS      NavigationSplitView, denetçi, menü komutları (specs/06 §7)
+Packages/KumbaraCore  Saf Swift: Money, CurrencyCode, AssetCode, Quantity, AmountParser, biçimlendirme
+specs/                Spesifikasyonlar — önce burası değişir
+```

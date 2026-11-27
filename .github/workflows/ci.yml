@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-linux:
+    name: KumbaraCore (Linux)
+    runs-on: ubuntu-24.04
+    container: swift:6.2-noble
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: swift test --package-path Packages/KumbaraCore -Xswiftc -warnings-as-errors
+
+  app-apple:
+    name: App (iOS + macOS)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          echo "Using $XCODE"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+      - name: Generate project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+      - name: Test KumbaraCore (macOS)
+        run: swift test --package-path Packages/KumbaraCore
+      - name: Build iOS
+        run: >
+          set -o pipefail &&
+          xcodebuild build -project Kumbara.xcodeproj -scheme Kumbara
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO | xcbeautify
+      - name: Build macOS
+        run: >
+          set -o pipefail &&
+          xcodebuild build -project Kumbara.xcodeproj -scheme Kumbara
+          -destination 'generic/platform=macOS'
+          CODE_SIGNING_ALLOWED=NO | xcbeautify

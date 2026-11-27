@@ -1,0 +1,14 @@
+# Üretilen Xcode projesi (kaynak: project.yml)
+*.xcodeproj
+*.xcworkspace
+!Packages/**/*.xcworkspace
+
+# Derleme
+.build/
+DerivedData/
+build/
+.swiftpm/
+xcuserdata/
+*.xcresult
+
+.DS_Store

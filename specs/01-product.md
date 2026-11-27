@@ -119,8 +119,9 @@ benim önerilerimdir; onayına bağlıdır.
   ekran önizlemesi bulanıklaştırılır.
 - **REQ-X4** CSV ve JSON dışa aktarma; CSV içe aktarma (sütun eşleme ekranı ile).
 - **REQ-X5** Widget'lar: portföy toplamı, gram altın fiyatı, bu ayki harcama/bütçe.
-- **REQ-X6** Arayüz Türkçe ve İngilizce; sayı ve tarih biçimi yerel ayara göre
-  (`1.234,56 ₺`).
+- **REQ-X6** Arayüz Türkçe ve İngilizce; sayı, para ve tarih biçimi sistemin
+  yerel ayar kurallarına (CLDR) göre — elle desen yazılmaz. tr_TR'de: `₺1.234,56`,
+  `%13,94`, kâr/zarar `+₺10.875,00`.
 - **REQ-X8** iOS: alt aksesuar olarak canlı piyasa şeridi; Denetim Merkezi /
   kilit ekranı / Eylem Butonu için "Harcama ekle" ve "Fiş tara" kontrolleri (06 §6).
 - **REQ-X9** `[Ö]` macOS: menü çubuğu öğesi (canlı fiyat + hızlı ekleme), tam

@@ -61,7 +61,7 @@ Liquid Glass'ın temel ilkesi, uygulamamızın da temel ilkesidir:
 - Sistem fontu (SF Pro); rakamlarda `.monospacedDigit()`. Özel font yok.
 - iOS 26+ büyük, sola yaslı başlıklar (`.navigationTitle` + `.large`) kullanılır.
 - **Kahraman sayı** ekranın en büyük öğesi: `.largeTitle.weight(.semibold)`,
-  ondalık kısmı `.secondary` ve bir boy küçük (`18.420`**`,50 ₺`**).
+  ondalık kısmı `.secondary` ve bir boy küçük (`₺18.420`**`,50`**).
 - Tutar sütunları sağa yaslı, ondalık hizalı; para birimi sembolü yerel ayara göre.
 - Canlı fiyat değiştiğinde yalnız `.contentTransition(.numericText(value:))`
   — sistemin rakam geçişi. Sayaç animasyonu, yanıp sönme, renk patlaması yok.
@@ -208,7 +208,7 @@ PR'da biri varsa reddedilir:
 │ Özet                 ( + ⌕fiş )  │ ← cam kapsül araç grubu
 │ Kasım ⌄                          │
 │                                  │
-│ 18.420,50 ₺                      │ ← kahraman sayı, içerik katmanı
+│ ₺18.420,50                       │ ← kahraman sayı, içerik katmanı
 │ Gelir 62.000 · Gider 43.579,50   │
 │ 4 gün kaldı · günlük 4.605 ₺     │
 │                                  │
@@ -235,7 +235,7 @@ PR'da biri varsa reddedilir:
 ```
 ┌──────────────────────────────────┐
 │ Birikim                  ( + )   │
-│ 412.870 ₺               ▲ %18,2  │
+│ ₺412.870                ▲ %18,2  │
 │ Bozdurma · Truncgil · 14:05      │
 │ USD'ye göre ▲ %4,1 · TÜFE ▼ %2,3 │
 │ [1A][3A][1Y][Tümü]               │ ← segmented Picker
@@ -262,7 +262,7 @@ PR'da biri varsa reddedilir:
 │ │          └───────────────┘  │ │
 │ └──────────────────────────────┘ │
 │ ╭────────────────────────────────╮│
-│ │(1.249,90 ₺)(27 Kas)(Migros)    ││ ← GlassEffectContainer kapsülleri
+│ │(₺1.249,90)(27 Kas)(Migros)    ││ ← GlassEffectContainer kapsülleri
 │ │(Market ⌄)         [ Onayla ]   ││   düşük güven = amber kenar
 │ ╰────────────────────────────────╯│
 └──────────────────────────────────┘

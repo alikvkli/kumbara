@@ -1,0 +1,54 @@
+# Xcode projesi bu dosyadan üretilir: `xcodegen generate` (bkz. README "Geliştirme").
+# .xcodeproj depoya eklenmez; tek doğruluk kaynağı bu dosyadır.
+name: Kumbara
+options:
+  bundleIdPrefix: app.kumbara            # TODO(Q10): Apple Developer hesabına göre güncellenecek
+  developmentLanguage: tr
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "26.0"
+    macOS: "26.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    DEVELOPMENT_TEAM: ""                 # TODO(Q10)
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+packages:
+  KumbaraCore:
+    path: Packages/KumbaraCore
+
+targets:
+  Kumbara:
+    type: application
+    supportedDestinations: [iOS, macOS]
+    sources:
+      - path: App
+    dependencies:
+      - package: KumbaraCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.kumbara.Kumbara   # TODO(Q10)
+        PRODUCT_NAME: Kumbara
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Kumbara
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.finance
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: >-
+          UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown
+          UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        INFOPLIST_KEY_NSCameraUsageDescription: Fişini tarayıp harcamayı otomatik oluşturmak için kamera kullanılır. Görüntü cihazından çıkmaz.
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1,2"
+        # macOS sandbox (specs/00 C1: yalnız giden ağ + kullanıcının seçtiği dosyalar)
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_OUTGOING_NETWORK_CONNECTIONS: YES
+        ENABLE_USER_SELECTED_FILES: readonly
