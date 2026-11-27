@@ -59,10 +59,17 @@ final class ScreenshotTests: XCTestCase {
         Thread.sleep(forTimeInterval: 3) // canlı fiyatlar gelsin
         try shot("5-birikim")
 
+        // Hedefler grafiğin altında: kaydır, hedefleri çek; varlıklar onların altında.
+        app.swipeUp()
+        try shot("5b-hedefler")
         let gram = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Gram altın")).firstMatch
+        if !gram.isHittable { app.swipeUp() }
         if gram.waitForExistence(timeout: 3) {
             gram.tap()
             try shot("6-gram-altin")
+            app.swipeUp()
+            try shot("6b-gram-reel-getiri")
+            app.swipeDown()
             let bell = app.buttons["Alarm kur"].firstMatch
             if bell.waitForExistence(timeout: 2) {
                 bell.tap()
@@ -126,6 +133,17 @@ final class ScreenshotTests: XCTestCase {
             app.swipeDown()
         }
         app.buttons["Ayarlar"].firstMatch.tap()
+        if app.buttons["Hesaplar"].firstMatch.waitForExistence(timeout: 3) {
+            try shot("15-ayarlar")
+            let backup = app.buttons["Dışa aktar ve yedekle"].firstMatch
+            if !backup.isHittable { app.swipeUp() }
+            if backup.waitForExistence(timeout: 2) {
+                backup.tap()
+                try shot("16-disa-aktar")
+                app.navigationBars.buttons.firstMatch.tap()
+                app.swipeDown()
+            }
+        }
         let accounts = app.buttons["Hesaplar"].firstMatch
         if accounts.waitForExistence(timeout: 3) {
             accounts.tap()
