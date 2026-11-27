@@ -45,6 +45,11 @@ struct SettingsView: View {
                 } label: {
                     Label("Kategoriler", systemImage: "square.grid.2x2")
                 }
+                NavigationLink {
+                    RecurringRulesView()
+                } label: {
+                    Label("Tekrarlayan işlemler", systemImage: "repeat")
+                }
             }
             Section {
                 NavigationLink {

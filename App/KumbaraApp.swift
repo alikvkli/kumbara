@@ -97,5 +97,12 @@ struct RootView: View {
             BudgetMonitor.shared.check(context)
         }
         .onAppear { BudgetMonitor.shared.start() }
+        // Vadesi gelen tekrarlar taslak olur ve sıradaki vadelerin hatırlatması kurulur (REQ-L7).
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            guard phase == .active else { return }
+            let store = RecurringStore(context: context)
+            _ = try? store.generateDrafts()
+            if let rules = try? store.rules() { Reminders.schedule(rules) }
+        }
     }
 }

@@ -26,6 +26,7 @@ public enum DemoData {
         Item(monthOffset: -1, day: 9, kind: .expense, amount: "2600", account: "card", category: "transport.fuel", merchant: "Opet"),
         Item(monthOffset: -1, day: 15, kind: .expense, amount: "1940", account: "card", category: "dining.restaurant", merchant: "Köfteci Yusuf"),
         Item(monthOffset: -1, day: 21, kind: .expense, amount: "2875.40", account: "card", category: "market.food", merchant: "CarrefourSA"),
+        Item(monthOffset: -1, day: 1, kind: .expense, amount: "900", account: "card", category: "personal", merchant: "MacFit"),
         // Bu ay
         Item(monthOffset: 0, day: 1, kind: .income, amount: "62000", account: "bank", category: "salary", merchant: nil),
         Item(monthOffset: 0, day: 1, kind: .expense, amount: "22500", account: "bank", category: "housing.rent", merchant: nil, note: "Kasım kirası"),
@@ -88,6 +89,21 @@ public enum DemoData {
         for (key, limit) in [("market", Decimal(4500)), ("dining", 2000), ("transport", 4000)] {
             if let category = categories[key] { try budgets.setLimit(limit, for: category, from: thisMonth.previous) }
         }
+        // Tekrarlayanlar: kira (bu ayınki zaten girili, kurala bağlanır) ve spor salonu (bu ay onay bekler).
+        let recurring = RecurringStore(context: context)
+        let all = try context.fetch(FetchDescriptor<LedgerTransaction>(sortBy: [SortDescriptor(\.date)]))
+        if let gym = all.first(where: { $0.merchant == "MacFit" }) {
+            try recurring.makeRule(from: gym, frequency: .monthly(day: 1), calendar: calendar)
+        }
+        let rents = all.filter { $0.category?.seedKey == "housing.rent" }
+        if let first = rents.first {
+            let rule = try recurring.makeRule(from: first, frequency: .monthly(day: 1), calendar: calendar)
+            for rent in rents.dropFirst() {
+                rent.recurrenceID = rule.id
+                rent.dueDay = calendar.startOfDay(for: rent.date)
+            }
+        }
+        try recurring.generateDrafts(now: now, calendar: calendar)
         try loadPortfolio(into: context, now: now, calendar: calendar)
     }
 

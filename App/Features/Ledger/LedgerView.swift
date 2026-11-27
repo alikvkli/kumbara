@@ -9,7 +9,9 @@ struct LedgerView: View {
     @Query(sort: \LedgerAccount.sortIndex) private var accounts: [LedgerAccount]
     @State private var filter = TransactionFilter()
 
-    private var filtered: [LedgerTransaction] { transactions.filter(filter.matches) }
+    /// Kesinleşmiş kayıtlar; taslaklar (tekrarlayandan gelen) üstte ayrı bölümde onay bekler (C5).
+    private var filtered: [LedgerTransaction] { transactions.filter { $0.status == .posted && filter.matches($0) } }
+    private var pending: [LedgerTransaction] { transactions.filter { $0.status == .draft }.sorted { $0.date < $1.date } }
 
     var body: some View {
         content
@@ -28,7 +30,7 @@ struct LedgerView: View {
                     } actions: {
                         AddTransactionButton()
                     }
-                } else if filtered.isEmpty {
+                } else if filtered.isEmpty && pending.isEmpty {
                     ContentUnavailableView("Bu filtreye uyan işlem yok", systemImage: "line.3.horizontal.decrease.circle")
                 }
             }
@@ -39,8 +41,13 @@ struct LedgerView: View {
         #if os(macOS)
         LedgerTable(transactions: filtered)
             .searchable(text: $filter.query, placement: .toolbar, prompt: Text("Satıcı, not, kategori"))
+            .safeAreaInset(edge: .top) {
+                if !pending.isEmpty {
+                    PendingDraftsPanel(drafts: pending)
+                }
+            }
         #else
-        TransactionList(transactions: filtered)
+        TransactionList(transactions: filtered, pending: pending)
         #endif
     }
 }
@@ -74,6 +81,7 @@ private struct FilterMenu: View {
 /// Gün bölümlü işlem listesi (iOS; arama sekmesinde de kullanılır).
 struct TransactionList: View {
     let transactions: [LedgerTransaction]
+    var pending: [LedgerTransaction] = []
     @Environment(\.modelContext) private var context
     @Environment(\.calendar) private var calendar
     @State private var editing: LedgerTransaction?
@@ -81,6 +89,21 @@ struct TransactionList: View {
 
     var body: some View {
         List {
+            if !pending.isEmpty {
+                Section {
+                    ForEach(pending) { draft in
+                        PendingDraftRow(draft: draft) { editing = draft }
+                    }
+                    if pending.count > 1 {
+                        Button("Hepsini onayla") {
+                            let store = RecurringStore(context: context)
+                            for draft in pending { try? store.approve(draft) }
+                        }
+                    }
+                } header: {
+                    Text("Onay bekleyenler")
+                }
+            }
             ForEach(TransactionDay.group(transactions, calendar: calendar)) { day in
                 Section {
                     ForEach(day.transactions) { transaction in
@@ -138,3 +161,62 @@ private struct DayHeader: View {
         }
     }
 }
+
+/// Onay bekleyen taslak satırı: dokununca düzenle, sağda tek dokunuşla onayla; kaydırınca atla.
+struct PendingDraftRow: View {
+    let draft: LedgerTransaction
+    let edit: () -> Void
+    @Environment(\.modelContext) private var context
+
+    var body: some View {
+        HStack {
+            Button(action: edit) { TransactionRow(transaction: draft) }
+                .tint(.primary)
+            Button("Onayla") { try? RecurringStore(context: context).approve(draft) }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .accessibilityIdentifier("draft.approve")
+        }
+        .swipeActions {
+            Button("Atla", systemImage: "forward") { try? RecurringStore(context: context).skip(draft) }
+                .tint(.orange)
+        }
+    }
+}
+
+#if os(macOS)
+/// macOS: tablo üstünde onay bekleyenler şeridi.
+private struct PendingDraftsPanel: View {
+    let drafts: [LedgerTransaction]
+    @Environment(\.modelContext) private var context
+    @State private var editing: LedgerTransaction?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Onay bekleyenler").font(.headline)
+                Spacer()
+                if drafts.count > 1 {
+                    Button("Hepsini onayla") {
+                        let store = RecurringStore(context: context)
+                        for draft in drafts { try? store.approve(draft) }
+                    }
+                }
+            }
+            ForEach(drafts) { draft in
+                HStack {
+                    Button { editing = draft } label: { TransactionRow(transaction: draft) }
+                        .buttonStyle(.plain)
+                    Button("Atla") { try? RecurringStore(context: context).skip(draft) }
+                    Button("Onayla") { try? RecurringStore(context: context).approve(draft) }
+                }
+            }
+        }
+        .padding(12)
+        .background(.bar)
+        .sheet(item: $editing) { transaction in
+            TransactionEditor(mode: .edit(transaction))
+        }
+    }
+}
+#endif

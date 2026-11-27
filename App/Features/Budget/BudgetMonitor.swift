@@ -23,13 +23,7 @@ final class BudgetMonitor: NSObject, UNUserNotificationCenterDelegate {
     }
 
     /// İzin, ilk bütçe oluşturulunca istenir (açılışta değil).
-    func requestAuthorizationIfNeeded() {
-        guard !isUITesting else { return }
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            guard settings.authorizationStatus == .notDetermined else { return }
-            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
-        }
-    }
+    func requestAuthorizationIfNeeded() { Reminders.requestAuthorizationIfNeeded() }
 
     func check(_ context: ModelContext, now: Date = .now, calendar: Calendar = .current) {
         guard !isUITesting, !isChecking else { return }

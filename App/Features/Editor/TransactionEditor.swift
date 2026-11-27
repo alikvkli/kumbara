@@ -36,6 +36,20 @@ struct TransactionEditor: View {
     @State private var didLoad = false
     @State private var saveFailed = false
     @State private var confirmsDeletion = false
+    @State private var repetition: Repetition = .none
+
+    /// Yeni işlemi tekrarlayan yapma (REQ-L7, specs/08 §2).
+    enum Repetition: Hashable, CaseIterable {
+        case none, monthly, weekly, yearly
+        var label: LocalizedStringKey {
+            switch self {
+            case .none: "Tekrarlama"
+            case .monthly: "Her ay"
+            case .weekly: "Her hafta"
+            case .yearly: "Her yıl"
+            }
+        }
+    }
     @FocusState private var focus: Field?
 
     private enum Field: Hashable { case amount, merchant, note }
@@ -235,9 +249,20 @@ struct TransactionEditor: View {
                 accountPicker("Hesap", selection: $account)
             }
             DatePicker("Tarih", selection: $date)
+            if editing == nil && kind != .transfer {
+                Picker("Tekrarla", selection: $repetition) {
+                    ForEach(Repetition.allCases, id: \.self) { Text($0.label).tag($0) }
+                }
+            }
             TextField("Not", text: $note, axis: .vertical)
                 .focused($focus, equals: .note)
                 .lineLimit(1...4)
+        } footer: {
+            if repetition != .none {
+                Text("Sonraki tarihlerde onayına bir taslak gelir; onaylamadan kesinleşmez.")
+            } else if editing?.status == .draft {
+                Text("Bu kayıt onay bekliyor; kaydedince kesinleşir.")
+            }
         }
     }
 
@@ -311,10 +336,24 @@ struct TransactionEditor: View {
 
     private func save() {
         do {
-            try store.save(draft, editing: editing)
+            let saved = try store.save(draft, editing: editing)
+            if let frequency = frequency(for: saved.date) {
+                try RecurringStore(context: context).makeRule(from: saved, frequency: frequency)
+                Reminders.requestAuthorizationIfNeeded()
+            }
             dismiss()
         } catch {
             saveFailed = true
+        }
+    }
+
+    private func frequency(for date: Date) -> RecurrenceFrequency? {
+        let calendar = Calendar.current
+        switch repetition {
+        case .none: return nil
+        case .monthly: return .monthly(day: calendar.component(.day, from: date))
+        case .weekly: return .weekly(weekday: calendar.component(.weekday, from: date))
+        case .yearly: return .yearly(month: calendar.component(.month, from: date), day: calendar.component(.day, from: date))
         }
     }
 

@@ -13,7 +13,7 @@ public enum SchemaV1: VersionedSchema {
 
     public static var models: [any PersistentModel.Type] {
         [LedgerAccount.self, LedgerCategory.self, LedgerTransaction.self, MerchantMemory.self,
-         AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self]
+         AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self, RecurringRule.self]
     }
 
     @Model
@@ -34,6 +34,9 @@ public enum SchemaV1: VersionedSchema {
 
         @Relationship(deleteRule: .nullify, inverse: \LedgerTransaction.toAccount)
         public var incomingTransfers: [LedgerTransaction]? = []
+
+        @Relationship(deleteRule: .nullify, inverse: \RecurringRule.account)
+        public var recurringRules: [RecurringRule]? = []
 
         public init(name: String, kind: AccountKind, currency: CurrencyCode,
                     openingBalance: Decimal = 0, sortIndex: Int = 0) {
@@ -73,6 +76,9 @@ public enum SchemaV1: VersionedSchema {
         @Relationship(deleteRule: .cascade, inverse: \Budget.category)
         public var budgets: [Budget]? = []
 
+        @Relationship(deleteRule: .nullify, inverse: \RecurringRule.category)
+        public var recurringRules: [RecurringRule]? = []
+
         public init(name: String, kind: CategoryKind, symbol: String, color: CategoryColor,
                     parent: LedgerCategory? = nil, seedKey: String? = nil, sortIndex: Int = 0) {
             self.name = name
@@ -105,6 +111,9 @@ public enum SchemaV1: VersionedSchema {
         public var account: LedgerAccount?
         public var toAccount: LedgerAccount?
         public var category: LedgerCategory?
+        /// Tekrar kuralından üretildiyse kuralın kimliği ve vade günü (idempotens, specs/08 §2.2).
+        public var recurrenceID: UUID?
+        public var dueDay: Date?
 
         public init(date: Date, amount: Money, kind: TransactionKind,
                     status: TransactionStatus = .posted, origin: TransactionOrigin = .manual) {
@@ -254,6 +263,57 @@ extension SchemaV1 {
     }
 }
 
+extension SchemaV1 {
+    /// Tekrarlayan işlem kuralı (specs/08 §2). Vadesi gelen her tekrar bir **taslak** üretir (C5).
+    @Model
+    public final class RecurringRule {
+        public var id: UUID = UUID()
+        var kindRaw: String = TransactionKind.expense.rawValue
+        var amountRaw: String = "0"
+        /// Fatura gibi: taslak son tutarla gelir ama "kontrol et" der.
+        public var isAmountVariable: Bool = false
+        public var account: LedgerAccount?
+        public var category: LedgerCategory?
+        public var merchant: String?
+        public var note: String = ""
+        var frequencyRaw: String = ""
+        public var start: Date = Date.now
+        public var end: Date?
+        public var maxCount: Int?
+        /// En son taslak üretilen vade (günün başlangıcı).
+        public var lastDue: Date?
+        public var isPaused: Bool = false
+        public var createdAt: Date = Date.now
+
+        public init(kind: TransactionKind, amount: Decimal, frequency: RecurrenceFrequency, start: Date) {
+            self.kindRaw = kind.rawValue
+            self.amountRaw = amount.canonicalString
+            self.frequencyRaw = frequency.canonical
+            self.start = start
+        }
+
+        public var kind: TransactionKind {
+            get { TransactionKind(rawValue: kindRaw) ?? .expense }
+            set { kindRaw = newValue.rawValue }
+        }
+
+        public var amount: Decimal {
+            get { Decimal(canonical: amountRaw) ?? 0 }
+            set { amountRaw = newValue.canonicalString }
+        }
+
+        public var frequency: RecurrenceFrequency? {
+            get { RecurrenceFrequency(canonical: frequencyRaw) }
+            set { frequencyRaw = newValue?.canonical ?? "" }
+        }
+
+        public var schedule: RecurrenceSchedule? {
+            frequency.map { RecurrenceSchedule(frequency: $0, start: start, end: end, maxCount: maxCount) }
+        }
+    }
+}
+
+public typealias RecurringRule = SchemaV1.RecurringRule
 public typealias Budget = SchemaV1.Budget
 public typealias NotificationLog = SchemaV1.NotificationLog
 public typealias AssetTrade = SchemaV1.AssetTrade

@@ -64,7 +64,7 @@ her şey cihazda, bildirimler yereldir (C1, C2).
 - Taslaklar bütçeye ve bakiyeye onaylanana kadar sayılmaz; Özet'te
   "yaklaşan" olarak ayrı görünür.
 
-### 2.3 Öneri `[Ö]`
+### 2.3 Öneri `[Ö]` — v1'de yok, sonraya
 - Son 3 ayda aynı satıcıya ±%5 tutarla ayda bir yapılan ödeme → "Bunu tekrarlayan
   yapalım mı?" önerisi (bir kez sorulur, reddedilirse bir daha sorulmaz).
 
