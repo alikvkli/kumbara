@@ -45,14 +45,17 @@ struct CardFacts: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             if !statement.remainingDue.isZero {
-                CardFact(title: "Son ödeme", value: date(statement.last.due), detail: DaysLeft(date: statement.last.due, urgent: true))
+                CardFact(title: "Son ödeme", value: date(statement.last.due), detail: AnyView(DaysLeft(date: statement.last.due, urgent: true)))
                 CardFact(title: "Kesim", value: date(statement.current.closing), detail: nil)
                 CardFact(title: "Bu dönem",
                          value: Text(verbatim: statement.currentSpending.formatted(locale: locale, fractionDigits: 0)), detail: nil)
             } else {
-                CardFact(title: "Kesim", value: date(statement.current.closing), detail: DaysLeft(date: statement.current.closing, urgent: false))
+                CardFact(title: "Kesim", value: date(statement.current.closing), detail: AnyView(DaysLeft(date: statement.current.closing, urgent: false)))
                 CardFact(title: "Son ödeme", value: date(statement.current.due), detail: nil)
-                CardFact(title: "Son ekstre", value: Text("\(Image(systemName: "checkmark.circle.fill")) Ödendi"), detail: nil)
+                CardFact(title: "Son ekstre", value: Text("\(Image(systemName: "checkmark.circle.fill")) Ödendi"),
+                         detail: statement.lastStatement.isZero ? nil
+                             : AnyView(Text(verbatim: statement.lastStatement.formatted(locale: locale, fractionDigits: 0))
+                                .foregroundStyle(.secondary)))
             }
         }
         .monospacedDigit()
@@ -64,7 +67,7 @@ struct CardFacts: View {
 private struct CardFact: View {
     let title: LocalizedStringKey
     let value: Text
-    let detail: DaysLeft?
+    let detail: AnyView?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -119,16 +122,11 @@ struct CardDetailView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(hasDue ? "Ekstre borcu" : "Bu dönem").font(.subheadline).foregroundStyle(.secondary)
                             HeroAmount(money: hasDue ? statement.remainingDue : statement.currentSpending)
-                            if !statement.paidSinceClosing.isZero {
-                                Group {
-                                    if hasDue {
-                                        Text("Ekstre \(statement.lastStatement.formatted(locale: locale)) · ödenen \(statement.paidSinceClosing.formatted(locale: locale))")
-                                    } else {
-                                        Text("Son ekstre \(statement.lastStatement.formatted(locale: locale)) ödendi")
-                                    }
-                                }
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
+                            // Kısmi ödeme: ne kadarı ödendi. Tam ödenmişse "Son ekstre" sütunu söylüyor, tekrar yok.
+                            if hasDue, !statement.paidSinceClosing.isZero {
+                                Text("Ekstre \(statement.lastStatement.formatted(locale: locale)) · ödenen \(statement.paidSinceClosing.formatted(locale: locale))")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         CardFacts(statement: statement)

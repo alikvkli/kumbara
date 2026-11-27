@@ -100,8 +100,11 @@ struct MarketTickerAccessory: View {
     @Environment(\.locale) private var locale
     @AppStorage(SettingsKey.priceKind) private var priceKind: PriceKind = .bid
 
+    /// Fiyatı gelmeyen kalem şeritte "—" diye durmaz, gizlenir; hiçbiri gelmediyse hepsi yer tutucuyla kalır.
     private var assets: [AssetCode] {
-        placement == .inline ? [PriceBoard.tickerAssets[0]] : PriceBoard.tickerAssets
+        let available = PriceBoard.tickerAssets.filter { board.quote($0) != nil }
+        let shown = available.isEmpty ? PriceBoard.tickerAssets : available
+        return placement == .inline ? [shown[0]] : shown
     }
 
     var body: some View {

@@ -257,7 +257,6 @@ struct AssetPicker: View {
     var body: some View {
         List {
             Section("Altın") { ForEach(GoldKind.allCases, id: \.self) { row(.gold($0)) } }
-            Section("Değerli metaller") { ForEach(PreciousMetal.allCases, id: \.self) { row(.metal($0)) } }
             Section("Döviz") { ForEach(Self.currencies, id: \.self) { row(.fx($0)) } }
             Section("Kripto") { ForEach(Self.cryptos, id: \.self) { row(.crypto($0)) } }
             Section {
