@@ -48,7 +48,7 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - [x] T3.7 Foundation Models opsiyonel katmanı + çapraz kontrol (04 §2.5). Karar mantığı Core'da test edildi; modelin kendisi yalnız Apple Intelligence'lı cihazda çalışır (CI'da yok).
 
 ## M4 — Bütçe ve otomasyon (2 hafta) — ayrıntı: 08
-- [ ] T4.1 Bütçeler ve yerel bildirimler (REQ-B1, B2).
+- [x] T4.1 Bütçeler ve yerel bildirimler (REQ-B1, B2).
 - [ ] T4.2 Tekrarlayan işlemler → taslak (REQ-L7).
 - [ ] T4.3 Taksit planı, kart ekstre dönemi (REQ-L8, L9).
 - ~~T4.4 App Intents / Kestirmeler (REQ-C7)~~ → v1.x (2026-11-27 kararı).

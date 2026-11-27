@@ -66,6 +66,8 @@ struct BudgetView: View {
                                     Button("Sil", role: .destructive) { if let model { try? store.delete(model) } }
                                 }
                             }
+                            // Araç çubuğunda zaten "yeni işlem" (+) var; ikinci bir + karışır (specs/06 §9).
+                            Button("Bütçe ekle", systemImage: "plus.circle") { editing = .new }
                         } header: {
                             Text("Kategoriler")
                         } footer: {
@@ -99,11 +101,6 @@ struct BudgetView: View {
             }
         }
         .navigationTitle("Bütçe")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button("Bütçe ekle", systemImage: "plus") { editing = .new }
-            }
-        }
         .sheet(item: $editing) { target in
             BudgetEditor(target: target, month: month)
         }
