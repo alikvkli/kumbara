@@ -47,7 +47,7 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - [x] T3.6 Share Extension + gelen kutusu (REQ-C2). iOS + macOS; uzantı OCR yapmaz, App Group `Inbox/`'a atomik yazar. Cihazda deneme Team ID ister (Q10).
 - [x] T3.7 Foundation Models opsiyonel katmanı + çapraz kontrol (04 §2.5). Karar mantığı Core'da test edildi; modelin kendisi yalnız Apple Intelligence'lı cihazda çalışır (CI'da yok).
 
-## M4 — Bütçe ve otomasyon (2 hafta)
+## M4 — Bütçe ve otomasyon (2 hafta) — ayrıntı: 08
 - [ ] T4.1 Bütçeler ve yerel bildirimler (REQ-B1, B2).
 - [ ] T4.2 Tekrarlayan işlemler → taslak (REQ-L7).
 - [ ] T4.3 Taksit planı, kart ekstre dönemi (REQ-L8, L9).
