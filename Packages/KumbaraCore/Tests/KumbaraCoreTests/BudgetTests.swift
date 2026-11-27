@@ -108,4 +108,36 @@ struct BudgetTests {
         #expect(BudgetMath.suggestedLimit(monthlySpending: [18_200, 17_900]) == 18_500)
         #expect(BudgetMath.suggestedLimit(monthlySpending: [0, 0]) == nil)
     }
+
+    @Test("Tempo, ay sonu tahmini, günlük hak: ayın 12'si, ₺1.000 bütçenin ₺620'si gitti")
+    func paceProjection() {
+        let budget = BudgetSpec(categoryID: cafe, history: history(1000))
+        let status = BudgetMath.statuses([budget], entries: [expense("620", cafe)], categories: index, month: november,
+                                         today: day(12), calendar: calendar)[0]
+        #expect(status.remainingDays == 19)                         // 12 dahil 30'a kadar
+        #expect(status.expected.amount == 400)                      // 1000 × 12/30
+        #expect(status.paceDelta.amount == 220)                     // plandan ₺220 ileride
+        #expect(status.projected?.amount == 1550)                   // 620 / 0,4
+        #expect(status.isProjectedOver)
+        #expect(status.perDay.amount == Decimal(string: "20")!)     // 380 / 19
+        // Ayın başında tahmin yok (gürültü).
+        let early = BudgetMath.statuses([budget], entries: [expense("100", cafe, day: 1)], categories: index, month: november,
+                                        today: day(2), calendar: calendar)[0]
+        #expect(early.projected == nil)
+        // Geçmiş ay: kalan gün 0, günlük hak 0, tahmin = gerçekleşen.
+        let past = BudgetMath.statuses([budget], entries: [expense("620", cafe)], categories: index, month: november,
+                                       today: day(5, month: 12), calendar: calendar)[0]
+        #expect(past.remainingDays == 0 && past.perDay.isZero && past.projected?.amount == 620)
+    }
+
+    @Test("Günlük birikimli seri: grafik için, bugüne kadar")
+    func cumulative() {
+        let budget = BudgetSpec(categoryID: market, history: history(4000))
+        let entries = [expense("100", food, day: 2), expense("50", household, day: 2), expense("300", food, day: 5),
+                       expense("999", cafe, day: 3)]
+        let series = BudgetMath.dailyCumulative(budget, entries: entries, categories: index, month: november,
+                                                through: day(6), calendar: calendar)
+        #expect(series.map(\.day) == [1, 2, 3, 4, 5, 6])
+        #expect(series.map(\.total) == [0, 150, 150, 150, 450, 450])
+    }
 }

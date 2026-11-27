@@ -160,7 +160,9 @@ struct DemoDataTests {
         try DemoData.load(into: context, now: now, calendar: calendar)
 
         let all = try context.fetch(FetchDescriptor<LedgerTransaction>())
-        #expect(all.count == 23)
+        // 23 kayıt + geçen ayın spor salonu + bu ayın onay bekleyen spor salonu taslağı.
+        #expect(all.count == 25)
+        #expect(all.filter { $0.status == .draft }.map(\.merchant) == ["MacFit"])
         #expect(all.allSatisfy { $0.date <= now })
         let summary = try LedgerStore(context: context).summary(
             for: LedgerMonth(year: 2026, month: 11), currency: .TRY, calendar: calendar)

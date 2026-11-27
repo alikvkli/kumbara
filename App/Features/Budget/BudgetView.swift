@@ -3,18 +3,21 @@ import KumbaraData
 import SwiftData
 import SwiftUI
 
-/// Bütçeler (REQ-B1, B2; specs/08 §1). Rakam kahramandır: genel bütçenin kalanı üstte, kategori
-/// satırları altta. Renk yalnız anlam taşır: normal vurgu, %80+ turuncu, aşım kırmızı (C6).
+/// Bütçeler (REQ-B1, B2; specs/08 §1.4).
+///
+/// Ekran üç soruya cevap verir: **bugün ne kadar harcayabilirim**, **plana göre neredeyim**,
+/// **bu gidişle ay sonu ne olur**. Kahraman rakam günlük haktır; her çubukta "bugün burada
+/// olmalıydın" işareti vardır. Renk yalnız anlam taşır: normal vurgu, %80+ turuncu, aşım kırmızı (C6).
 struct BudgetView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.calendar) private var calendar
-    @Environment(\.locale) private var locale
     @Environment(PriceBoard.self) private var board
     // Gözlem için: işlem ya da bütçe değişince ekran yeniden hesaplanır.
     @Query private var transactions: [LedgerTransaction]
     @Query private var budgetModels: [Budget]
     @State private var selectedMonth: LedgerMonth?
     @State private var editing: BudgetEditor.Target?
+    @State private var detail: UUID?
 
     private var month: LedgerMonth { selectedMonth ?? LedgerMonth(containing: .now, calendar: calendar) }
     private var store: BudgetStore { BudgetStore(context: context) }
@@ -22,7 +25,7 @@ struct BudgetView: View {
     var body: some View {
         let statuses = (try? store.statuses(for: month, calendar: calendar, rate: rate)) ?? []
         let overall = statuses.first { $0.categoryID == nil }
-        let categories = statuses.filter { $0.categoryID != nil }
+        let categories = statuses.filter { $0.categoryID != nil }.sorted(by: BudgetStatus.urgency)
         let suggestions = categories.isEmpty ? ((try? store.suggestions(before: month, calendar: calendar)) ?? []) : []
 
         Group {
@@ -30,7 +33,7 @@ struct BudgetView: View {
                 ContentUnavailableView {
                     Label("Bütçe yok", systemImage: "chart.pie")
                 } description: {
-                    Text("Kategori bazında aylık limit belirle; %80 ve %100'de haber vereyim.")
+                    Text("Aylık limit belirle; her gün ne kadar harcayabileceğini ve ay sonuna nasıl gittiğini göstereyim.")
                 } actions: {
                     Button("Bütçe ekle") { editing = .new }
                         .primaryActionStyle()
@@ -38,15 +41,15 @@ struct BudgetView: View {
             } else {
                 List {
                     Section {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 12) {
                             MonthMenu(month: month, selection: $selectedMonth)
                             if let overall {
-                                OverallBudgetHeader(status: overall, month: month)
+                                OverallHeader(status: overall)
                                     .contentShape(Rectangle())
-                                    .onTapGesture { editing = .overall }
+                                    .onTapGesture { detail = overall.id }
+                                    .accessibilityAddTraits(.isButton)
                             } else {
-                                Button("Aylık genel bütçe belirle") { editing = .overall }
-                                    .font(.subheadline)
+                                OverallPrompt { editing = .overall }
                             }
                         }
                         .padding(.vertical, 4)
@@ -58,12 +61,15 @@ struct BudgetView: View {
                         Section {
                             ForEach(categories) { status in
                                 let model = budgetModels.first { $0.id == status.id }
-                                Button { if let category = model?.category { editing = .category(category) } } label: {
-                                    BudgetRow(status: status, category: model?.category)
+                                Button { detail = status.id } label: {
+                                    CategoryBudgetRow(status: status, category: model?.category)
                                 }
                                 .buttonStyle(.plain)
                                 .swipeActions {
                                     Button("Sil", role: .destructive) { if let model { try? store.delete(model) } }
+                                    if let category = model?.category {
+                                        Button("Düzenle") { editing = .category(category) }.tint(.accentColor)
+                                    }
                                 }
                             }
                             // Araç çubuğunda zaten "yeni işlem" (+) var; ikinci bir + karışır (specs/06 §9).
@@ -101,6 +107,9 @@ struct BudgetView: View {
             }
         }
         .navigationTitle("Bütçe")
+        .navigationDestination(item: $detail) { id in
+            BudgetDetailView(budgetID: id, month: month)
+        }
         .sheet(item: $editing) { target in
             BudgetEditor(target: target, month: month)
         }
@@ -112,44 +121,119 @@ struct BudgetView: View {
     }
 }
 
-private extension BudgetStatus {
+// MARK: - Ortak parçalar
+
+extension BudgetStatus {
     var tint: Color {
         switch level {
-        case .normal: .accentColor
+        case .normal: isProjectedOver ? .orange : .accentColor
         case .warning: .orange
         case .over: .red
         }
     }
 
     var progress: Double { (min(max(ratio, 0), 1) as NSDecimalNumber).doubleValue }
+    var elapsedFraction: Double { (elapsed as NSDecimalNumber).doubleValue }
+    var isCurrentMonth: Bool { elapsed > 0 && elapsed < 1 }
+
+    /// Acil olan önce: aşılanlar, sonra ay sonunda aşacaklar, sonra doluluk.
+    static func urgency(_ a: BudgetStatus, _ b: BudgetStatus) -> Bool {
+        func rank(_ s: BudgetStatus) -> Int { s.level == .over ? 0 : s.isProjectedOver ? 1 : 2 }
+        if rank(a) != rank(b) { return rank(a) < rank(b) }
+        return a.ratio != b.ratio ? a.ratio > b.ratio : a.id.uuidString < b.id.uuidString
+    }
 }
 
-/// Genel bütçe: kalan tutar kahraman, altında limit, ilerleme ve günlük hak.
-private struct OverallBudgetHeader: View {
+/// Harcama çubuğu + "bugün burada olmalıydın" işareti.
+struct PaceBar: View {
     let status: BudgetStatus
-    let month: LedgerMonth
-    @Environment(\.locale) private var locale
-    @Environment(\.calendar) private var calendar
+    var height: CGFloat = 8
 
     var body: some View {
-        let allowance = DailyAllowance(remaining: status.remaining, month: month, today: .now, calendar: calendar)
-        VStack(alignment: .leading, spacing: 6) {
-            if status.level == .over {
-                HeroAmount(money: status.spent - status.limit)
-                Text("bütçe aşıldı · \(status.spent.formatted(locale: locale, fractionDigits: 0)) / \(status.limit.formatted(locale: locale, fractionDigits: 0))")
-                    .font(.subheadline)
-                    .foregroundStyle(.red)
-            } else {
-                HeroAmount(money: status.remaining)
-                Text("kaldı · \(status.spent.formatted(locale: locale, fractionDigits: 0)) / \(status.limit.formatted(locale: locale, fractionDigits: 0))")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            ZStack(alignment: .leading) {
+                Capsule().fill(.quaternary).frame(height: height)
+                if status.progress > 0 {
+                    Capsule().fill(status.tint)
+                        .frame(width: max(height, width * status.progress), height: height)
+                }
+                if status.isCurrentMonth {
+                    Capsule()
+                        .fill(Color.primary.opacity(0.7))
+                        .frame(width: 2, height: height + 8)
+                        .offset(x: width * status.elapsedFraction - 1)
+                }
             }
-            ProgressView(value: status.progress)
-                .tint(status.tint)
-            if let allowance, status.level != .over {
-                Text("\(allowance.remainingDays) gün kaldı · günlük \(allowance.perDay.formatted(locale: locale, fractionDigits: 0))")
-                    .font(.subheadline)
+            .frame(maxHeight: .infinity)
+        }
+        .frame(height: height + 8)
+        .accessibilityElement()
+        .accessibilityLabel(Text("Bütçenin yüzde \(Int(status.progress * 100)) kadarı kullanıldı"))
+    }
+}
+
+/// "Plana göre ₺1.200 fazla" / "az" / "Plana uygun".
+struct PaceText: View {
+    let status: BudgetStatus
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        let delta = status.paceDelta.amount
+        let tolerance = status.limit.amount / 100
+        let amount = Money(abs(delta), status.limit.currency).formatted(locale: locale, fractionDigits: 0)
+        if delta > tolerance {
+            Text("Plana göre \(amount) fazla").foregroundStyle(.orange)
+        } else if delta < -tolerance {
+            Text("Plana göre \(amount) az").foregroundStyle(.secondary)
+        } else {
+            Text("Plana uygun").foregroundStyle(.secondary)
+        }
+    }
+}
+
+/// Genel bütçe başlığı: kahraman rakam bugünkü harcama hakkı.
+private struct OverallHeader: View {
+    let status: BudgetStatus
+    @Environment(\.locale) private var locale
+
+    private func money(_ value: Money) -> String { value.formatted(locale: locale, fractionDigits: 0) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if status.level == .over {
+                Text("Bütçe aşıldı").font(.subheadline).foregroundStyle(.secondary)
+                Text(verbatim: money(status.spent - status.limit))
+                    .font(.largeTitle.weight(.semibold)).foregroundStyle(.red)
+            } else if status.isCurrentMonth {
+                Text("Bugün harcayabileceğin").font(.subheadline).foregroundStyle(.secondary)
+                Text(verbatim: money(status.perDay)).font(.largeTitle.weight(.semibold))
+            } else {
+                Text("Ay kapandı").font(.subheadline).foregroundStyle(.secondary)
+                Text("\(money(status.remaining)) altında").font(.largeTitle.weight(.semibold))
+            }
+
+            PaceBar(status: status, height: 10)
+
+            HStack(alignment: .firstTextBaseline) {
+                if status.isCurrentMonth && status.level != .over {
+                    Text("\(money(status.remaining)) kaldı · \(status.remainingDays) gün")
+                } else {
+                    Text("\(money(status.spent)) / \(money(status.limit))")
+                }
+                Spacer()
+                if status.isCurrentMonth { PaceText(status: status) }
+            }
+            .font(.subheadline)
+
+            if status.isCurrentMonth, let projected = status.projected {
+                Label {
+                    Text("Bu gidişle ay sonu ≈ \(money(projected))")
+                } icon: {
+                    Image(systemName: status.isProjectedOver ? "exclamationmark.triangle" : "arrow.forward.to.line")
+                }
+                .font(.footnote)
+                .foregroundStyle(status.isProjectedOver || status.level == .over ? Color.orange : Color.secondary)
             }
         }
         .monospacedDigit()
@@ -157,50 +241,65 @@ private struct OverallBudgetHeader: View {
     }
 }
 
-private struct BudgetRow: View {
+private struct OverallPrompt: View {
+    let action: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Aylık toplam bir limit belirlersen her gün ne kadar harcayabileceğini burada görürsün.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Button("Genel bütçe belirle", action: action)
+                .buttonStyle(.bordered)
+        }
+    }
+}
+
+/// Kategori satırı: sağda kalan (ya da aşan) tutar, altında tempo çubuğu ve tek cümlelik durum.
+private struct CategoryBudgetRow: View {
     let status: BudgetStatus
     let category: LedgerCategory?
     @Environment(\.locale) private var locale
 
+    private func money(_ value: Money) -> String { value.formatted(locale: locale, fractionDigits: 0) }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
                 CategoryBadge(systemImage: category?.resolvedSymbol ?? "circle.dashed", color: category?.color.color ?? .secondary)
-                Text(verbatim: category?.path ?? "—")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: category?.path ?? "—")
+                    caption.font(.footnote)
+                }
                 Spacer()
-                Text(verbatim: "\(status.spent.formatted(locale: locale, fractionDigits: 0)) / \(status.limit.formatted(locale: locale, fractionDigits: 0))")
-                    .monospacedDigit()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(verbatim: money(status.level == .over ? status.spent - status.limit : status.remaining))
+                        .font(.headline)
+                        .foregroundStyle(status.level == .over ? Color.red : Color.primary)
+                    Text(status.level == .over ? "aştı" : "kaldı")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
-            ProgressView(value: status.progress)
-                .tint(status.tint)
-            note
-                .font(.footnote)
-                .monospacedDigit()
+            PaceBar(status: status, height: 6)
         }
+        .monospacedDigit()
+        .padding(.vertical, 4)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder
-    private var note: some View {
-        switch status.level {
-        case .over:
-            Text("\((status.spent - status.limit).formatted(locale: locale, fractionDigits: 0)) aşıldı")
-                .foregroundStyle(.red)
-        case .warning:
-            Text("%\(percent(status.ratio)) · kalan \(status.remaining.formatted(locale: locale, fractionDigits: 0))")
-                .foregroundStyle(.orange)
-        case .normal where status.isAheadOfPace:
-            Text("Hızlı gidiyor · bütçe %\(percent(status.ratio)), ay %\(percent(status.elapsed))")
-                .foregroundStyle(.secondary)
-        case .normal:
-            Text("kalan \(status.remaining.formatted(locale: locale, fractionDigits: 0))")
-                .foregroundStyle(.secondary)
+    private var caption: some View {
+        if status.level == .over {
+            Text("\(money(status.spent)) / \(money(status.limit))").foregroundStyle(.secondary)
+        } else if status.isCurrentMonth, status.isProjectedOver, let projected = status.projected {
+            Text("Bu gidişle ay sonu ≈ \(money(projected))").foregroundStyle(.orange)
+        } else if status.isCurrentMonth {
+            Text("günde \(money(status.perDay)) · limit \(money(status.limit))").foregroundStyle(.secondary)
+        } else {
+            Text("\(money(status.spent)) / \(money(status.limit))").foregroundStyle(.secondary)
         }
-    }
-
-    private func percent(_ value: Decimal) -> String {
-        "\(Int(truncating: (value * 100).rounded(scale: 0) as NSDecimalNumber))"
     }
 }
 

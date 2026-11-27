@@ -85,6 +85,13 @@ final class ScreenshotTests: XCTestCase {
         tapTab("Bütçe")
         if app.staticTexts["Kategoriler"].firstMatch.waitForExistence(timeout: 5) {
             try shot("10-butce")
+            let market = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Market")).firstMatch
+            if market.waitForExistence(timeout: 3) {
+                market.tap()
+                Thread.sleep(forTimeInterval: 1)
+                try shot("12-butce-detay")
+                app.navigationBars.buttons.firstMatch.tap()
+            }
             app.buttons["Bütçe ekle"].firstMatch.tap()
             if app.textFields["budget.limit"].waitForExistence(timeout: 3) {
                 try shot("11-butce-ekle")

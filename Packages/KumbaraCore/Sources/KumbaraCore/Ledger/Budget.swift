@@ -53,7 +53,7 @@ public struct CategoryIndex: Sendable {
     }
 
     /// `id` kendisi ya da `ancestor`'ın altında mı.
-    func isWithin(_ id: UUID, _ ancestor: UUID) -> Bool {
+    public func isWithin(_ id: UUID, _ ancestor: UUID) -> Bool {
         var current: UUID? = id
         var depth = 0
         while let value = current, depth < 16 {
@@ -92,6 +92,27 @@ public struct BudgetStatus: Hashable, Sendable, Identifiable {
     public var elapsed: Decimal
     /// Başka para biriminde olup kuru bulunamadığı için sayılamayan kayıt var mı.
     public var hasUnconvertedEntries: Bool
+    /// Bugün dahil ayın kalan günü; geçmiş ayda 0.
+    public var remainingDays: Int = 0
+
+    /// Bugüne kadar "plana göre" harcanmış olması beklenen tutar (limit × geçen kısım).
+    public var expected: Money { Money((limit.amount * elapsed).rounded(scale: 2), limit.currency) }
+    /// Plandan sapma: pozitif = plandan ileride (fazla harcıyor), negatif = geride (tasarrufta).
+    public var paceDelta: Money { spent - expected }
+    /// Aynı tempoyla ay sonu tahmini; ay bitmişse gerçekleşen. Ayın ilk günlerinde gürültülü
+    /// olduğundan ayın %15'i geçmeden `nil`.
+    public var projected: Money? {
+        if elapsed >= 1 { return spent }
+        guard elapsed >= Decimal(string: "0.15")! else { return nil }
+        return Money((spent.amount / elapsed).rounded(scale: 0), spent.currency)
+    }
+    /// Kalan günlere eşit bölünmüş harcama hakkı; aşıldıysa ya da ay bittiyse sıfır.
+    public var perDay: Money {
+        guard remainingDays > 0, remaining.amount > 0 else { return .zero(limit.currency) }
+        return Money((remaining.amount / Decimal(remainingDays)).rounded(scale: 2), limit.currency)
+    }
+    /// Tahmin limiti aşıyor mu (henüz aşılmamışken erken uyarı).
+    public var isProjectedOver: Bool { level != .over && (projected.map { $0.amount > limit.amount } ?? false) }
 
     public var remaining: Money { limit - spent }
     public var ratio: Decimal { limit.isZero ? 0 : spent.amount / limit.amount }
@@ -122,30 +143,69 @@ public enum BudgetMath {
             var spent = Decimal(0)
             var unconverted = false
             for entry in inMonth {
-                if let target = budget.categoryID {
-                    guard let categoryID = entry.categoryID, categories.isWithin(categoryID, target) else { continue }
-                } else {
-                    // Genel bütçe: tüm giderler (kategorisizler dahil) ve gider kategorisindeki iadeler.
-                    guard entry.kind == .expense || entry.categoryID.map(categories.expense.contains) == true else { continue }
-                }
-                // Gider kategorisindeki gelir iadedir: harcamadan düşer.
-                let sign: Decimal = entry.kind == .expense ? 1 : -1
-                if entry.amount.currency == .TRY {
-                    spent += sign * entry.amount.amount
-                } else if let rate = rate(entry.amount.currency, entry.date) {
-                    spent += sign * entry.amount.amount * rate
-                } else {
-                    unconverted = true
+                switch contribution(of: entry, to: budget, categories: categories, rate: rate) {
+                case .none: continue
+                case .unconverted: unconverted = true
+                case .amount(let value): spent += value
                 }
             }
             return BudgetStatus(id: budget.id, categoryID: budget.categoryID, limit: Money(limit, .TRY),
                                 spent: Money(max(spent, 0).rounded(scale: 2), .TRY), elapsed: elapsed,
-                                hasUnconvertedEntries: unconverted)
+                                hasUnconvertedEntries: unconverted,
+                                remainingDays: remainingDays(month: month, today: today, calendar: calendar))
         }
         .sorted { lhs, rhs in
             if (lhs.categoryID == nil) != (rhs.categoryID == nil) { return lhs.categoryID == nil }
             return lhs.ratio != rhs.ratio ? lhs.ratio > rhs.ratio : lhs.id.uuidString < rhs.id.uuidString
         }
+    }
+
+    enum Contribution { case none, unconverted, amount(Decimal) }
+
+    /// Kaydın bütçeye katkısı (TRY, işaretli: iade eksi). Bütçeyle ilgisi yoksa `.none`.
+    static func contribution(of entry: LedgerEntry, to budget: BudgetSpec, categories: CategoryIndex,
+                             rate: (CurrencyCode, Date) -> Decimal?) -> Contribution {
+        guard entry.status == .posted, entry.kind != .transfer else { return .none }
+        if let target = budget.categoryID {
+            guard let categoryID = entry.categoryID, categories.isWithin(categoryID, target) else { return .none }
+        } else {
+            // Genel bütçe: tüm giderler (kategorisizler dahil) ve gider kategorisindeki iadeler.
+            guard entry.kind == .expense || entry.categoryID.map(categories.expense.contains) == true else { return .none }
+        }
+        // Gider kategorisindeki gelir iadedir: harcamadan düşer.
+        let sign: Decimal = entry.kind == .expense ? 1 : -1
+        if entry.amount.currency == .TRY { return .amount(sign * entry.amount.amount) }
+        guard let rate = rate(entry.amount.currency, entry.date) else { return .unconverted }
+        return .amount(sign * entry.amount.amount * rate)
+    }
+
+    /// Ayın her günü için o güne kadarki birikimli harcama (grafik için). `through`: son gün (dahil).
+    public static func dailyCumulative(
+        _ budget: BudgetSpec, entries: [LedgerEntry], categories: CategoryIndex, month: LedgerMonth,
+        through: Date, calendar: Calendar, rate: (CurrencyCode, Date) -> Decimal? = { _, _ in nil }
+    ) -> [(day: Int, total: Decimal)] {
+        let interval = month.interval(in: calendar)
+        let days = calendar.dateComponents([.day], from: interval.start, to: interval.end).day ?? 30
+        let lastDay = through >= interval.end ? days
+            : through < interval.start ? 0 : calendar.component(.day, from: through)
+        var perDay = [Decimal](repeating: 0, count: days + 1)
+        for entry in entries where entry.date >= interval.start && entry.date < interval.end {
+            if case .amount(let value) = contribution(of: entry, to: budget, categories: categories, rate: rate) {
+                perDay[calendar.component(.day, from: entry.date)] += value
+            }
+        }
+        var running = Decimal(0)
+        return (1...max(lastDay, 1)).prefix(lastDay).map { day in
+            running += perDay[day]
+            return (day, max(running, 0))
+        }
+    }
+
+    static func remainingDays(month: LedgerMonth, today: Date, calendar: Calendar) -> Int {
+        let interval = month.interval(in: calendar)
+        if today >= interval.end { return 0 }
+        let from = max(calendar.startOfDay(for: today), interval.start)
+        return calendar.dateComponents([.day], from: from, to: interval.end).day ?? 0
     }
 
     /// Bugün dahil geçen gün / ayın gün sayısı.
