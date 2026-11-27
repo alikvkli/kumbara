@@ -8,6 +8,8 @@ public enum TransactionKind: String, Sendable, Codable, CaseIterable {
 /// Taslak kayıtlar kullanıcı onayına kadar toplamlara girmez (specs/00 C5).
 public enum TransactionStatus: String, Sendable, Codable, CaseIterable {
     case draft, posted
+    /// Gelecek taksit: tarihi gelince kendiliğinden kesinleşir (specs/08 §3.2).
+    case planned
 }
 
 /// Kaydın nereden geldiği (specs/05 §3).

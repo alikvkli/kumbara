@@ -53,6 +53,8 @@ public enum DemoData {
         cash?.openingBalance = Money(1_500, .TRY)
         let bank = LedgerAccount(name: "Maaş hesabı", kind: .bank, currency: .TRY, openingBalance: 18_500, sortIndex: 1)
         let card = LedgerAccount(name: "Kredi kartı", kind: .card, currency: .TRY, sortIndex: 2)
+        card.statementDay = 15
+        card.paymentDueDay = 25
         context.insert(bank)
         context.insert(card)
         try context.save()
@@ -104,6 +106,13 @@ public enum DemoData {
             }
         }
         try recurring.generateDrafts(now: now, calendar: calendar)
+        // Taksitli alım: geçen ayın 10'unda ₺12.000, 6 taksit (2'si kesin, 4'ü planlı).
+        if let date = calendar.date(from: DateComponents(year: thisMonth.previous.year, month: thisMonth.previous.month, day: 10, hour: 16)),
+           let electronics = categories["entertainment"] {
+            try InstallmentStore(context: context).save(
+                TransactionDraft(amount: 12_000, date: date, account: card.ref, category: electronics.ref, merchant: "MediaMarkt"),
+                count: 6, now: now, calendar: calendar)
+        }
         try loadPortfolio(into: context, now: now, calendar: calendar)
     }
 

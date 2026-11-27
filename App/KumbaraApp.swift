@@ -103,6 +103,9 @@ struct RootView: View {
             let store = RecurringStore(context: context)
             _ = try? store.generateDrafts()
             if let rules = try? store.rules() { Reminders.schedule(rules) }
+            // Tarihi gelen taksitler kesinleşir; kart son ödeme hatırlatmaları kurulur (REQ-L8, L9).
+            _ = try? InstallmentStore(context: context).postDue()
+            if let accounts = try? context.fetch(FetchDescriptor<LedgerAccount>()) { Reminders.scheduleCardDue(accounts, context: context) }
         }
     }
 }

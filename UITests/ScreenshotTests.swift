@@ -100,6 +100,16 @@ final class ScreenshotTests: XCTestCase {
         }
 
         tapTab("Özet")
+        let card = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Kredi kartı")).firstMatch
+        if !card.isHittable { app.swipeUp() }
+        if card.waitForExistence(timeout: 3) {
+            card.tap()
+            Thread.sleep(forTimeInterval: 1)
+            try shot("13-kart")
+            app.navigationBars.buttons.firstMatch.tap()
+            app.swipeDown()
+            app.swipeDown()
+        }
         app.buttons["Ayarlar"].firstMatch.tap()
         let accounts = app.buttons["Hesaplar"].firstMatch
         if accounts.waitForExistence(timeout: 3) {

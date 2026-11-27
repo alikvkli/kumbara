@@ -37,6 +37,10 @@ struct TransactionEditor: View {
     @State private var saveFailed = false
     @State private var confirmsDeletion = false
     @State private var repetition: Repetition = .none
+    @State private var installments = 1
+
+    /// Kartla yapılan yeni giderde taksit seçilebilir (REQ-L9).
+    private var offersInstallments: Bool { editing == nil && kind == .expense && account?.kind == .card }
 
     /// Yeni işlemi tekrarlayan yapma (REQ-L7, specs/08 §2).
     enum Repetition: Hashable, CaseIterable {
@@ -249,7 +253,14 @@ struct TransactionEditor: View {
                 accountPicker("Hesap", selection: $account)
             }
             DatePicker("Tarih", selection: $date)
-            if editing == nil && kind != .transfer {
+            if offersInstallments {
+                Picker("Taksit", selection: $installments) {
+                    ForEach(Installments.choices, id: \.self) { count in
+                        if count == 1 { Text("Peşin").tag(count) } else { Text("\(count) taksit").tag(count) }
+                    }
+                }
+            }
+            if editing == nil && kind != .transfer && installments == 1 {
                 Picker("Tekrarla", selection: $repetition) {
                     ForEach(Repetition.allCases, id: \.self) { Text($0.label).tag($0) }
                 }
@@ -258,7 +269,11 @@ struct TransactionEditor: View {
                 .focused($focus, equals: .note)
                 .lineLimit(1...4)
         } footer: {
-            if repetition != .none {
+            if offersInstallments, installments > 1, let total = draft.amount {
+                let parts = Installments.split(total, count: installments)
+                let currency = account?.currency ?? .TRY
+                Text("\(installments) × \(Money(parts.last ?? 0, currency).formatted(locale: locale)) · ilk taksit bu tarihte, kalanlar her ay aynı gün. Bütçeye her ay yalnız o ayın taksiti sayılır.")
+            } else if repetition != .none {
                 Text("Sonraki tarihlerde onayına bir taslak gelir; onaylamadan kesinleşmez.")
             } else if editing?.status == .draft {
                 Text("Bu kayıt onay bekliyor; kaydedince kesinleşir.")
@@ -336,6 +351,11 @@ struct TransactionEditor: View {
 
     private func save() {
         do {
+            if offersInstallments, installments > 1 {
+                try InstallmentStore(context: context).save(draft, count: installments)
+                dismiss()
+                return
+            }
             let saved = try store.save(draft, editing: editing)
             if let frequency = frequency(for: saved.date) {
                 try RecurringStore(context: context).makeRule(from: saved, frequency: frequency)

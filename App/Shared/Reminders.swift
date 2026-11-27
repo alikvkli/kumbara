@@ -1,6 +1,7 @@
 import Foundation
 import KumbaraCore
 import KumbaraData
+import SwiftData
 import UserNotifications
 
 /// Yerel hatırlatmalar (specs/08 §2.2): tekrarlayan işlemin vade günü sabahı "onay bekliyor".
@@ -39,6 +40,32 @@ enum Reminders {
             components.hour = 9
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
             center.add(UNNotificationRequest(identifier: identifier(for: rule), content: content, trigger: trigger),
+                       withCompletionHandler: nil)
+        }
+    }
+
+    /// Kart son ödeme gününden 3 gün önce, 10:00 (specs/08 §3.1). Borç yoksa hatırlatma kaldırılır.
+    static func scheduleCardDue(_ accounts: [LedgerAccount], context: ModelContext, now: Date = .now,
+                                calendar: Calendar = .current, locale: Locale = .current) {
+        guard !isUITesting else { return }
+        let center = UNUserNotificationCenter.current()
+        let store = InstallmentStore(context: context)
+        for account in accounts where account.kind == .card {
+            let id = "card-due:\(account.id.uuidString)"
+            guard !account.isArchived, let statement = try? store.statement(for: account, now: now, calendar: calendar),
+                  statement.remainingDue.amount > 0,
+                  let remind = calendar.date(byAdding: .day, value: -3, to: statement.last.due), remind > now else {
+                center.removePendingNotificationRequests(withIdentifiers: [id])
+                continue
+            }
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "\(account.name) son ödeme \(statement.last.due.formatted(.dateTime.day().month(.wide)))")
+            content.body = String(localized: "Ekstre borcu \(statement.remainingDue.formatted(locale: locale))")
+            content.threadIdentifier = "card"
+            var components = calendar.dateComponents([.year, .month, .day], from: remind)
+            components.hour = 10
+            center.add(UNNotificationRequest(identifier: id, content: content,
+                                             trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)),
                        withCompletionHandler: nil)
         }
     }

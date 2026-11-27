@@ -25,6 +25,8 @@ public enum SchemaV1: VersionedSchema {
         var openingBalanceRaw: String = "0"
         /// Kredi kartı ekstre kesim günü (REQ-L8, M4).
         public var statementDay: Int?
+        /// Son ödeme günü (ayın günü); yoksa kesimden 10 gün sonra (specs/08 §3.1).
+        public var paymentDueDay: Int?
         public var isArchived: Bool = false
         public var sortIndex: Int = 0
         public var createdAt: Date = Date.now
@@ -114,6 +116,10 @@ public enum SchemaV1: VersionedSchema {
         /// Tekrar kuralından üretildiyse kuralın kimliği ve vade günü (idempotens, specs/08 §2.2).
         public var recurrenceID: UUID?
         public var dueDay: Date?
+        /// Taksitli alımın parçasıysa: plan kimliği, sıra (1'den) ve taksit sayısı (specs/08 §3.2).
+        public var installmentPlanID: UUID?
+        public var installmentIndex: Int?
+        public var installmentCount: Int?
 
         public init(date: Date, amount: Money, kind: TransactionKind,
                     status: TransactionStatus = .posted, origin: TransactionOrigin = .manual) {

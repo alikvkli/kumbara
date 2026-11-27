@@ -160,14 +160,15 @@ struct DemoDataTests {
         try DemoData.load(into: context, now: now, calendar: calendar)
 
         let all = try context.fetch(FetchDescriptor<LedgerTransaction>())
-        // 23 kayıt + geçen ayın spor salonu + bu ayın onay bekleyen spor salonu taslağı.
-        #expect(all.count == 25)
+        // 23 kayıt + spor salonu (geçen ay + bu ayın taslağı) + 6 taksit (2 kesin, 4 planlı).
+        #expect(all.count == 31)
         #expect(all.filter { $0.status == .draft }.map(\.merchant) == ["MacFit"])
-        #expect(all.allSatisfy { $0.date <= now })
+        #expect(all.filter { $0.status == .planned }.count == 4)
+        #expect(all.filter { $0.status != .planned }.allSatisfy { $0.date <= now })
         let summary = try LedgerStore(context: context).summary(
             for: LedgerMonth(year: 2026, month: 11), currency: .TRY, calendar: calendar)
         #expect(summary.income == Money(69_500, .TRY))
-        #expect(summary.expense == Money(Decimal(canonical: "35805.69")!, .TRY))
+        #expect(summary.expense == Money(Decimal(canonical: "37805.69")!, .TRY))  // + bu ayın taksiti ₺2.000
         #expect(try LedgerStore(context: context).suggestedCategory(forMerchant: "migros")?.seedKey == "market.food")
 
         let portfolio = PortfolioStore(context: context, calendar: calendar)

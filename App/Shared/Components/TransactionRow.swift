@@ -15,8 +15,20 @@ struct TransactionRow: View {
                 : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
             layout {
                 VStack(alignment: .leading, spacing: 2) {
-                    TransactionTitle(transaction: transaction)
-                        .lineLimit(1)
+                    HStack(spacing: 6) {
+                        TransactionTitle(transaction: transaction)
+                            .lineLimit(1)
+                        if let index = transaction.installmentIndex, let count = transaction.installmentCount {
+                            Text(verbatim: "\(index)/\(count)")
+                                .font(.caption.weight(.medium))
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 1)
+                                .background(.quaternary, in: Capsule())
+                                .accessibilityLabel(Text("\(count) taksitin \(index). taksiti"))
+                        }
+                    }
                     Text(verbatim: transaction.subtitle)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -26,6 +38,8 @@ struct TransactionRow: View {
                 AmountText(transaction.amount, kind: transaction.kind)
             }
         }
+        // Planlanmış (gelecek) taksit soluk görünür.
+        .opacity(transaction.status == .planned ? 0.55 : 1)
         .accessibilityElement(children: .combine)
     }
 }

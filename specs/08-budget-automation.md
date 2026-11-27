@@ -84,8 +84,9 @@ her şey cihazda, bildirimler yereldir (C1, C2).
 - Bir **taksit planı** oluşur: toplam, sayı, ilk taksit tarihi. Her taksit
   ayrı bir işlemdir (`toplam / n`, kuruş farkı **ilk** taksite eklenir:
   ₺1.000 / 3 = 333,34 + 333,33 + 333,33).
-- Taksit tarihleri: alımdan sonraki ilk ekstre döneminden başlayarak her dönem
-  bir taksit (kesim günü yoksa alım günü, her ay).
+- Taksit tarihleri: taksit *k*, alım gününden *k* ay sonra (ayda o gün yoksa son
+  gün). Böylece her taksit sıradaki ekstre dönemine düşer (kesim 15, alım 20 Kasım →
+  15 Aralık, 15 Ocak, … ekstreleri); kesim günü tanımlı olmasa da aynı kural.
 - Gelecek taksitler **planlanmış** işlemdir: listede soluk ve "3/6" rozetiyle,
   tarihi gelince kendiliğinden kesinleşir (kullanıcının kendi girdiği bir alımın
   parçası olduğu için ayrıca onay istemez; C5'in "otomatik oluşturulan" kapsamı

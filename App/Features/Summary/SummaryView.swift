@@ -12,6 +12,8 @@ struct SummaryView: View {
     @State private var selectedMonth: LedgerMonth?
     @Environment(\.modelContext) private var context
     @Query private var budgets: [Budget]
+    @Query(filter: #Predicate<LedgerAccount> { !$0.isArchived }, sort: \LedgerAccount.sortIndex)
+    private var accounts: [LedgerAccount]
 
     /// Özet ana para biriminde; diğer para birimleri ayrıca belirtilir (kur desteği M2).
     private let currency = CurrencyCode.TRY
@@ -92,6 +94,19 @@ struct SummaryView: View {
                 if !summary.otherCurrencies.isEmpty {
                     let codes = summary.otherCurrencies.map(\.rawValue).sorted().joined(separator: ", ")
                     Text("\(codes) cinsinden kayıtlar bu toplama dahil değil.")
+                }
+            }
+
+            let cards = accounts.compactMap { account in
+                (try? InstallmentStore(context: context).statement(for: account, calendar: calendar)).map { (account, $0) }
+            }
+            if !cards.isEmpty {
+                Section("Kartlar") {
+                    ForEach(cards, id: \.0.id) { card in
+                        NavigationLink { CardDetailView(account: card.0) } label: {
+                            CardSummaryRow(account: card.0, statement: card.1)
+                        }
+                    }
                 }
             }
 

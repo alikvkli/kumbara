@@ -78,6 +78,8 @@ struct AccountEditor: View {
     @State private var currency = CurrencyCode.TRY
     @State private var openingText = ""
     @State private var isArchived = false
+    @State private var statementDay: Int?
+    @State private var paymentDueDay: Int?
     @State private var didLoad = false
 
     private static let currencies: [CurrencyCode] = [.TRY, .USD, .EUR, .GBP, .CHF]
@@ -131,6 +133,23 @@ struct AccountEditor: View {
                 } footer: {
                     Text("Uygulamayı kullanmaya başladığın andaki bakiye. Kredi kartı borcu için eksi gir.")
                 }
+                if kind == .card {
+                    Section {
+                        Picker("Hesap kesim günü", selection: $statementDay) {
+                            Text("Belirtilmedi").tag(Int?.none)
+                            ForEach(1...31, id: \.self) { Text(verbatim: "\($0)").tag(Int?.some($0)) }
+                        }
+                        Picker("Son ödeme günü", selection: $paymentDueDay) {
+                            Text("Kesimden 10 gün sonra").tag(Int?.none)
+                            ForEach(1...31, id: \.self) { Text(verbatim: "\($0)").tag(Int?.some($0)) }
+                        }
+                        .disabled(statementDay == nil)
+                    } header: {
+                        Text("Ekstre")
+                    } footer: {
+                        Text("Kesim günüyle dönem harcaman, ekstre borcun ve son ödeme tarihin gösterilir; son ödemeden 3 gün önce hatırlatırım.")
+                    }
+                }
                 if existing != nil {
                     Section {
                         Toggle("Arşivle", isOn: $isArchived)
@@ -162,6 +181,8 @@ struct AccountEditor: View {
                     kind = existing.kind
                     currency = existing.currency
                     isArchived = existing.isArchived
+                    statementDay = existing.statementDay
+                    paymentDueDay = existing.paymentDueDay
                     let amount = existing.openingBalance.amount
                     openingText = amount.isZero ? "" : amount.formattedNumber(locale: locale, fractionDigits: 0...2)
                 }
@@ -181,10 +202,16 @@ struct AccountEditor: View {
             if !currencyLocked { existing.currency = currency }
             existing.openingBalance = Money(opening, existing.currency)
             existing.isArchived = isArchived
+            existing.statementDay = kind == .card ? statementDay : nil
+            existing.paymentDueDay = kind == .card ? paymentDueDay : nil
         } else {
-            context.insert(LedgerAccount(name: trimmed, kind: kind, currency: currency,
-                                         openingBalance: opening, sortIndex: nextSortIndex))
+            let account = LedgerAccount(name: trimmed, kind: kind, currency: currency,
+                                        openingBalance: opening, sortIndex: nextSortIndex)
+            account.statementDay = kind == .card ? statementDay : nil
+            account.paymentDueDay = kind == .card ? paymentDueDay : nil
+            context.insert(account)
         }
+        if kind == .card, statementDay != nil { Reminders.requestAuthorizationIfNeeded() }
         try? context.save()
         dismiss()
     }
