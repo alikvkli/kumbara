@@ -26,6 +26,8 @@ public struct CapturedDraft: Hashable, Sendable {
     /// `DefaultCategories` seed anahtarı (satıcı hafızası uygulamada önce gelir).
     public var categoryKey: String?
     public var vat: Decimal?
+    /// Cihaz üstü modelle çapraz kontrol yapıldıysa sonucu (specs/04 §2.5).
+    public var modelCheck: ModelCheck? = nil
 }
 
 public enum DocumentKind: String, Sendable, Codable {

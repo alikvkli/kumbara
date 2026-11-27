@@ -36,12 +36,23 @@ final class CaptureSession {
     var review: Review?
     var errorMessage: String?
 
+    /// Ayarlar › Akıllı kontrol (varsayılan açık). UI testlerinde kapalı: sonuç cihaza bağlı olmasın.
+    static var smartCheckEnabled: Bool {
+        guard !ProcessInfo.processInfo.arguments.contains("-ui-testing") else { return false }
+        return UserDefaults.standard.object(forKey: SettingsKey.smartCheck) as? Bool ?? true
+    }
+
     func process(data: Data, contentType: UTType?) async {
         isProcessing = true
         defer { isProcessing = false }
         do {
             let document = try await TextRecognizer.recognize(data: data, contentType: contentType)
-            let result = CaptureParser().parse(document.lines)
+            var result = CaptureParser().parse(document.lines)
+            // Opsiyonel akıllı katman (specs/04 §2.5): yalnız tek fişte, ayar açıksa, cihaz destekliyorsa.
+            if Self.smartCheckEnabled, result.kind == .receipt, result.drafts.count == 1,
+               let reading = await SmartReader.read(result.rows) {
+                result.drafts[0] = CrossCheck.apply(reading, to: result.drafts[0], rows: result.rows, calendar: .current)
+            }
             review = Review(preview: document.preview, lines: document.lines, result: result)
         } catch CaptureError.noText {
             errorMessage = String(localized: "Görüntüde okunabilir yazı bulunamadı.")

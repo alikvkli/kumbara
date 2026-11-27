@@ -98,7 +98,14 @@ private struct SingleDraftReview: View {
                         DatePicker("Tarih", selection: $date).focused($focus, equals: .date)
                     }
                 } footer: {
-                    if (suggestion.amount?.isLowConfidence ?? true) || suggestion.date.isLowConfidence {
+                    if let conflicts = suggestion.modelCheck?.conflicts, !conflicts.isEmpty {
+                        // Çapraz kontrol (specs/04 §2.5): iki okuma uyuşmadı; neyin farklı olduğu söylenir.
+                        if conflicts.contains(.amount) {
+                            Text("Fişi iki farklı yöntemle okudum, tutarlar uyuşmadı. Fişteki TOPLAM'a bakıp düzelt.")
+                        } else {
+                            Text("Fişi iki farklı yöntemle okudum, tarihler uyuşmadı. Kontrol et.")
+                        }
+                    } else if (suggestion.amount?.isLowConfidence ?? true) || suggestion.date.isLowConfidence {
                         Text("Turuncu işaretli alanlardan emin olamadım; kontrol et.")
                     }
                 }

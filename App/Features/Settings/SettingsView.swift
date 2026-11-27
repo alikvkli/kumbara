@@ -1,3 +1,4 @@
+import KumbaraCapture
 import KumbaraCore
 import SwiftUI
 
@@ -5,6 +6,7 @@ import SwiftUI
 struct SettingsView: View {
     @AppStorage(SettingsKey.priceKind) private var priceKind: PriceKind = .bid
     @AppStorage(SettingsKey.costMethod) private var costMethod: CostMethod = .averageCost
+    @AppStorage(SettingsKey.smartCheck) private var smartCheck = true
 
     var body: some View {
         Form {
@@ -19,6 +21,18 @@ struct SettingsView: View {
                 Text("Birikim")
             } footer: {
                 Text("Bozdurma fiyatı, birikimini bugün satsan eline geçecek tutardır; en dürüst değer budur.")
+            }
+            Section {
+                Toggle("Akıllı kontrol", isOn: $smartCheck)
+                    .disabled(!SmartReader.isAvailable)
+            } header: {
+                Text("Fiş okuma")
+            } footer: {
+                if SmartReader.isAvailable {
+                    Text("Fişler, kurallara ek olarak Apple Intelligence ile cihazında bir kez daha okunur; iki sonuç uyuşmazsa uyarırım. Fiş cihazından çıkmaz.")
+                } else {
+                    Text("Bu cihazda Apple Intelligence kullanılamıyor; fişler yalnızca kurallarla okunur.")
+                }
             }
             Section {
                 NavigationLink {

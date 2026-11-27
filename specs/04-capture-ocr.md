@@ -49,6 +49,12 @@ Görüntü ─▶ OCR (Vision) ─▶ [TextLine] ─▶ Belge sınıflandırıc�
    doldurulur; sonuç kural tabanlı ayrıştırıcıyla çapraz kontrol edilir (tutar
    eşleşmezse kural tabanlı kazanır ve güven düşer). Desteklemeyen cihazda
    tamamen kural tabanlı çalışır. Yine tamamen cihaz üstüdür (C2).
+   Uygulama (T3.7, `CrossCheck`): modele görüntü değil yalnız OCR metni verilir.
+   Modelin hiçbir değeri fiş metninde karşılığı yoksa kullanılmaz (uydurma engeli).
+   Anlaşma → güven artar; tutar/tarih çatışması → kural kalır, güven < 0,6 ve
+   onay ekranı "iki okuma uyuşmadı" der; kuralların bulamadığı alanı metinde
+   doğrulanan model değeri doldurur. Bilinen zincir satıcısına model dokunmaz.
+   En fazla 5 sn beklenir; Ayarlar › Fiş okuma › Akıllı kontrol ile kapatılabilir.
 
 ## 3. Güven ve onay (REQ-C4)
 Her alan `Confidence` (0–1) taşır. Onay ekranı:

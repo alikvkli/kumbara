@@ -159,6 +159,7 @@ extension Quote {
 enum SettingsKey {
     static let priceKind = "valuation.priceKind"
     static let costMethod = "valuation.costMethod"
+    static let smartCheck = "capture.smartCheck"
 }
 
 /// "Bozdurma · 5 dk önce" ve tazelik uyarısı (C4, C6, specs/06 §2.4). Sağlayıcı adı gösterilmez.
