@@ -17,6 +17,14 @@ final class ScreenshotTests: XCTestCase {
         app.launchArguments += ["-ui-testing", "-demo-data", "-AppleLanguages", "(tr)", "-AppleLocale", "tr_TR"]
         app.launch()
 
+        func tapTab(_ title: String) {
+            let tab = app.tabBars.buttons[title]
+            if !tab.waitForExistence(timeout: 3) || !tab.isHittable {
+                app.swipeDown()
+            }
+            tab.tap()
+        }
+
         func shot(_ name: String) throws {
             Thread.sleep(forTimeInterval: 1.0)
             let data = XCUIScreen.main.screenshot().pngRepresentation
@@ -29,7 +37,10 @@ final class ScreenshotTests: XCTestCase {
         app.swipeUp()
         try shot("2-ozet-dagilim")
 
-        app.tabBars.buttons["İşlemler"].tap()
+        // Aşağı kaydırınca tab bar küçülür (tabBarMinimizeBehavior); sekmelere dönmek için aç.
+        app.swipeDown()
+        app.swipeDown()
+        tapTab("İşlemler")
         try shot("3-islemler")
 
         app.buttons["Yeni işlem"].firstMatch.tap()
@@ -44,10 +55,10 @@ final class ScreenshotTests: XCTestCase {
         try shot("4-yeni-islem")
         app.buttons["Vazgeç"].firstMatch.tap()
 
-        app.tabBars.buttons["Birikim"].tap()
+        tapTab("Birikim")
         try shot("5-birikim-bos")
 
-        app.tabBars.buttons["Özet"].tap()
+        tapTab("Özet")
         app.buttons["Ayarlar"].firstMatch.tap()
         let accounts = app.buttons["Hesaplar"].firstMatch
         if accounts.waitForExistence(timeout: 3) {
