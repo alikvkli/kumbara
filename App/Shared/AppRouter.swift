@@ -1,3 +1,4 @@
+import Foundation
 import Observation
 
 /// Uygulama bölümleri. iOS'ta sekme, macOS'ta kenar çubuğu öğesi (specs/06 §6.1, §7).
@@ -30,6 +31,8 @@ final class AppRouter {
     var destination: Destination = .section(.summary)
     var isPresentingQuickAdd = false
     var isImportingReceipt = false
+    /// macOS denetçisi için tablodaki tekil seçim.
+    var selectedTransactionID: UUID?
 
     func show(_ section: AppSection) { destination = .section(section) }
 }

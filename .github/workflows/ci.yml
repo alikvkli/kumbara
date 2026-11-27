@@ -35,6 +35,8 @@ jobs:
           xcodegen generate
       - name: Test KumbaraCore (macOS)
         run: swift test --package-path Packages/KumbaraCore
+      - name: Test KumbaraData (macOS)
+        run: swift test --package-path Packages/KumbaraData
       - name: Build iOS
         run: >
           set -o pipefail &&
@@ -47,3 +49,17 @@ jobs:
           xcodebuild build -project Kumbara.xcodeproj -scheme Kumbara
           -destination 'generic/platform=macOS'
           CODE_SIGNING_ALLOWED=NO | xcbeautify
+      - name: UI test (iOS Simulator)
+        run: |
+          set -o pipefail
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          phones = [(runtime, d) for runtime, items in devices.items() if ".iOS-" in runtime
+                    for d in items if d["name"].startswith("iPhone")]
+          version = lambda r: [int(x) for x in r.split(".iOS-")[1].split("-")]
+          phones.sort(key=lambda p: (version(p[0]), p[1]["name"]))
+          print(phones[-1][1]["udid"])')
+          echo "Simulator: $UDID"
+          xcodebuild test -project Kumbara.xcodeproj -scheme Kumbara \
+            -destination "id=$UDID" CODE_SIGNING_ALLOWED=NO | xcbeautify

@@ -23,6 +23,8 @@ settings:
 packages:
   KumbaraCore:
     path: Packages/KumbaraCore
+  KumbaraData:
+    path: Packages/KumbaraData
 
 targets:
   Kumbara:
@@ -32,6 +34,10 @@ targets:
       - path: App
     dependencies:
       - package: KumbaraCore
+      - package: KumbaraData
+    scheme:
+      testTargets:
+        - KumbaraUITests
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.kumbara.Kumbara   # TODO(Q10)
@@ -53,3 +59,16 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_OUTGOING_NETWORK_CONNECTIONS: YES
         ENABLE_USER_SELECTED_FILES: readonly
+
+  KumbaraUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: Kumbara
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.kumbara.KumbaraUITests   # TODO(Q10)
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Kumbara

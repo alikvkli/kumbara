@@ -243,3 +243,20 @@ struct DefaultCategoriesTests {
         #expect(market.name(for: Locale(identifier: "en_US")) == "Groceries")
     }
 }
+
+@Suite("Hesap bakiyesi")
+struct AccountBalanceTests {
+    @Test func balance() {
+        let cash = UUID(), bank = UUID()
+        let entries = [
+            LedgerEntry(date: .now, amount: tl("62000"), kind: .income, accountID: bank),
+            LedgerEntry(date: .now, amount: tl("1249.90"), kind: .expense, accountID: bank),
+            LedgerEntry(date: .now, amount: tl("5000"), kind: .transfer, accountID: bank, toAccountID: cash),
+            LedgerEntry(date: .now, amount: tl("300"), kind: .expense, accountID: cash),
+            LedgerEntry(date: .now, amount: tl("999"), kind: .expense, status: .draft, accountID: cash),
+        ]
+        #expect(AccountBalance.compute(accountID: bank, opening: tl("1000"), entries: entries) == tl("56750.10"))
+        #expect(AccountBalance.compute(accountID: cash, opening: .zero(.TRY), entries: entries) == tl("4700"))
+        #expect(AccountBalance.compute(accountID: UUID(), opening: tl("5"), entries: entries) == tl("5"))
+    }
+}

@@ -62,7 +62,7 @@ struct QuickActionsToolbar: ViewModifier {
                 .matchedTransitionSource(id: "quick-add", in: transition)
             }
             .sheet(isPresented: isPresentingQuickAdd) {
-                QuickAddSheet()
+                TransactionEditor(mode: .create(.expense))
                     .presentationDetents([.medium, .large])
                     .navigationTransition(.zoom(sourceID: "quick-add", in: transition))
             }

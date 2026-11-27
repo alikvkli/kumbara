@@ -5,7 +5,6 @@ import SwiftUI
 struct RootSplitView: View {
     @Environment(AppRouter.self) private var router
     @State private var showsInspector = false
-    @State private var query = ""
 
     var body: some View {
         @Bindable var router = router
@@ -32,12 +31,17 @@ struct RootSplitView: View {
                 detail
             }
             .inspector(isPresented: $showsInspector) {
-                ContentUnavailableView("Seçim yok", systemImage: "sidebar.right",
-                                       description: Text("Ayrıntısını görmek için bir kayıt seç."))
-                    .inspectorColumnWidth(min: 240, ideal: 280)
+                Group {
+                    if let id = router.selectedTransactionID {
+                        TransactionInspector(id: id)
+                    } else {
+                        ContentUnavailableView("Seçim yok", systemImage: "sidebar.right",
+                                               description: Text("Ayrıntısını görmek için bir kayıt seç."))
+                    }
+                }
+                .inspectorColumnWidth(min: 260, ideal: 300)
             }
         }
-        .searchable(text: $query, placement: .toolbar, prompt: Text("Satıcı, not, kategori"))
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button("Yeni işlem", systemImage: "plus") { router.isPresentingQuickAdd = true }
@@ -49,8 +53,8 @@ struct RootSplitView: View {
             }
         }
         .sheet(isPresented: $router.isPresentingQuickAdd) {
-            QuickAddSheet()
-                .frame(minWidth: 420, minHeight: 260)
+            TransactionEditor(mode: .create(.expense))
+                .frame(minWidth: 460, minHeight: 480)
         }
         .frame(minWidth: 820, minHeight: 520)
     }
