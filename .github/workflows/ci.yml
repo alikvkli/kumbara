@@ -134,3 +134,45 @@ jobs:
           name: screenshots
           path: screenshots/
           if-no-files-found: warn
+
+  # Commit mesajında [corpus] varsa: üretilmiş fişler + Commons'taki gerçek fişler, gerçek Vision OCR'ından
+  # geçirilip test fixture'ı olarak artifact'a konur (specs/04 §6, T3.1).
+  corpus-images:
+    name: Corpus images
+    if: contains(github.event.head_commit.message, '[corpus]')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Generate synthetic receipts
+        run: |
+          sudo apt-get install -y fonts-dejavu-core fonts-liberation >/dev/null
+          pip install --quiet pillow
+          python3 Tools/corpus/generate.py corpus-in
+      - uses: actions/upload-artifact@v4
+        with:
+          name: corpus-images
+          path: corpus-in/
+
+  corpus-ocr:
+    name: Corpus OCR (Vision)
+    needs: corpus-images
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v5
+      - name: Select newest Xcode
+        run: sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+      - uses: actions/download-artifact@v4
+        with:
+          name: corpus-images
+          path: corpus-in
+      - name: Fetch Commons receipts
+        continue-on-error: true
+        run: python3 Tools/corpus/fetch_commons.py corpus-in
+      - name: OCR with Vision
+        run: swift run --package-path Packages/KumbaraCapture -c release kumbara-ocr corpus-in corpus-out
+      - name: Keep images next to OCR output for review
+        run: cp corpus-in/*.jpg corpus-out/ || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: corpus-ocr
+          path: corpus-out/
