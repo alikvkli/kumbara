@@ -69,31 +69,23 @@ struct SummaryView: View {
 
         return List {
             Section {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 16) {
                     MonthMenu(month: month, selection: $selectedMonth)
-                    HeroAmount(money: summary.net)
-                    Text("Gelir \(summary.income.formatted(locale: locale)) · Gider \(summary.expense.formatted(locale: locale))")
-                        .font(.subheadline)
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
-                    if let allowance {
-                        Text("\(allowance.remainingDays) gün kaldı · günlük \(allowance.perDay.formatted(locale: locale))")
-                            .font(.subheadline)
-                            .monospacedDigit()
-                    }
-                    if let change = summary.expenseChange(from: previous) {
-                        Text("Geçen aya göre gider \(change.formattedPercent(locale: locale, fractionDigits: 0, sign: .always))")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
+                    MonthHeader(summary: summary, change: summary.expenseChange(from: previous), isCurrentMonth: allowance != nil)
                 }
                 .padding(.vertical, 4)
                 .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 8, trailing: 4))
+                .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 12, trailing: 4))
             } footer: {
                 if !summary.otherCurrencies.isEmpty {
                     let codes = summary.otherCurrencies.map(\.rawValue).sorted().joined(separator: ", ")
                     Text("\(codes) cinsinden kayıtlar bu toplama dahil değil.")
+                }
+            }
+
+            if let allowance {
+                Section {
+                    AllowanceRow(allowance: allowance, hasBudget: overall != nil) { router.show(.budget) }
                 }
             }
 
@@ -128,6 +120,114 @@ struct SummaryView: View {
                 Text("Son işlemler")
             }
         }
+    }
+}
+
+/// Ayın özeti: kalan tutar kahraman; altında gelirin ne kadarının harcandığını gösteren tek çubuk ve
+/// iki etiketli sütun (gelir / gider). Satır içi "·" dizileri yerine her rakamın kendi etiketi var.
+private struct MonthHeader: View {
+    let summary: MonthlySummary
+    let change: Decimal?
+    let isCurrentMonth: Bool
+    @Environment(\.locale) private var locale
+
+    private var spentShare: Double? {
+        guard summary.income.amount > 0 else { return nil }
+        return (summary.expense.amount / summary.income.amount as NSDecimalNumber).doubleValue
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 2) {
+                Group {
+                    if summary.net.isNegative {
+                        Text("Gelirden fazla harcandı")
+                    } else {
+                        Text(isCurrentMonth ? "Bu ay kalan" : "Ay sonunda kalan")
+                    }
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                HeroAmount(money: summary.net)
+            }
+            if let spentShare {
+                SpendBar(share: spentShare)
+                    .accessibilityLabel(Text("Gelirin \(Decimal(spentShare).formattedPercent(locale: locale, fractionDigits: 0)) kadarı harcandı"))
+            }
+            HStack(alignment: .top) {
+                figure(title: "Gelir", value: summary.income, note: nil)
+                figure(title: "Gider", value: summary.expense, note: changeNote)
+            }
+        }
+    }
+
+    private var changeNote: Text? {
+        guard let change, change != 0 else { return nil }
+        let percent = (change < 0 ? -change : change).formattedPercent(locale: locale, fractionDigits: 0)
+        return change > 0 ? Text("geçen aydan \(percent) fazla") : Text("geçen aydan \(percent) az")
+    }
+
+    private func figure(title: LocalizedStringKey, value: Money, note: Text?) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).font(.subheadline).foregroundStyle(.secondary)
+            Text(verbatim: value.formatted(locale: locale, fractionDigits: 0))
+                .font(.title3.weight(.semibold))
+                .monospacedDigit()
+            if let note { note.font(.footnote).foregroundStyle(.secondary) }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Gelirin harcanan payı. Gelir aşılırsa çubuk dolu ve kırmızı (renk anlam taşır).
+private struct SpendBar: View {
+    let share: Double
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule().fill(.quaternary)
+                Capsule()
+                    .fill(share > 1 ? Color.red : Color.accentColor)
+                    .frame(width: proxy.size.width * min(max(share, 0), 1))
+            }
+        }
+        .frame(height: 8)
+    }
+}
+
+/// "Bugün harcayabileceğin": genel bütçe varsa ondan, yoksa ayın netinden; dokununca Bütçe.
+private struct AllowanceRow: View {
+    let allowance: DailyAllowance
+    let hasBudget: Bool
+    let open: () -> Void
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        Button(action: open) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Bugün harcayabileceğin").font(.subheadline).foregroundStyle(.secondary)
+                    Text(verbatim: allowance.perDay.formatted(locale: locale, fractionDigits: 0))
+                        .font(.title3.weight(.semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(.primary)
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(allowance.remainingDays) gün kaldı").font(.subheadline).foregroundStyle(.secondary)
+                    Text(hasBudget ? "bütçene göre" : "kalan tutara göre").font(.footnote).foregroundStyle(.tertiary)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
     }
 }
 
