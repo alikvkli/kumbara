@@ -49,6 +49,10 @@ Liquid Glass'ın temel ilkesi, uygulamamızın da temel ilkesidir:
   yüksek karşıtlık varyantıyla.
 - Tint yalnız **birincil eylemde** (ör. "Kaydet", `.glassProminent`) ve seçili
   durumda. Tüm butonları renklendirmek camın hiyerarşisini bozar.
+- İki vurgu tonu: `AccentColor` link/ikon/seçim için (koyu modda açık `#5FB3AC`,
+  koyu zeminde 6.9:1); `AccentProminent` birincil buton zemini için (koyu modda
+  `#2C7C76`, beyaz yazıyla 4.9:1). Tek ton ikisini birden sağlayamıyor — ölçüldü.
+  Birincil buton her yerde `.primaryActionStyle()` ile çizilir.
 - Kâr/zarar: sistem `green`/`red` (koyu/yüksek karşıtlık varyantları otomatik) +
   her zaman işaret (▲/▼ veya +/−). Renk tek başına anlam taşımaz (REQ-X7).
 - Kategori renkleri: sistem paletinden en fazla 8 ton, yalnız küçük SF Symbol
@@ -191,7 +195,8 @@ PR'da biri varsa reddedilir:
 - Özel tab bar, özel navigation bar, özel pencere kromu; sistemin kaydırma
   kenarı yerine elle blur/gradyan.
 - Dekoratif gradyan, aurora/blob arka plan, kahraman bölgenin arkasında görsel.
-- Kart içinde kart; gölgeli kart yığınları.
+- Kart içinde kart; gölgeli kart yığınları. Tek satırlı bölümlerden oluşan inset
+  grouped liste de kart yığınıdır: gün gruplu listeler `.plain` + yapışkan başlık.
 - Emoji ikon; her bölüm başlığına ikon.
 - Sabit köşe yarıçapı (`cornerRadius(12)` vb.) — eşmerkezli şekil kullan.
 - Her butonu tint'lemek; birden fazla `.glassProminent` aynı ekranda.

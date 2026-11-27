@@ -101,6 +101,9 @@ struct TransactionList: View {
                 }
             }
         }
+        // Düz liste + yapışkan gün başlıkları: günde tek kayıt olduğunda inset grouped
+        // her satırı ayrı kutuya çevirip "kart yığını" görünümü veriyordu (specs/06 §9).
+        .listStyle(.plain)
         .sheet(item: $editing) { transaction in
             TransactionEditor(mode: .edit(transaction))
         }

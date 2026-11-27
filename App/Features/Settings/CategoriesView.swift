@@ -131,7 +131,7 @@ struct CategoryEditor: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Kaydet", action: save)
-                        .buttonStyle(.glassProminent)
+                        .primaryActionStyle()
                         .disabled(!isValid)
                 }
             }

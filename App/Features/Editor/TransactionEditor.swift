@@ -72,8 +72,10 @@ struct TransactionEditor: View {
                 if kind == .transfer {
                     transferSection
                 } else {
-                    categorySection
+                    // Satıcı tutarın hemen altında: yarım sayfada klavye açıkken görünür kalır
+                    // ve kategori satıcıdan önerildiği için önce gelmesi doğal sıradır.
                     merchantSection
+                    categorySection
                 }
                 detailsSection
                 if !visibleIssues.isEmpty {
@@ -101,7 +103,7 @@ struct TransactionEditor: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Kaydet", action: save)
-                        .buttonStyle(.glassProminent)
+                        .primaryActionStyle()
                         .disabled(!draft.isValid)
                         .keyboardShortcut(.defaultAction)
                         .accessibilityIdentifier("editor.save")
