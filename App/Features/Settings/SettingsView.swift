@@ -4,6 +4,9 @@ import SwiftUI
 
 /// Ayarlar. iOS'ta sayfa, macOS'ta `Settings` sahnesi.
 struct SettingsView: View {
+    #if os(iOS)
+    @AppStorage(LiveReceiptScanner.settingKey) private var liveScan = false
+    #endif
     #if os(macOS)
     @AppStorage("menubar.enabled") private var showsMenuBar = true
     #endif
@@ -37,6 +40,18 @@ struct SettingsView: View {
                     Text("Bu cihazda Apple Intelligence kullanılamıyor; fişler yalnızca kurallarla okunur.")
                 }
             }
+            #if os(iOS)
+            Section {
+                Toggle("Canlı tarama (deneme)", isOn: $liveScan)
+                    .disabled(!LiveReceiptScanner.isAvailable)
+            } footer: {
+                if LiveReceiptScanner.isAvailable {
+                    Text("Kamera açıkken fişin yazısı anında okunur; TOPLAM görününce çekmeden önce söylenir. Belge kamerasına her zaman geçebilirsin.")
+                } else {
+                    Text("Bu cihazda canlı tarama kullanılamıyor; fişler belge kamerasıyla çekilir.")
+                }
+            }
+            #endif
             Section {
                 NavigationLink {
                     AccountsView()

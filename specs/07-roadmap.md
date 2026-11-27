@@ -66,5 +66,10 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - [x] T5.7 Çok katmanlı Liquid Glass ikonu (koyu varyant), mağaza metni (Design/AppStore). İngilizce ve erişilebilirlik denetimi kullanıcı kararıyla kapsam dışı (2026-11-27).
 
 ## Sonrası (v1.x adayları)
-Kestirmeler / App Intents (REQ-C7), canlı tarama (DataScanner), BIST/fon fiyatları (kaynak bulunursa), ortak bütçe
+Kestirmeler / App Intents (REQ-C7), BIST/fon fiyatları (kaynak bulunursa), ortak bütçe
 (CloudKit paylaşımı), Apple Watch hızlı ekleme, Vision Pro yok.
+
+## v1.x
+- [x] Canlı tarama (VisionKit DataScanner): TOPLAM çekmeden önce bulunur ve sabitlenince söylenir; çekilen
+      kare mevcut okuma hattından geçer. Varsayılan kapalı (Ayarlar › Canlı tarama); kamera gerektirdiği için
+      cihazda Team ID ile denenecek. Belge kamerası yedek olarak kalır.

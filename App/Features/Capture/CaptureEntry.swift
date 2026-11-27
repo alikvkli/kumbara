@@ -9,6 +9,10 @@ struct CaptureEntry: ViewModifier {
     @Environment(CaptureSession.self) private var session
     @Environment(\.scenePhase) private var scenePhase
     @State private var photoItem: PhotosPickerItem?
+    #if os(iOS)
+    @AppStorage(LiveReceiptScanner.settingKey) private var liveScan = false
+    @State private var usesDocumentCamera = false
+    #endif
 
     func body(content: Content) -> some View {
         @Bindable var session = session
@@ -31,13 +35,26 @@ struct CaptureEntry: ViewModifier {
                 Task { await session.process(fileURL: url) }
             }
             #if os(iOS)
-            .fullScreenCover(isPresented: binding(for: .camera)) {
-                DocumentScanner { pages in
-                    session.requestedSource = nil
-                    guard let first = pages.first else { return }
-                    Task { await session.process(data: first, contentType: .jpeg) }
+            .fullScreenCover(isPresented: binding(for: .camera), onDismiss: { usesDocumentCamera = false }) {
+                // Canlı tarama açıksa ve cihaz destekliyorsa önce o; "Belge kamerasıyla çek" ile ya da
+                // destek yoksa bugünkü belge kamerası.
+                if liveScan, LiveReceiptScanner.isAvailable, !usesDocumentCamera {
+                    LiveReceiptScanner { data in
+                        session.requestedSource = nil
+                        Task { await session.process(data: data, contentType: .jpeg) }
+                    } onUseDocumentCamera: {
+                        usesDocumentCamera = true
+                    } onCancel: {
+                        session.requestedSource = nil
+                    }
+                } else {
+                    DocumentScanner { pages in
+                        session.requestedSource = nil
+                        guard let first = pages.first else { return }
+                        Task { await session.process(data: first, contentType: .jpeg) }
+                    }
+                    .ignoresSafeArea()
                 }
-                .ignoresSafeArea()
             }
             #endif
             .dropDestination(for: URL.self) { urls, _ in
