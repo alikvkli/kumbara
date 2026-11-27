@@ -13,7 +13,7 @@ public enum SchemaV1: VersionedSchema {
 
     public static var models: [any PersistentModel.Type] {
         [LedgerAccount.self, LedgerCategory.self, LedgerTransaction.self, MerchantMemory.self,
-         AssetTrade.self, CustomAsset.self, PriceSnapshot.self]
+         AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self]
     }
 
     @Model
@@ -68,6 +68,10 @@ public enum SchemaV1: VersionedSchema {
 
         @Relationship(deleteRule: .cascade, inverse: \MerchantMemory.category)
         public var merchantMemories: [MerchantMemory]? = []
+
+        /// Kategori silinince bütçesi de gider.
+        @Relationship(deleteRule: .cascade, inverse: \Budget.category)
+        public var budgets: [Budget]? = []
 
         public init(name: String, kind: CategoryKind, symbol: String, color: CategoryColor,
                     parent: LedgerCategory? = nil, seedKey: String? = nil, sortIndex: Int = 0) {
@@ -211,6 +215,47 @@ extension SchemaV1 {
     }
 }
 
+extension SchemaV1 {
+    /// Aylık bütçe (specs/08 §1). `category == nil && isOverall` genel bütçedir.
+    @Model
+    public final class Budget {
+        public var id: UUID = UUID()
+        public var category: LedgerCategory?
+        public var isOverall: Bool = false
+        /// `BudgetLimitHistory.canonical`
+        var historyRaw: String = ""
+        public var createdAt: Date = Date.now
+
+        public init(category: LedgerCategory?, history: BudgetLimitHistory) {
+            self.category = category
+            self.isOverall = category == nil
+            self.historyRaw = history.canonical
+        }
+
+        public var history: BudgetLimitHistory {
+            get { BudgetLimitHistory(canonical: historyRaw) ?? BudgetLimitHistory() }
+            set { historyRaw = newValue.canonical }
+        }
+
+        public var spec: BudgetSpec {
+            BudgetSpec(id: id, categoryID: isOverall ? nil : category?.id, history: history)
+        }
+    }
+
+    /// Bir kez gönderilecek bildirimlerin kaydı (specs/08 §6): anahtar "tür:nesne:dönem:eşik".
+    @Model
+    public final class NotificationLog {
+        public var key: String = ""
+        public var sentAt: Date = Date.now
+
+        public init(key: String) {
+            self.key = key
+        }
+    }
+}
+
+public typealias Budget = SchemaV1.Budget
+public typealias NotificationLog = SchemaV1.NotificationLog
 public typealias AssetTrade = SchemaV1.AssetTrade
 public typealias CustomAsset = SchemaV1.CustomAsset
 public typealias PriceSnapshot = SchemaV1.PriceSnapshot

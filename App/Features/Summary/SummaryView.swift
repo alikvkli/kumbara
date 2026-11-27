@@ -10,6 +10,8 @@ struct SummaryView: View {
     @Environment(\.locale) private var locale
     @Environment(AppRouter.self) private var router
     @State private var selectedMonth: LedgerMonth?
+    @Environment(\.modelContext) private var context
+    @Query private var budgets: [Budget]
 
     /// Özet ana para biriminde; diğer para birimleri ayrıca belirtilir (kur desteği M2).
     private let currency = CurrencyCode.TRY
@@ -56,7 +58,11 @@ struct SummaryView: View {
         let entries = entries
         let summary = MonthlySummary(entries: entries, month: month, currency: currency, calendar: calendar)
         let previous = MonthlySummary(entries: entries, month: month.previous, currency: currency, calendar: calendar)
-        let allowance = DailyAllowance(remaining: summary.net, month: month, today: .now, calendar: calendar)
+        // Genel bütçe varsa günlük hak bütçenin kalanından, yoksa ayın netinden (REQ-B4).
+        let overall = budgets.contains(where: \.isOverall)
+            ? (try? BudgetStore(context: context).statuses(for: month, calendar: calendar))?.first { $0.categoryID == nil }
+            : nil
+        let allowance = DailyAllowance(remaining: overall?.remaining ?? summary.net, month: month, today: .now, calendar: calendar)
         let categories = categoriesByID
 
         return List {
@@ -109,7 +115,7 @@ struct SummaryView: View {
     }
 }
 
-private struct MonthMenu: View {
+struct MonthMenu: View {
     let month: LedgerMonth
     @Binding var selection: LedgerMonth?
     @Environment(\.calendar) private var calendar

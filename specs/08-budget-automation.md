@@ -21,8 +21,8 @@ her şey cihazda, bildirimler yereldir (C1, C2).
 - Harcama = ayın kesinleşmiş (posted) giderleri; taslaklar sayılmaz.
 - Transfer gider değildir. İade (gider kategorisinde gelir) harcamadan düşer.
 - Taksitli alımda o aya düşen **taksit** sayılır, alımın tamamı değil (§3.2).
-- Döviz cinsinden gider, işlem tarihindeki TRY karşılığıyla (kayıtlı kur; yoksa
-  o günün TCMB kuru, `PriceBoard.usdTRY(on:)`).
+- Döviz cinsinden gider TRY'ye **güncel kurla** çevrilir (v1; işlem günü kuru
+  v1.x). Kur yoksa o kayıt sayılmaz ve bütçe bunu belirtir.
 - **Tempo:** `harcanan / limit` ile `geçen gün / ay günü` karşılaştırılır.
   Harcama tempoyu %10'dan fazla aşıyorsa satır "hızlı gidiyor" der
   (ör. ayın %40'ındasın, bütçenin %62'si gitti).

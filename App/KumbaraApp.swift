@@ -1,3 +1,4 @@
+import Combine
 import KumbaraCore
 import KumbaraData
 import SwiftData
@@ -75,6 +76,7 @@ struct KumbaraApp: App {
 /// Platforma göre kök gezinme (specs/06 §6.1, §7).
 struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var context
     @Environment(PriceBoard.self) private var board
 
     var body: some View {
@@ -90,5 +92,10 @@ struct RootView: View {
             guard scenePhase == .active else { return }
             await board.runWhileActive()
         }
+        // Bütçe eşikleri her kayıttan sonra değerlendirilir (REQ-B2); kaydı hangi ekran yapmış olursa olsun.
+        .onReceive(NotificationCenter.default.publisher(for: ModelContext.didSave)) { _ in
+            BudgetMonitor.shared.check(context)
+        }
+        .onAppear { BudgetMonitor.shared.start() }
     }
 }

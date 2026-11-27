@@ -82,6 +82,16 @@ final class ScreenshotTests: XCTestCase {
             app.buttons["Bitti"].firstMatch.tap()
         }
 
+        tapTab("Bütçe")
+        if app.staticTexts["Kategoriler"].firstMatch.waitForExistence(timeout: 5) {
+            try shot("10-butce")
+            app.buttons["Bütçe ekle"].firstMatch.tap()
+            if app.textFields["budget.limit"].waitForExistence(timeout: 3) {
+                try shot("11-butce-ekle")
+                app.buttons["Vazgeç"].firstMatch.tap()
+            }
+        }
+
         tapTab("Özet")
         app.buttons["Ayarlar"].firstMatch.tap()
         let accounts = app.buttons["Hesaplar"].firstMatch

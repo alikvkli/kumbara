@@ -82,6 +82,12 @@ public enum DemoData {
             )
             try store.save(draft, now: date)
         }
+        // Bütçeler: genel (~%80), market (uyarı), yeme-içme (normal), ulaşım (aşıldı).
+        let budgets = BudgetStore(context: context)
+        try budgets.setLimit(45_000, for: nil, from: thisMonth.previous)
+        for (key, limit) in [("market", Decimal(4500)), ("dining", 2000), ("transport", 4000)] {
+            if let category = categories[key] { try budgets.setLimit(limit, for: category, from: thisMonth.previous) }
+        }
         try loadPortfolio(into: context, now: now, calendar: calendar)
     }
 
