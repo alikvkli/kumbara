@@ -156,6 +156,12 @@ private struct SpendingChart: View {
 
     private func double(_ value: Decimal) -> Double { (value as NSDecimalNumber).doubleValue }
 
+    /// Üstte boşluk kalmasın: limit, harcama ve tahminin en büyüğü + %8 pay.
+    private var yMax: Double {
+        let peak = [limit, series.last?.total ?? 0, projected ?? 0].max() ?? limit
+        return max(double(peak) * 1.08, 1)
+    }
+
     var body: some View {
         Chart {
             LineMark(x: .value("Gün", 0), y: .value("Tutar", 0.0), series: .value("Seri", "plan"))
@@ -189,6 +195,7 @@ private struct SpendingChart: View {
             }
         }
         .chartXScale(domain: 0...days)
+        .chartYScale(domain: 0...yMax)
         .chartXAxis {
             AxisMarks(values: [1, 10, 20, days]) { _ in
                 AxisGridLine()

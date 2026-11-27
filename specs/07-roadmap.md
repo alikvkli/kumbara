@@ -49,7 +49,7 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 
 ## M4 — Bütçe ve otomasyon (2 hafta) — ayrıntı: 08
 - [x] T4.1 Bütçeler ve yerel bildirimler (REQ-B1, B2).
-- [ ] T4.2 Tekrarlayan işlemler → taslak (REQ-L7).
+- [x] T4.2 Tekrarlayan işlemler → taslak (REQ-L7). Otomatik "tekrarlayan yapalım mı?" önerisi (08 §2.3) sonraya.
 - [ ] T4.3 Taksit planı, kart ekstre dönemi (REQ-L8, L9).
 - ~~T4.4 App Intents / Kestirmeler (REQ-C7)~~ → v1.x (2026-11-27 kararı).
 - [ ] T4.5 Fiyat alarmı (REQ-M4) ve arka plan fiyat yenilemesi (REQ-M2, BGAppRefreshTask).

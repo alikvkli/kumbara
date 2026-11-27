@@ -124,12 +124,13 @@ struct BudgetView: View {
 // MARK: - Ortak parçalar
 
 extension BudgetStatus {
+    /// İçinde bulunulan ayda renk tempoya göredir: ayın sonunda %89 dolu bir bütçe plana uygundur,
+    /// turuncu yalnız gerçekten dikkat gerekiyorsa (plandan belirgin önde ya da ay sonu aşacak).
+    /// Biten ayda doluluk seviyesine göre.
     var tint: Color {
-        switch level {
-        case .normal: isProjectedOver ? .orange : .accentColor
-        case .warning: .orange
-        case .over: .red
-        }
+        if level == .over { return .red }
+        if isCurrentMonth { return isProjectedOver || isAheadOfPace ? .orange : .accentColor }
+        return level == .warning ? .orange : .accentColor
     }
 
     var progress: Double { (min(max(ratio, 0), 1) as NSDecimalNumber).doubleValue }
@@ -227,13 +228,9 @@ private struct OverallHeader: View {
             .font(.subheadline)
 
             if status.isCurrentMonth, let projected = status.projected {
-                Label {
-                    Text("Bu gidişle ay sonu ≈ \(money(projected))")
-                } icon: {
-                    Image(systemName: status.isProjectedOver ? "exclamationmark.triangle" : "arrow.forward.to.line")
-                }
-                .font(.footnote)
-                .foregroundStyle(status.isProjectedOver || status.level == .over ? Color.orange : Color.secondary)
+                Text("Bu gidişle ay sonu ≈ \(money(projected))")
+                    .font(.footnote)
+                    .foregroundStyle(status.isProjectedOver || status.level == .over ? Color.orange : Color.secondary)
             }
         }
         .monospacedDigit()
