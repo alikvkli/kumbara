@@ -1,4 +1,5 @@
 import KumbaraCore
+import KumbaraData
 import SwiftData
 import SwiftUI
 
