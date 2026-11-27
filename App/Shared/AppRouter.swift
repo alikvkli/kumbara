@@ -34,6 +34,21 @@ final class AppRouter {
     var isPresentingMarket = false
     /// macOS denetçisi için tablodaki tekil seçim.
     var selectedTransactionID: UUID?
+    /// Gelir kaydedildi; hızlı ekleme kapanınca "birikime ayıralım mı?" sorulur (REQ-P10).
+    var pendingSavingsSplit: Decimal?
+    var savingsSplit: SavingsSplitRequest?
 
     func show(_ section: AppSection) { destination = .section(section) }
+
+    /// Hızlı ekleme sayfası kapanınca çağrılır; iki sayfa üst üste açılmasın diye sıralı.
+    func presentPendingSavingsSplit() {
+        guard let income = pendingSavingsSplit else { return }
+        pendingSavingsSplit = nil
+        savingsSplit = SavingsSplitRequest(income: income)
+    }
+}
+
+struct SavingsSplitRequest: Identifiable {
+    let id = UUID()
+    let income: Decimal
 }

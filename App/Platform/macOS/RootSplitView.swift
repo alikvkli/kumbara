@@ -61,9 +61,13 @@ struct RootSplitView: View {
                 Button("Denetçi", systemImage: "sidebar.right") { showsInspector.toggle() }
             }
         }
-        .sheet(isPresented: $router.isPresentingQuickAdd) {
+        .sheet(isPresented: $router.isPresentingQuickAdd, onDismiss: { router.presentPendingSavingsSplit() }) {
             TransactionEditor(mode: .create(.expense))
                 .frame(minWidth: 460, minHeight: 480)
+        }
+        .sheet(item: $router.savingsSplit) { request in
+            SavingsSplitSheet(income: request.income)
+                .frame(minWidth: 440, minHeight: 440)
         }
         .sheet(isPresented: $router.isPresentingTradeEditor) {
             TradeEditor(mode: .create(nil))

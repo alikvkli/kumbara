@@ -51,6 +51,13 @@ struct QuickActionsToolbar: ViewModifier {
         )
     }
 
+    private var savingsSplit: Binding<SavingsSplitRequest?> {
+        Binding(
+            get: { router.destination == .section(section) ? router.savingsSplit : nil },
+            set: { router.savingsSplit = $0 }
+        )
+    }
+
     private var isPresentingTradeEditor: Binding<Bool> {
         Binding(
             get: { router.isPresentingTradeEditor && router.destination == .section(section) },
@@ -76,7 +83,7 @@ struct QuickActionsToolbar: ViewModifier {
                 }
                 .matchedTransitionSource(id: "quick-add", in: transition)
             }
-            .sheet(isPresented: isPresentingQuickAdd) {
+            .sheet(isPresented: isPresentingQuickAdd, onDismiss: { router.presentPendingSavingsSplit() }) {
                 TransactionEditor(mode: .create(.expense))
                     .presentationDetents([.medium, .large])
                     .navigationTransition(.zoom(sourceID: "quick-add", in: transition))
@@ -84,6 +91,10 @@ struct QuickActionsToolbar: ViewModifier {
             .sheet(isPresented: isPresentingTradeEditor) {
                 TradeEditor(mode: .create(nil))
                     .navigationTransition(.zoom(sourceID: "quick-add", in: transition))
+            }
+            .sheet(item: savingsSplit) { request in
+                SavingsSplitSheet(income: request.income)
+                    .presentationDetents([.medium, .large])
             }
             .sheet(isPresented: $showsSettings) {
                 NavigationStack { SettingsView() }

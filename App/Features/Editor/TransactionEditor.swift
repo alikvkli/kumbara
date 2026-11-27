@@ -18,6 +18,8 @@ struct TransactionEditor: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(AppRouter.self) private var router
+    @AppStorage(SavingsSplitSheet.promptKey) private var offersSavingsSplit = true
 
     @Query(filter: #Predicate<LedgerAccount> { !$0.isArchived }, sort: \LedgerAccount.sortIndex)
     private var accounts: [LedgerAccount]
@@ -360,6 +362,10 @@ struct TransactionEditor: View {
             if let frequency = frequency(for: saved.date) {
                 try RecurringStore(context: context).makeRule(from: saved, frequency: frequency)
                 Reminders.requestAuthorizationIfNeeded()
+            }
+            // Yeni TL geliri: sayfa kapanınca bir kısmını birikime ayırmayı öner (REQ-P10).
+            if editing == nil, offersSavingsSplit, saved.kind == .income, saved.amount.currency == .TRY {
+                router.pendingSavingsSplit = saved.amount.amount
             }
             dismiss()
         } catch {
