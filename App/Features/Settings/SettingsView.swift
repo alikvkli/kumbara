@@ -58,6 +58,13 @@ struct SettingsView: View {
             }
             Section {
                 NavigationLink {
+                    DataExchangeView()
+                } label: {
+                    Label("Dışa aktar ve yedekle", systemImage: "arrow.up.arrow.down.square")
+                }
+            }
+            Section {
+                NavigationLink {
                     AboutView()
                 } label: {
                     Label("Hakkında", systemImage: "info.circle")

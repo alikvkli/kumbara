@@ -58,7 +58,7 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - [x] T5.0 Veri deposu App Group kapsayıcısında (widget/kontrol/uzantı ortak okur).
 - [ ] T5.1 iCloud eşitleme açma/kapama (REQ-X2).
 - [ ] T5.2 Kilit + bulanık önizleme (REQ-X3).
-- [ ] T5.3 CSV/JSON dışa aktarma, CSV içe aktarma (REQ-X4).
+- [x] T5.3 CSV/JSON dışa aktarma, CSV içe aktarma (REQ-X4).
 - [ ] T5.4 Widget'lar (tüm rendering modları), Denetim Merkezi kontrolleri,
       macOS menü çubuğu öğesi (REQ-X5, X8, X9).
 - [ ] T5.5 Reel getiri: USD + TÜFE tablosu (REQ-P7).
