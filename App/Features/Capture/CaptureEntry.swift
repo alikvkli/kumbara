@@ -7,6 +7,7 @@ import UniformTypeIdentifiers
 /// Kök görünüme bir kez uygulanır; araç çubuğu ve menü komutları `CaptureSession.requestedSource` ayarlar.
 struct CaptureEntry: ViewModifier {
     @Environment(CaptureSession.self) private var session
+    @Environment(\.scenePhase) private var scenePhase
     @State private var photoItem: PhotosPickerItem?
 
     func body(content: Content) -> some View {
@@ -44,8 +45,13 @@ struct CaptureEntry: ViewModifier {
                 Task { await session.process(fileURL: url) }
                 return true
             }
-            .sheet(item: $session.review) { review in
+            .sheet(item: $session.review, onDismiss: { Task { await session.reviewDismissed() } }) { review in
                 CaptureReviewView(review: review)
+            }
+            // Paylaş menüsünden gelenler (REQ-C2): uygulama öne gelince sırayla onaya getirilir.
+            .onChange(of: scenePhase, initial: true) { _, phase in
+                guard phase == .active else { return }
+                Task { await session.drainInbox() }
             }
             .task {
                 // UI testi / ekran görüntüsü: örnek fiş gerçek Vision OCR'ından geçer.

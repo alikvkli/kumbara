@@ -1,3 +1,4 @@
+import KumbaraCore
 import KumbaraData
 import SwiftData
 import SwiftUI
@@ -6,7 +7,7 @@ import SwiftUI
 struct KumbaraApp: App {
     @State private var router = AppRouter()
     @State private var board: PriceBoard
-    @State private var capture = CaptureSession()
+    @State private var capture: CaptureSession
     private let container: ModelContainer
 
     init() {
@@ -25,6 +26,22 @@ struct KumbaraApp: App {
             fatalError("Veri deposu açılamadı: \(error)")
         }
         _board = State(initialValue: PriceBoard(container: container))
+        _capture = State(initialValue: CaptureSession(inbox: Self.makeInbox(arguments: arguments)))
+    }
+
+    /// UI testlerinde App Group yerine boş bir geçici klasör kullanılır; `-demo-inbox` örnek fişi
+    /// paylaş uzantısı yazmış gibi bırakır (uçtan uca REQ-C2 testi).
+    private static func makeInbox(arguments: [String]) -> CaptureInbox? {
+        guard arguments.contains("-ui-testing") else { return CaptureInbox.shared() }
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("UITestInbox", isDirectory: true)
+        try? FileManager.default.removeItem(at: directory)
+        let inbox = CaptureInbox(directory: directory)
+        if arguments.contains("-demo-inbox"),
+           let url = Bundle.main.url(forResource: "DemoReceipt", withExtension: "jpg"),
+           let data = try? Data(contentsOf: url) {
+            try? inbox.deposit(data, fileExtension: "jpg")
+        }
+        return inbox
     }
 
     var body: some Scene {

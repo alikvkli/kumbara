@@ -17,4 +17,4 @@
 | # | Soru |
 |---|---|
 | Q9 | Uygulama adı "Kumbara" kesin mi? App Store'da çakışma kontrolü yapılacak. |
-| Q10 | Apple Developer Team ID? (Cihazda çalıştırma, iCloud ve App Store için gerekli.) |
+| Q10 | Apple Developer Team ID? (Cihazda çalıştırma, iCloud, App Store ve paylaş uzantısının App Group'u `group.com.alikvkli.kumbara` için gerekli; CI imzasız derler.) |
