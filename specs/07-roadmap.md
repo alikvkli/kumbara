@@ -41,9 +41,9 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 ## M3 — Yakalama (3 hafta)
 - [x] T3.1 Fiş korpusu toplama (≥ 40 OCR çıktısı, 04 §6). 51 gerçek Vision çıktısı: 49 üretilmiş + 2 Commons (CC BY-SA). Kullanıcı fişleri (`device`) eklenecek.
 - [x] T3.2 Ayrıştırıcılar: tutar, tarih, satıcı, sınıflandırıcı (Core, testli). Korpus: tutar %100, tarih %98, satıcı %100.
-- [ ] T3.3 Vision OCR sarmalayıcı, belge kamerası, PhotosPicker, sürükle-bırak.
-- [ ] T3.4 Onay ekranı: görüntü üstünde kutular, güven vurgusu (REQ-C4).
-- [ ] T3.5 Banka listesi → çoklu taslak (REQ-C5), mükerrer kontrolü (REQ-C6).
+- [x] T3.3 Vision OCR sarmalayıcı, belge kamerası, PhotosPicker, sürükle-bırak.
+- [x] T3.4 Onay ekranı: görüntü üstünde kutular, güven vurgusu (REQ-C4).
+- [x] T3.5 Banka listesi → çoklu taslak (REQ-C5), mükerrer kontrolü (REQ-C6).
 - [ ] T3.6 Share Extension + gelen kutusu (REQ-C2).
 - [ ] T3.7 Foundation Models opsiyonel katmanı + çapraz kontrol (04 §2.5).
 
