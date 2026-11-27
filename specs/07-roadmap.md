@@ -5,14 +5,14 @@ test/senaryo ile kanıtlanınca "bitti" sayılır.
 
 ## M0 — İskelet (1 hafta)
 
-`[x]` bitti · `[~]` yazıldı, macOS CI'da (Xcode 27) doğrulama bekliyor
+`[x]` bitti · `[~]` yazıldı, macOS CI (Xcode) doğrulaması bekliyor
 
-- [~] T0.1 Xcode projesi: multiplatform app, `Packages/` yerel paketleri, Swift 6.
+- [x] T0.1 Xcode projesi: multiplatform app, `Packages/` yerel paketleri, Swift 6.
 - [x] T0.2 `KumbaraCore`: `Money`, `CurrencyCode`, `Quantity`, `AssetCode`,
       TR biçimlendirici + testler (C3, REQ-X6).
-- [~] T0.3 CI: Linux'ta `swift test` (Core), macOS'ta `xcodebuild test`.
+- [x] T0.3 CI: Linux'ta `swift test` (Core), macOS'ta `xcodebuild test`.
 - [x] T0.4 PR şablonu: REQ referansı + 06 §9 yasak listesi + 06 §11 kabul listesi.
-- [~] T0.5 Uygulama kabuğu: iOS `TabView` (arama sekmesi, küçülen tab bar, alt
+- [x] T0.5 Uygulama kabuğu: iOS `TabView` (arama sekmesi, küçülen tab bar, alt
       aksesuar yer tutucu), macOS `NavigationSplitView` + inspector + `Commands` (06 §6–7).
 
 ## M1 — Defter (2 hafta)
