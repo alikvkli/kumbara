@@ -163,11 +163,17 @@ private struct SingleDraftReview: View {
     private var chips: some View {
         GlassEffectContainer(spacing: 8) {
             HStack(spacing: 8) {
-                chip(Text(verbatim: amountText.isEmpty ? "—" : amountText), low: suggestion.amount?.isLowConfidence ?? true, field: .amount)
+                chip(Text(verbatim: chipAmount), low: suggestion.amount?.isLowConfidence ?? true, field: .amount)
                 chip(Text(date, format: .dateTime.day().month(.abbreviated)), low: suggestion.date.isLowConfidence, field: .date)
                 chip(Text(verbatim: merchant.isEmpty ? "—" : merchant), low: suggestion.merchant?.isLowConfidence ?? true, field: .merchant)
             }
         }
+    }
+
+    /// Kapsülde tutar para birimiyle ve gruplu gösterilir ("₺1.249,90"); alan ise yazmaya uygun ham hâlde kalır.
+    private var chipAmount: String {
+        guard let value = AmountParser(locale: locale).parse(amountText) else { return "—" }
+        return Money(value, account?.currency ?? suggestion.currency).formatted(locale: locale)
     }
 
     private func chip(_ label: Text, low: Bool, field: Field) -> some View {
@@ -351,9 +357,20 @@ struct ReceiptPreview: View {
                 }
             }
             .frame(width: size.width, height: size.height)
+            .shadow(color: .black.opacity(0.18), radius: 8, y: 2)
             .offset(x: origin.x, y: origin.y)
         }
-        .background(Color.secondary.opacity(0.08))
+        // Boş kalan yanlar düz bir kutu yerine görüntünün bulanık hâliyle dolar (Fotoğraflar'daki gibi);
+        // ön izleme ekran genişliğinde bütün bir yüzey olarak okunur.
+        .background {
+            Image(decorative: image, scale: 1)
+                .resizable()
+                .scaledToFill()
+                .blur(radius: 28, opaque: true)
+                .overlay(Color.black.opacity(0.12))
+                .accessibilityHidden(true)
+        }
+        .clipped()
         .accessibilityLabel(Text("Fiş görüntüsü; tanınan alanlar çerçeveli"))
     }
 
