@@ -375,8 +375,8 @@ struct PersonEditor: View {
 #if os(iOS)
 /// Sistem kişi seçicisi: seçilen kişinin yalnız adı ve kimliği gelir; izin istemez.
 private struct ContactPicker: UIViewControllerRepresentable {
-    struct Picked { let id: String; let name: String }
-    let onPick: (Picked) -> Void
+    struct Picked: Sendable { let id: String; let name: String }
+    let onPick: @MainActor @Sendable (Picked) -> Void
 
     func makeUIViewController(context: Context) -> CNContactPickerViewController {
         let picker = CNContactPickerViewController()
@@ -389,12 +389,13 @@ private struct ContactPicker: UIViewControllerRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(onPick: onPick) }
 
     final class Coordinator: NSObject, CNContactPickerDelegate {
-        let onPick: (Picked) -> Void
-        init(onPick: @escaping (Picked) -> Void) { self.onPick = onPick }
+        let onPick: @MainActor @Sendable (Picked) -> Void
+        init(onPick: @escaping @MainActor @Sendable (Picked) -> Void) { self.onPick = onPick }
 
         nonisolated func contactPicker(_ picker: CNContactPickerViewController, didSelect contact: CNContact) {
             let name = [contact.givenName, contact.familyName].filter { !$0.isEmpty }.joined(separator: " ")
             let picked = Picked(id: contact.identifier, name: name.isEmpty ? contact.organizationName : name)
+            let onPick = self.onPick
             MainActor.assumeIsolated { onPick(picked) }
         }
     }
