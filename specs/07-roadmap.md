@@ -8,7 +8,9 @@ test/senaryo ile kanıtlanınca "bitti" sayılır.
 - [ ] T0.2 `KumbaraCore`: `Money`, `CurrencyCode`, `Quantity`, `AssetCode`,
       TR biçimlendirici + testler (C3, REQ-X6).
 - [ ] T0.3 CI: Linux'ta `swift test` (Core), macOS'ta `xcodebuild test`.
-- [ ] T0.4 PR şablonu: REQ referansı + 06 §1 kontrol listesi + ekran görüntüleri.
+- [ ] T0.4 PR şablonu: REQ referansı + 06 §9 yasak listesi + 06 §11 kabul listesi.
+- [ ] T0.5 Uygulama kabuğu: iOS `TabView` (arama sekmesi, küçülen tab bar, alt
+      aksesuar yer tutucu), macOS `NavigationSplitView` + inspector + `Commands` (06 §6–7).
 
 ## M1 — Defter (2 hafta)
 - [ ] T1.1 SwiftData modelleri: Account, Category, Transaction (REQ-L1, L2, L3).
@@ -19,6 +21,7 @@ test/senaryo ile kanıtlanınca "bitti" sayılır.
 - [ ] T1.6 Özet ekranı (REQ-B3, B4).
 
 ## M2 — Piyasa ve Birikim (2 hafta)
+- [ ] T2.0 Canlı piyasa şeridi alt aksesuarı (inline/expanded) (REQ-X8).
 - [ ] T2.1 Sağlayıcı ayrıştırıcıları + fixture testleri: truncgil, goldapi, tcmb,
       frankfurter, coingecko (02 §1).
 - [ ] T2.2 Yedekleme zinciri, zaman aşımı, devre kesici, akla yatkınlık kontrolü
@@ -49,10 +52,12 @@ test/senaryo ile kanıtlanınca "bitti" sayılır.
 - [ ] T5.1 iCloud eşitleme açma/kapama (REQ-X2).
 - [ ] T5.2 Kilit + bulanık önizleme (REQ-X3).
 - [ ] T5.3 CSV/JSON dışa aktarma, CSV içe aktarma (REQ-X4).
-- [ ] T5.4 Widget'lar (REQ-X5).
+- [ ] T5.4 Widget'lar (tüm rendering modları), Denetim Merkezi kontrolleri,
+      macOS menü çubuğu öğesi (REQ-X5, X8, X9).
 - [ ] T5.5 Reel getiri: USD + TÜFE tablosu (REQ-P7).
 - [ ] T5.6 Hedefler (REQ-P9), gelirden birikime ayır (REQ-P10).
-- [ ] T5.7 Erişilebilirlik denetimi, İngilizce yerelleştirme, ikon, mağaza metni.
+- [ ] T5.7 Erişilebilirlik denetimi, İngilizce yerelleştirme, Icon Composer
+      ile çok katmanlı Liquid Glass ikonu (06 §8), mağaza metni.
 
 ## Sonrası (v1.x adayları)
 Canlı tarama (DataScanner), BIST/fon fiyatları (kaynak bulunursa), ortak bütçe

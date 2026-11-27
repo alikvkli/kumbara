@@ -110,8 +110,9 @@ benim önerilerimdir; onayına bağlıdır.
   ve Kestirmeler otomasyonuyla ekran görüntüsünü doğrudan işleme.
 
 ### 4.6 Platform ve veri (PLATFORM)
-- **REQ-X1** iOS 26+ ve macOS 26+ (tek SwiftUI kod tabanı, platforma özgü
-  düzenler). Minimum sürüm open-questions Q1.
+- **REQ-X1** Minimum iOS 26 / macOS 26, hedef SDK iOS 27 / macOS 27 (Xcode 27).
+  Tek SwiftUI kod tabanı, platforma özgü düzenler. Arayüz Liquid Glass tasarım
+  diline tam uyumludur (06).
 - **REQ-X2** iCloud eşitleme opsiyoneldir, varsayılan kapalı; açılınca CloudKit
   private DB kullanılır.
 - **REQ-X3** Face ID / Touch ID / parola kilidi; uygulama arka plana geçince
@@ -120,6 +121,10 @@ benim önerilerimdir; onayına bağlıdır.
 - **REQ-X5** Widget'lar: portföy toplamı, gram altın fiyatı, bu ayki harcama/bütçe.
 - **REQ-X6** Arayüz Türkçe ve İngilizce; sayı ve tarih biçimi yerel ayara göre
   (`1.234,56 ₺`).
+- **REQ-X8** iOS: alt aksesuar olarak canlı piyasa şeridi; Denetim Merkezi /
+  kilit ekranı / Eylem Butonu için "Harcama ekle" ve "Fiş tara" kontrolleri (06 §6).
+- **REQ-X9** `[Ö]` macOS: menü çubuğu öğesi (canlı fiyat + hızlı ekleme), tam
+  menü/klavye desteği, pencereye sürükle-bırak ile fiş içe aktarma (06 §7).
 - **REQ-X7** Erişilebilirlik: Dynamic Type, VoiceOver etiketleri, renk körlüğü
   için kâr/zarar yalnız renkle değil işaretle de (▲▼ / +/−) ifade edilir.
 

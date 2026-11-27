@@ -3,7 +3,8 @@
 ## 1. Platform kararları
 | Karar | Seçim | Gerekçe |
 |---|---|---|
-| UI | SwiftUI, tek multiplatform target | iOS + macOS aynı kod; platforma özgü düzen `#if os` yerine ayrı `View` dosyalarıyla |
+| UI | SwiftUI, tek multiplatform target, Xcode 27 SDK, min iOS/macOS 26 | Liquid Glass standart bileşenlerle otomatik (06); platforma özgü düzen `#if os` yerine ayrı `View` dosyalarıyla |
+| Sistem yüzeyleri | WidgetKit (`ControlWidget` dahil), App Intents, `MenuBarExtra` | REQ-X5, X8, X9 |
 | Kalıcılık | SwiftData | CloudKit private DB ile yerleşik eşitleme (REQ-X2), backend yok (C1) |
 | Eşzamanlılık | Swift 6 strict concurrency | Fiyat sağlayıcıları `actor` / `Sendable` |
 | OCR | Vision + VisionKit | Cihaz üstü, Türkçe destekli |
