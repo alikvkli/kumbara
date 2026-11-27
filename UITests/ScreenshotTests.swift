@@ -87,6 +87,13 @@ final class ScreenshotTests: XCTestCase {
             }
             Thread.sleep(forTimeInterval: 1)
             try shot("7-piyasa")
+            let fx = app.buttons["Döviz"].firstMatch
+            if fx.waitForExistence(timeout: 2) {
+                fx.tap()
+                Thread.sleep(forTimeInterval: 1)
+                try shot("7b-piyasa-doviz")
+                app.buttons["Altın"].firstMatch.tap()
+            }
             app.buttons["Bitti"].firstMatch.tap()
         }
 

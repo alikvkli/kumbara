@@ -9,11 +9,22 @@ struct MarketView: View {
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     @State private var alertAsset: AssetCode?
+    @AppStorage("market.group") private var group: MarketGroup = .gold
     @Query(filter: #Predicate<PriceAlert> { $0.isActive }) private var activeAlerts: [PriceAlert]
 
     var body: some View {
         NavigationStack {
             List {
+                // Altın, döviz ve metaller ayrı: aynı tabloda karışınca aranan satır kayboluyor.
+                Section {
+                    Picker("Grup", selection: $group) {
+                        ForEach(MarketGroup.allCases) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                }
                 Section {
                     ForEach(shownAssets, id: \.self) { asset in
                         row(asset)
@@ -31,7 +42,7 @@ struct MarketView: View {
                 } footer: {
                     VStack(alignment: .leading, spacing: 6) {
                         updateStatus
-                        Text("Alış: kuyumcunun/bankanın senden aldığı (bozdurma). Satış: sana sattığı. Tahmini fiyatlar ons ve dolar kurundan hesaplanır.")
+                        Text(group.footnote)
                     }
                 }
                 // Fiyatı gelmeyenler tek satırda: tablo boyunca "—" dizmek yerine ne olduğunu söyle.
@@ -75,8 +86,9 @@ struct MarketView: View {
     }
 
     /// Fiyatı olan ya da hâlâ yüklenen varlıklar tabloda; gerçekten alınamayanlar ayrı bölümde.
-    private var shownAssets: [AssetCode] { PriceBoard.marketAssets.filter { !isMissing($0) } }
-    private var missingAssets: [AssetCode] { PriceBoard.marketAssets.filter(isMissing) }
+    private var groupAssets: [AssetCode] { PriceBoard.marketAssets.filter { MarketGroup(asset: $0) == group } }
+    private var shownAssets: [AssetCode] { groupAssets.filter { !isMissing($0) } }
+    private var missingAssets: [AssetCode] { groupAssets.filter(isMissing) }
     private func isMissing(_ asset: AssetCode) -> Bool {
         // Yalnız son yenilemede kaynağın vermediği varlık; henüz denenmemiş olan tabloda yer tutucuyla kalır.
         board.quote(asset) == nil && board.unavailable.contains(asset)
@@ -149,6 +161,38 @@ struct MarketView: View {
         } else {
             Text(verbatim: "—")
                 .accessibilityLabel(Text("Fiyat yok"))
+        }
+    }
+}
+
+/// Piyasa sayfasının grupları.
+enum MarketGroup: String, CaseIterable, Identifiable {
+    case gold, fx, metal
+
+    var id: Self { self }
+
+    init?(asset: AssetCode) {
+        switch asset {
+        case .gold: self = .gold
+        case .fx: self = .fx
+        case .metal: self = .metal
+        default: return nil
+        }
+    }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .gold: "Altın"
+        case .fx: "Döviz"
+        case .metal: "Metaller"
+        }
+    }
+
+    var footnote: LocalizedStringKey {
+        switch self {
+        case .gold: "Alış: kuyumcunun senden aldığı (bozdurma). Satış: sana sattığı. Tahmini fiyatlar ons ve dolar kurundan hesaplanır."
+        case .fx: "Alış: bankanın senden aldığı. Satış: sana sattığı."
+        case .metal: "Gram başına. Tahmini fiyatlar ons ve dolar kurundan hesaplanır."
         }
     }
 }
