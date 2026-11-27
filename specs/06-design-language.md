@@ -49,10 +49,11 @@ Liquid Glass'ın temel ilkesi, uygulamamızın da temel ilkesidir:
   yüksek karşıtlık varyantıyla.
 - Tint yalnız **birincil eylemde** (ör. "Kaydet", `.glassProminent`) ve seçili
   durumda. Tüm butonları renklendirmek camın hiyerarşisini bozar.
-- İki vurgu tonu: `AccentColor` link/ikon/seçim için (koyu modda açık `#5FB3AC`,
-  koyu zeminde 6.9:1); `AccentProminent` birincil buton zemini için (koyu modda
-  `#2C7C76`, beyaz yazıyla 4.9:1). Tek ton ikisini birden sağlayamıyor — ölçüldü.
-  Birincil buton her yerde `.primaryActionStyle()` ile çizilir.
+- Tek vurgu tonu. `.glassProminent` buton yazısının rengini sistem zemine göre
+  seçer: koyu modda açık vurgu (`#5FB3AC`) üstünde **siyah** yazı (8.5:1), açık
+  modda koyu vurgu (`#1F5E5B`) üstünde beyaz (7.6:1) — ekran görüntüsünden ölçüldü.
+  Butona elle tint/yazı rengi verilmez. Birincil buton her yerde
+  `.primaryActionStyle()` ile çizilir.
 - Kâr/zarar: sistem `green`/`red` (koyu/yüksek karşıtlık varyantları otomatik) +
   her zaman işaret (▲/▼ veya +/−). Renk tek başına anlam taşımaz (REQ-X7).
 - Kategori renkleri: sistem paletinden en fazla 8 ton, yalnız küçük SF Symbol
