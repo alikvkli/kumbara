@@ -65,14 +65,14 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - [x] T5.6 Hedefler (REQ-P9), gelirden birikime ayır (REQ-P10).
 - [x] T5.7 Çok katmanlı Liquid Glass ikonu (koyu varyant), mağaza metni (Design/AppStore). İngilizce ve erişilebilirlik denetimi kullanıcı kararıyla kapsam dışı (2026-11-27).
 
-## M6 — İçgörüler ve araçlar — ayrıntı: 10
+## M6 — İçgörüler ve araçlar — ayrıntı: 10 ✓
 - [x] T6.2 Abonelikler: algılama, zam uyarısı, "tekrarlayan yap" / "abonelik değil" (REQ-I2).
 - [x] T6.1 Aylık rapor: Özet kartı (ilk 7 gün), Aylık raporlar listesi, paylaşılan görsel (tutarlar varsayılan gizli), 1'inde bildirim (REQ-I1).
 - [x] T6.5 Ödeme takvimi: ay ızgarası, 30 günlük liste, gelir sayacı, bakiye uyarısı, "Yaklaşan ödemeler" widget'ı (REQ-I5).
 - [x] T6.3 "Alabilir miyim?": peşin / 3 / 6 taksit senaryoları, günlük hak, ilk son ödeme, hedef gecikmesi, "İşlem olarak ekle" (REQ-I3). Hızlı eklemeye giriş yerine Bütçe'den açılır.
 - [x] T6.7 Altın birikim planı: aylık ya da maaş tetikli kural, 09:00 hatırlatma → alım formu satış fiyatıyla dolu, uyum ("Alım: 10 / 12 vade"), ortalama maliyet, dolar karşılaştırması; maaşta "Birikime ayır" planla açılır (REQ-I7).
 - [x] T6.4 Alacak / borç: kişiler (iOS'ta sistem kişi seçicisi), gider bölme (eşit/tutar/yüzde; bütçeye yalnız kendi payın), elden borç ve kapatma (transfer; bütçeye girmez), hatırlatma, hazır mesajla "Hatırlat"; yedekte (REQ-I4).
-- [ ] T6.6 Hızlı ekleme önerisi (REQ-I6).
+- [x] T6.6 Hızlı ekleme önerisi: yeni gider formunda "Bu saatlerde sık" çipleri (gün türü + ±60 dk, en az 4 tekrar), uzun basınca "Bunu önerme", Ayarlar'dan kapatılır; konum yok (K3) (REQ-I6).
 
 ## Sonrası (v1.x adayları)
 Kestirmeler / App Intents (REQ-C7), BIST/fon fiyatları (kaynak bulunursa), ortak bütçe

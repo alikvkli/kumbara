@@ -164,6 +164,8 @@ enum SettingsKey {
     static let reportNotification = "report.notify"
     /// Özet'teki rapor kartı kapatıldığı ay ("2026-10").
     static let reportSeen = "report.seen"
+    /// Hızlı ekleme önerileri (specs/10 §6); varsayılan açık.
+    static let quickSuggestions = "editor.suggestions"
 }
 
 /// "Bozdurma · 5 dk önce" ve tazelik uyarısı (C4, C6, specs/06 §2.4). Sağlayıcı adı gösterilmez.

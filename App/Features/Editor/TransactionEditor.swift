@@ -52,6 +52,8 @@ struct TransactionEditor: View {
     @State private var repetition: Repetition = .none
     @State private var installments = 1
     @State private var isSplitting = false
+    @State private var suggestions: [QuickAddSuggester.Suggestion] = []
+    @AppStorage(SettingsKey.quickSuggestions) private var showsSuggestions = true
 
     /// Kartla yapılan yeni giderde taksit seçilebilir (REQ-L9).
     private var offersInstallments: Bool { editing == nil && kind == .expense && account?.kind == .card }
@@ -100,6 +102,9 @@ struct TransactionEditor: View {
     var body: some View {
         NavigationStack {
             Form {
+                if editing == nil, kind == .expense, amountText.isEmpty, !suggestions.isEmpty {
+                    suggestionsSection
+                }
                 amountSection
                 if kind == .transfer {
                     transferSection
@@ -184,6 +189,46 @@ struct TransactionEditor: View {
     }
 
     // MARK: Bölümler
+
+    /// Alışkanlığa uyan satıcılar (specs/10 §6): dokununca form dolar, kaydetmek yine kullanıcıda.
+    private var suggestionsSection: some View {
+        Section {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(suggestions) { suggestion in
+                        Button {
+                            apply(Prefill(amount: suggestion.amount, accountID: suggestion.accountID,
+                                          categoryID: suggestion.categoryID, merchant: suggestion.merchant))
+                            focus = nil
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(verbatim: suggestion.merchant)
+                                Text(verbatim: Money(suggestion.amount, .TRY).formatted(locale: locale))
+                                    .foregroundStyle(.secondary)
+                                    .monospacedDigit()
+                            }
+                            .font(.subheadline)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(.quaternary, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button("Bunu önerme", systemImage: "hand.raised") {
+                                try? InsightStore(context: context).dismissSuggestion(suggestion.merchantKey)
+                                suggestions.removeAll { $0.id == suggestion.id }
+                            }
+                        }
+                        .accessibilityLabel(Text("\(suggestion.merchant), \(Money(suggestion.amount, .TRY).formatted(locale: locale))"))
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+            .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
+        } header: {
+            Text("Bu saatlerde sık")
+        }
+    }
 
     private var amountSection: some View {
         Section {
@@ -354,7 +399,11 @@ struct TransactionEditor: View {
         } else {
             account = (try? store.defaultAccount()) ?? accounts.first
             if case .create(let initialKind) = mode { kind = initialKind }
-            if let prefill { apply(prefill) }
+            if let prefill {
+                apply(prefill)
+            } else if showsSuggestions {
+                suggestions = (try? InsightStore(context: context).quickAddSuggestions()) ?? []
+            }
         }
         loadRecentCategories()
     }

@@ -162,6 +162,15 @@ demo veriye örnek → ekran görüntüsü turu.
   kaydetmeden işlem yok. 12 ayda 10 alım → "12 ayın 10'unda".
 
 ## 11. Kararlar (2026-11-27, önerildiği gibi onaylandı)
+Uygulama sırasında verilen küçük kararlar (kullanıcı uyurken, spec'in ruhuna göre; gözden geçirilecek):
+- **U1** "Alabilir miyim?" Bütçe ekranından açılır; hızlı eklemeye ayrı giriş konmadı (form kalabalıklaşmasın).
+- **U2** Alacak/borçta elden borç ve kapanış tek taraflı **transfer** olarak kaydedilir (karşı taraf kişi);
+  böylece hesap bakiyesi doğru kalır, bütçeye girmez. Kartla borç verme/ödeme sunulmaz.
+- **U3** Bölme, kaydedilmiş giderin düzenleme ekranındaki "Böl" ile yapılır; gider silinince alacak da düşer.
+- **U4** Plan uyumu "Alım: 10 / 12 vade" biçiminde (değişkenden sonra ek yok, 06 §11); vadeden 3 gün önceki
+  alım o vadeye sayılır.
+- **U5** Kartla ödenen abonelik ve tekrarlar ödeme takviminde ayrı kalem değil, kart son ödemesinin içinde.
+- **U6** Kart limiti alanı olmadığı için "limit yetmiyor" uyarısı şimdilik gösterilmez (hesap modelinde limit yok).
 - **K1 Rapor zamanı:** ✱ ayın 1'i 09:00 bildirim + Özet'te 7 gün kart. (Alternatif: yalnız
   Geçmiş aylar listesi, bildirimsiz.)
 - **K2 Paylaşılan rapor görseli:** ✱ varsayılan tutarlar gizli, yalnız yüzdeler.

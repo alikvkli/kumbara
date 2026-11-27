@@ -115,3 +115,28 @@ public struct InsightStore {
                           uniquingKeysWith: { first, _ in first })
     }
 }
+
+// MARK: Hızlı ekleme önerisi (specs/10 §6)
+
+extension InsightStore {
+    static let dismissSuggestionPrefix = "dismiss:suggestion:"
+
+    public func quickAddSuggestions(now: Date = .now, calendar: Calendar = .current) throws -> [QuickAddSuggester.Suggestion] {
+        guard let since = calendar.date(byAdding: .day, value: -95, to: now) else { return [] }
+        let posted = TransactionStatus.posted.rawValue
+        let expense = TransactionKind.expense.rawValue
+        let entries = try context.fetch(FetchDescriptor<LedgerTransaction>(
+            predicate: #Predicate { $0.statusRaw == posted && $0.kindRaw == expense && $0.date >= since && $0.merchantKey != "" }))
+            .filter { $0.installmentPlanID == nil }
+            .map(\.entry)
+        let prefix = Self.dismissSuggestionPrefix
+        let dismissed = Set(try context.fetch(FetchDescriptor<NotificationLog>(predicate: #Predicate { $0.key.starts(with: prefix) }))
+            .map { String($0.key.dropFirst(prefix.count)) })
+        return QuickAddSuggester.suggestions(entries: entries, now: now, calendar: calendar, dismissedKeys: dismissed)
+    }
+
+    /// "Bunu önerme".
+    public func dismissSuggestion(_ merchantKey: String) throws {
+        try BudgetStore(context: context).markNotified(Self.dismissSuggestionPrefix + merchantKey)
+    }
+}

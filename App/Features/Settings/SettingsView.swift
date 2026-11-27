@@ -14,6 +14,7 @@ struct SettingsView: View {
     @AppStorage(SettingsKey.costMethod) private var costMethod: CostMethod = .averageCost
     @AppStorage(SettingsKey.smartCheck) private var smartCheck = true
     @AppStorage(SettingsKey.reportNotification) private var reportNotification = true
+    @AppStorage(SettingsKey.quickSuggestions) private var quickSuggestions = true
 
     var body: some View {
         Form {
@@ -39,6 +40,11 @@ struct SettingsView: View {
                 Text("Raporlar")
             } footer: {
                 Text("Her ayın 1'i sabah, kapanan ayın raporu hazır olunca haber verir. Raporlar Özet › Aylık raporlar bölümünde durur.")
+            }
+            Section {
+                Toggle("Hızlı ekleme önerileri", isOn: $quickSuggestions)
+            } footer: {
+                Text("Yeni gider açınca, o gün ve saatte sık harcadığın yerler öneri olarak çıkar. Yalnız bu cihazdaki kayıtlarından; konum kullanılmaz. Bir öneriye uzun basıp \"Bunu önerme\" diyebilirsin.")
             }
             Section {
                 Toggle("Akıllı kontrol", isOn: $smartCheck)
