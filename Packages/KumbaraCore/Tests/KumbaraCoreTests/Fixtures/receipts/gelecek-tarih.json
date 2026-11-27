@@ -1,0 +1,38 @@
+{
+ "source": "synthetic",
+ "description": "Gelecek tarihli (OCR yılı yanlış okumuş): tarih düşük güvenli",
+ "now": "2026-11-27T18:00:00+03:00",
+ "lines": [
+  [
+   "BİM BİRLEŞİK MAĞAZALAR A.Ş.",
+   0.2,
+   0.04,
+   0.95
+  ],
+  [
+   "27.11.2028",
+   0.05,
+   0.1,
+   0.95
+  ],
+  [
+   "TOPLAM",
+   0.05,
+   0.2,
+   0.95
+  ],
+  [
+   "*96,50",
+   0.72,
+   0.2,
+   0.95
+  ]
+ ],
+ "expect": {
+  "kind": "receipt",
+  "amount": "96.5",
+  "merchant": "BİM",
+  "category": "market.food",
+  "dateLowConfidence": true
+ }
+}

@@ -1,0 +1,110 @@
+{
+ "source": "synthetic",
+ "description": "Banka uygulaması hareket listesi ekran görüntüsü: gün başlıkları, işaretli tutarlar",
+ "now": "2026-11-27T18:00:00+03:00",
+ "lines": [
+  [
+   "Hesap Hareketleri",
+   0.3,
+   0.05,
+   0.95
+  ],
+  [
+   "Kullanılabilir Bakiye 12.480,22 TL",
+   0.1,
+   0.08,
+   0.95
+  ],
+  [
+   "26 Kasım 2026",
+   0.05,
+   0.14,
+   0.95
+  ],
+  [
+   "MİGROS ATAŞEHİR",
+   0.05,
+   0.18,
+   0.95
+  ],
+  [
+   "-1.249,90 TL",
+   0.65,
+   0.18,
+   0.95
+  ],
+  [
+   "OPET KADIKÖY",
+   0.05,
+   0.22,
+   0.95
+  ],
+  [
+   "-2.000,00 TL",
+   0.65,
+   0.22,
+   0.95
+  ],
+  [
+   "25 Kasım 2026",
+   0.05,
+   0.28,
+   0.95
+  ],
+  [
+   "FAST ALEYNA YILMAZ",
+   0.05,
+   0.32,
+   0.95
+  ],
+  [
+   "+3.500,00 TL",
+   0.65,
+   0.32,
+   0.95
+  ],
+  [
+   "NETFLIX.COM",
+   0.05,
+   0.36,
+   0.95
+  ],
+  [
+   "-229,99 TL",
+   0.65,
+   0.36,
+   0.95
+  ]
+ ],
+ "expect": {
+  "kind": "bankList",
+  "drafts": [
+   {
+    "amount": "1249.9",
+    "kind": "expense",
+    "merchant": "Migros",
+    "date": "2026-11-26",
+    "category": "market.food"
+   },
+   {
+    "amount": "2000",
+    "kind": "expense",
+    "merchant": "Opet",
+    "date": "2026-11-26",
+    "category": "transport.fuel"
+   },
+   {
+    "amount": "3500",
+    "kind": "income",
+    "date": "2026-11-25"
+   },
+   {
+    "amount": "229.99",
+    "kind": "expense",
+    "merchant": "Netflix",
+    "date": "2026-11-25",
+    "category": "subscriptions"
+   }
+  ]
+ }
+}

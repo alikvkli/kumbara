@@ -1,0 +1,86 @@
+{
+ "source": "synthetic",
+ "description": "E-arşiv fatura (PDF metni): Ödenecek Tutar, Türkçe ay adı",
+ "now": "2026-11-27T18:00:00+03:00",
+ "lines": [
+  [
+   "e-Arşiv Fatura",
+   0.4,
+   0.03,
+   0.95
+  ],
+  [
+   "ENERJİSA İSTANBUL ANADOLU YAKASI ELEKTRİK",
+   0.05,
+   0.06,
+   0.95
+  ],
+  [
+   "Fatura Tarihi: 6 Kasım 2026",
+   0.05,
+   0.1,
+   0.95
+  ],
+  [
+   "ETTN: 1a2b3c4d-0000-1111-2222-333344445555",
+   0.05,
+   0.12,
+   0.95
+  ],
+  [
+   "Mal Hizmet Toplam Tutarı",
+   0.05,
+   0.3,
+   0.95
+  ],
+  [
+   "1.000,34 TL",
+   0.7,
+   0.3,
+   0.95
+  ],
+  [
+   "Hesaplanan KDV (%18)",
+   0.05,
+   0.32,
+   0.95
+  ],
+  [
+   "180,06 TL",
+   0.7,
+   0.32,
+   0.95
+  ],
+  [
+   "Vergiler Dahil Toplam Tutar",
+   0.05,
+   0.34,
+   0.95
+  ],
+  [
+   "1.180,40 TL",
+   0.7,
+   0.34,
+   0.95
+  ],
+  [
+   "Ödenecek Tutar",
+   0.05,
+   0.36,
+   0.95
+  ],
+  [
+   "1.180,40 TL",
+   0.7,
+   0.36,
+   0.95
+  ]
+ ],
+ "expect": {
+  "kind": "receipt",
+  "amount": "1180.4",
+  "merchant": "Enerjisa",
+  "date": "2026-11-06T12:00",
+  "category": "housing.electricity"
+ }
+}

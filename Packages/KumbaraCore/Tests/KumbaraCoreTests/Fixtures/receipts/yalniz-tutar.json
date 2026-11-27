@@ -1,0 +1,37 @@
+{
+ "source": "synthetic",
+ "description": "Sadece etiketsiz tutarlar: en büyük tutar, düşük güven",
+ "now": "2026-11-27T18:00:00+03:00",
+ "lines": [
+  [
+   "TEŞEKKÜRLER",
+   0.3,
+   0.04,
+   0.95
+  ],
+  [
+   "12,00",
+   0.7,
+   0.1,
+   0.95
+  ],
+  [
+   "88,50",
+   0.7,
+   0.12,
+   0.95
+  ],
+  [
+   "100,50",
+   0.7,
+   0.16,
+   0.95
+  ]
+ ],
+ "expect": {
+  "kind": "receipt",
+  "amount": "100.5",
+  "maxAmountConfidence": 0.5,
+  "dateLowConfidence": true
+ }
+}

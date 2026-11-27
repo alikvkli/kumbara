@@ -1,0 +1,38 @@
+{
+ "source": "synthetic",
+ "description": "Kart harcama SMS'i ekran görüntüsü",
+ "now": "2026-11-27T18:00:00+03:00",
+ "lines": [
+  [
+   "Bankam",
+   0.05,
+   0.05,
+   0.95
+  ],
+  [
+   "Kartınızdan 27.11.2026 13:05 tarihinde",
+   0.05,
+   0.1,
+   0.95
+  ],
+  [
+   "A101 YENİ MAĞAZACILIK işyerinde 642,50 TL",
+   0.05,
+   0.12,
+   0.95
+  ],
+  [
+   "tutarında harcama yapılmıştır.",
+   0.05,
+   0.14,
+   0.95
+  ]
+ ],
+ "expect": {
+  "kind": "notification",
+  "amount": "642.5",
+  "merchant": "A101",
+  "date": "2026-11-27T13:05",
+  "category": "market.food"
+ }
+}
