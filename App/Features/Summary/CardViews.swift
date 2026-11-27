@@ -27,21 +27,7 @@ struct CardSummaryRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            HStack(alignment: .top, spacing: 12) {
-                if hasDue {
-                    CardFact(title: "Son ödeme") { DueText(due: statement.last.due) }
-                    CardFact(title: "Kesim") { DateText(date: statement.current.closing) }
-                    CardFact(title: "Bu dönem") {
-                        Text(verbatim: statement.currentSpending.formatted(locale: locale, fractionDigits: 0))
-                    }
-                } else {
-                    CardFact(title: "Kesim") { DueText(due: statement.current.closing, style: .plain) }
-                    CardFact(title: "Son ödeme") { DateText(date: statement.current.due) }
-                    CardFact(title: "Son ekstre") {
-                        Label("Ödendi", systemImage: "checkmark.circle.fill").labelStyle(.titleAndIcon)
-                    }
-                }
-            }
+            CardFacts(statement: statement)
         }
         .monospacedDigit()
         .padding(.vertical, 4)
@@ -49,45 +35,59 @@ struct CardSummaryRow: View {
     }
 }
 
-/// Kart satırının alt bilgisi: küçük etiket, altında değer; üç sütun eşit genişlikte hizalanır.
-private struct CardFact<Value: View>: View {
+/// Kartın üç etiketli bilgisi, eşit sütunlarda; Özet satırında ve kart ayrıntısında aynı.
+/// Borç varsa: Son ödeme · Kesim · Bu dönem. Ödenmişse: Kesim · Son ödeme · Son ekstre ödendi.
+/// Tarih tek satırda; kalan gün altında ayrı satır (sütun daralınca kırılmasın diye).
+struct CardFacts: View {
+    let statement: CardStatement
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            if !statement.remainingDue.isZero {
+                CardFact(title: "Son ödeme", value: date(statement.last.due), detail: DaysLeft(date: statement.last.due, urgent: true))
+                CardFact(title: "Kesim", value: date(statement.current.closing), detail: nil)
+                CardFact(title: "Bu dönem",
+                         value: Text(verbatim: statement.currentSpending.formatted(locale: locale, fractionDigits: 0)), detail: nil)
+            } else {
+                CardFact(title: "Kesim", value: date(statement.current.closing), detail: DaysLeft(date: statement.current.closing, urgent: false))
+                CardFact(title: "Son ödeme", value: date(statement.current.due), detail: nil)
+                CardFact(title: "Son ekstre", value: Text("\(Image(systemName: "checkmark.circle.fill")) Ödendi"), detail: nil)
+            }
+        }
+        .monospacedDigit()
+    }
+
+    private func date(_ date: Date) -> Text { Text(verbatim: date.formatted(.dateTime.day().month(.abbreviated))) }
+}
+
+private struct CardFact: View {
     let title: LocalizedStringKey
-    @ViewBuilder let value: Value
+    let value: Text
+    let detail: DaysLeft?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title).font(.caption).foregroundStyle(.secondary)
-            value.font(.subheadline)
+            value.font(.subheadline.weight(.medium)).lineLimit(1)
+            if let detail { detail.font(.caption) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 
-private struct DateText: View {
+/// "18 gün" · "bugün" · "geçti". Son ödemede 3 gün ve altı turuncu, geçmişse kırmızı (renk anlam taşır).
+struct DaysLeft: View {
     let date: Date
-    var body: some View { Text(verbatim: date.formatted(.dateTime.day().month(.abbreviated))) }
-}
-
-/// Tarih ve kalan gün: "25 Ara · 28 gün". Son ödeme için 3 gün ve altı turuncu, geçmişse kırmızı
-/// ("25 Kas · geçti"); `.plain` (kesim günü) hep ikincil renkte.
-struct DueText: View {
-    enum Style { case due, plain }
-    let due: Date
-    var style: Style = .due
+    let urgent: Bool
     @Environment(\.calendar) private var calendar
 
     var body: some View {
-        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: .now), to: calendar.startOfDay(for: due)).day ?? 0
-        let date = due.formatted(.dateTime.day().month(.abbreviated))
-        let color: Color = style == .plain ? .primary : (days < 0 ? .red : days <= 3 ? .orange : .primary)
+        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: .now), to: calendar.startOfDay(for: date)).day ?? 0
+        let color: Color = !urgent ? .secondary : days < 0 ? .red : days <= 3 ? .orange : .secondary
         Group {
-            if days < 0 {
-                Text("\(date) · geçti")
-            } else if days == 0 {
-                Text("bugün")
-            } else {
-                Text("\(date) · \(days) gün")
-            }
+            if days < 0 { Text("geçti") } else if days == 0 { Text("bugün") } else { Text("\(days) gün") }
         }
         .foregroundStyle(color)
     }
@@ -113,46 +113,38 @@ struct CardDetailView: View {
 
         List {
             if let statement {
+                let hasDue = !statement.remainingDue.isZero
                 Section {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Ekstre borcu").font(.subheadline).foregroundStyle(.secondary)
-                        HeroAmount(money: statement.remainingDue)
-                        if statement.remainingDue.isZero {
-                            Text("Son ekstre ödendi").font(.subheadline).foregroundStyle(.secondary)
-                        } else {
-                            HStack(spacing: 4) {
-                                Text("Son ödeme").foregroundStyle(.secondary)
-                                DueText(due: statement.last.due)
-                            }
-                            .font(.subheadline)
-                        }
-                        if !statement.paidSinceClosing.isZero {
-                            Text("Ekstre \(statement.lastStatement.formatted(locale: locale)) · ödenen \(statement.paidSinceClosing.formatted(locale: locale))")
+                    VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(hasDue ? "Ekstre borcu" : "Bu dönem").font(.subheadline).foregroundStyle(.secondary)
+                            HeroAmount(money: hasDue ? statement.remainingDue : statement.currentSpending)
+                            if !statement.paidSinceClosing.isZero {
+                                Group {
+                                    if hasDue {
+                                        Text("Ekstre \(statement.lastStatement.formatted(locale: locale)) · ödenen \(statement.paidSinceClosing.formatted(locale: locale))")
+                                    } else {
+                                        Text("Son ekstre \(statement.lastStatement.formatted(locale: locale)) ödendi")
+                                    }
+                                }
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
+                            }
                         }
+                        CardFacts(statement: statement)
                     }
                     .monospacedDigit()
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 8, trailing: 4))
                 }
 
-                Section {
-                    LabeledContent("Harcama") {
-                        Text(verbatim: statement.currentSpending.formatted(locale: locale)).monospacedDigit()
+                if !period.isEmpty {
+                    Section("Bu dönemin işlemleri") {
+                        ForEach(period) { transaction in
+                            Button { editing = transaction } label: { TransactionRow(transaction: transaction) }
+                                .tint(.primary)
+                        }
                     }
-                    LabeledContent("Kesim") {
-                        Text(statement.current.closing, format: .dateTime.day().month(.wide))
-                    }
-                    LabeledContent("Son ödeme") {
-                        Text(statement.current.due, format: .dateTime.day().month(.wide))
-                    }
-                    ForEach(period) { transaction in
-                        Button { editing = transaction } label: { TransactionRow(transaction: transaction) }
-                            .tint(.primary)
-                    }
-                } header: {
-                    Text("Bu dönem")
                 }
             }
 
