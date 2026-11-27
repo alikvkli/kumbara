@@ -4,6 +4,9 @@ import SwiftUI
 
 /// Ayarlar. iOS'ta sayfa, macOS'ta `Settings` sahnesi.
 struct SettingsView: View {
+    #if os(macOS)
+    @AppStorage("menubar.enabled") private var showsMenuBar = true
+    #endif
     @AppStorage(SettingsKey.priceKind) private var priceKind: PriceKind = .bid
     @AppStorage(SettingsKey.costMethod) private var costMethod: CostMethod = .averageCost
     @AppStorage(SettingsKey.smartCheck) private var smartCheck = true
@@ -68,6 +71,13 @@ struct SettingsView: View {
                     Label("Dışa aktar ve yedekle", systemImage: "arrow.up.arrow.down.square")
                 }
             }
+            #if os(macOS)
+            Section {
+                Toggle("Menü çubuğunda göster", isOn: $showsMenuBar)
+            } footer: {
+                Text("Gram altın fiyatı menü çubuğunda; tıklayınca fiyatlar ve hızlı ekleme.")
+            }
+            #endif
             Section {
                 NavigationLink {
                     AboutView()

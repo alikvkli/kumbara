@@ -59,7 +59,7 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - [ ] T5.1 iCloud eşitleme açma/kapama (REQ-X2).
 - [x] T5.2 Kilit + bulanık önizleme (REQ-X3).
 - [x] T5.3 CSV/JSON dışa aktarma, CSV içe aktarma (REQ-X4).
-- [ ] T5.4 Widget'lar (tüm rendering modları), Denetim Merkezi kontrolleri,
+- [x] T5.4 Widget'lar (tüm rendering modları), Denetim Merkezi kontrolleri,
       macOS menü çubuğu öğesi (REQ-X5, X8, X9).
 - [x] T5.5 Reel getiri: USD + TÜFE tablosu (REQ-P7).
 - [ ] T5.6 Hedefler (REQ-P9), gelirden birikime ayır (REQ-P10).

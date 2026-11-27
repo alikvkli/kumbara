@@ -1,4 +1,5 @@
 import LocalAuthentication
+import SwiftData
 import Observation
 import SwiftUI
 
@@ -176,7 +177,10 @@ private struct LockScreen: View {
 /// Ayarlar › Kilit.
 struct LockSettingsView: View {
     @Environment(AppLock.self) private var lock
+    @Environment(PriceBoard.self) private var board
+    @Environment(\.modelContext) private var context
     @AppStorage(AppLock.hidePreviewKey) private var hidePreview = true
+    @AppStorage(WidgetPublisher.hideAmountsKey) private var hideWidgetAmounts = false
     @State private var enabled = false
     @State private var timeout: AppLock.Timeout = .immediately
 
@@ -201,6 +205,12 @@ struct LockSettingsView: View {
                 } else {
                     Text("Bu cihazda parola ya da Face ID tanımlı değil; kilit kullanılamıyor.")
                 }
+            }
+            Section {
+                Toggle("Widget'larda tutarları gizle", isOn: $hideWidgetAmounts)
+                    .onChange(of: hideWidgetAmounts) { _, _ in WidgetPublisher.publish(context: context, board: board) }
+            } footer: {
+                Text("Ana ekran ve kilit ekranı widget'larında bütçe ve birikim tutarları yerine ••• görünür; piyasa fiyatları görünmeye devam eder.")
             }
             #if os(iOS)
             Section {

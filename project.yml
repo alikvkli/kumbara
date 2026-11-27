@@ -48,12 +48,17 @@ targets:
       - package: KumbaraMarket
       - package: KumbaraCapture
       - target: KumbaraShare        # PlugIns/ içine gömülür (REQ-C2)
+      - target: KumbaraWidgets      # widget'lar ve Denetim Merkezi kontrolleri (specs/09 §4)
     # Arka plan fiyat yenilemesi (REQ-M2, BGAppRefreshTask). Diğer anahtarlar INFOPLIST_KEY_* ile üretilir.
     info:
       path: Config/Kumbara-Info.plist
       properties:
         BGTaskSchedulerPermittedIdentifiers: [com.alikvkli.kumbara.refresh]
         UIBackgroundModes: [fetch]
+        # Widget, Denetim Merkezi ve menü çubuğu bağlantıları (specs/09 §4).
+        CFBundleURLTypes:
+          - CFBundleURLName: com.alikvkli.kumbara
+            CFBundleURLSchemes: [kumbara]
     entitlements:
       path: Config/Kumbara.entitlements
       properties:
@@ -112,6 +117,36 @@ targets:
         ENABLE_APP_SANDBOX: YES
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_USER_SELECTED_FILES: readonly
+
+  # Widget'lar ve Denetim Merkezi kontrolleri (REQ-X5, X8). Uygulamanın App Group'a yazdığı özeti okur.
+  KumbaraWidgets:
+    type: app-extension
+    supportedDestinations: [iOS, macOS]
+    sources:
+      - path: Extensions/Widgets
+      - path: App/Resources/Assets.xcassets
+    dependencies:
+      - package: KumbaraCore
+      - package: KumbaraMarket
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    entitlements:
+      path: Config/KumbaraWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.alikvkli.kumbara]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.alikvkli.kumbara.widgets
+        PRODUCT_NAME: KumbaraWidgets
+        INFOPLIST_FILE: Config/KumbaraWidgets-Info.plist
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Kumbara
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SKIP_INSTALL: YES
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_OUTGOING_NETWORK_CONNECTIONS: YES
 
   KumbaraUITests:
     type: bundle.ui-testing

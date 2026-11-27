@@ -10,6 +10,9 @@ struct KumbaraApp: App {
     @State private var board: PriceBoard
     @State private var capture: CaptureSession
     @State private var lock = AppLock()
+    #if os(macOS)
+    @AppStorage("menubar.enabled") private var showsMenuBar = true
+    #endif
     private let container: ModelContainer
 
     init() {
@@ -47,7 +50,7 @@ struct KumbaraApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             // CaptureEntry ortamdan CaptureSession okur: ortam değerleri yalnız içeriye akar, bu yüzden
             // değiştirici `.environment` çağrılarının İÇİNDE kalmalı (dışında kalırsa açılışta çöker).
             RootView()
@@ -70,6 +73,13 @@ struct KumbaraApp: App {
         #endif
 
         #if os(macOS)
+        MenuBarExtra(isInserted: $showsMenuBar) {
+            MenuBarContent(router: router, capture: capture)
+                .environment(board)
+        } label: {
+            MenuBarLabel().environment(board)
+        }
+
         Settings {
             NavigationStack {
                 SettingsView()
@@ -85,6 +95,8 @@ struct KumbaraApp: App {
 
 /// Platforma göre kök gezinme (specs/06 §6.1, §7).
 struct RootView: View {
+    @Environment(AppRouter.self) private var router
+    @Environment(CaptureSession.self) private var capture
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var context
     @Environment(PriceBoard.self) private var board
@@ -105,7 +117,12 @@ struct RootView: View {
         // Bütçe eşikleri her kayıttan sonra değerlendirilir (REQ-B2); kaydı hangi ekran yapmış olursa olsun.
         .onReceive(NotificationCenter.default.publisher(for: ModelContext.didSave)) { _ in
             BudgetMonitor.shared.check(context)
+            WidgetPublisher.publish(context: context, board: board)
         }
+        // Widget, Denetim Merkezi ve menü çubuğu bağlantıları: kumbara://add, scan, budget, portfolio, market.
+        .onOpenURL { url in DeepLink(url: url)?.open(router: router, capture: capture) }
+        // Widget'lar ve menü çubuğu yeni fiyatla güncellenir (specs/09 §4).
+        .onChange(of: board.lastSuccess) { _, _ in WidgetPublisher.publish(context: context, board: board) }
         .onAppear { BudgetMonitor.shared.start() }
         // Vadesi gelen tekrarlar taslak olur ve sıradaki vadelerin hatırlatması kurulur (REQ-L7).
         .onChange(of: scenePhase, initial: true) { _, phase in
@@ -119,6 +136,36 @@ struct RootView: View {
             // Tarihi gelen taksitler kesinleşir; kart son ödeme hatırlatmaları kurulur (REQ-L8, L9).
             _ = try? InstallmentStore(context: context).postDue()
             if let accounts = try? context.fetch(FetchDescriptor<LedgerAccount>()) { Reminders.scheduleCardDue(accounts, context: context) }
+        }
+    }
+}
+
+/// Uygulama dışından gelen bağlantılar (specs/09 §4).
+enum DeepLink: String {
+    case add, scan, budget, portfolio, market
+
+    static let scheme = "kumbara"
+
+    init?(url: URL) {
+        guard url.scheme == Self.scheme, let host = url.host(), let link = DeepLink(rawValue: host) else { return nil }
+        self = link
+    }
+
+    var url: URL { URL(string: "\(Self.scheme)://\(rawValue)")! }
+
+    @MainActor
+    func open(router: AppRouter, capture: CaptureSession) {
+        switch self {
+        case .add: router.isPresentingQuickAdd = true
+        case .scan:
+            #if os(iOS)
+            capture.requestedSource = .camera
+            #else
+            capture.requestedSource = .files
+            #endif
+        case .budget: router.show(.budget)
+        case .portfolio: router.show(.portfolio)
+        case .market: router.isPresentingMarket = true
         }
     }
 }
