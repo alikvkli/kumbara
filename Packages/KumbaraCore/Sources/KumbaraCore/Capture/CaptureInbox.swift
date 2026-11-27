@@ -52,8 +52,10 @@ public struct CaptureInbox: Sendable {
 
     /// Bekleyen dosyalar, en eskiden yeniye.
     public func pending() -> [Item] {
-        let urls = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []
-        return urls.compactMap(Self.item(at:))
+        // Adlardan, kendi klasörümüze göre kurulur: macOS'ta /var → /private/var gibi bağlantılar
+        // çözülürse `deposit` ile dönen URL'lerle eşitlik bozulmasın.
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? []
+        return names.map { directory.appendingPathComponent($0) }.compactMap(Self.item(at:))
             .sorted { ($0.createdAt, $0.url.lastPathComponent) < ($1.createdAt, $1.url.lastPathComponent) }
     }
 
@@ -64,7 +66,7 @@ public struct CaptureInbox: Sendable {
     /// Fazlalık (en eskiler) ve 1 saatten eski yarım yazımlar silinir.
     func trim(now: Date) {
         let files = FileManager.default
-        let urls = (try? files.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []
+        let urls = ((try? files.contentsOfDirectory(atPath: directory.path)) ?? []).map { directory.appendingPathComponent($0) }
         for url in urls where url.lastPathComponent.hasPrefix(".") && url.pathExtension == "partial" {
             let millis = Int64(url.lastPathComponent.dropFirst().prefix { $0 != "-" }) ?? 0
             if now.timeIntervalSince1970 - Double(millis) / 1000 > 3600 { try? files.removeItem(at: url) }

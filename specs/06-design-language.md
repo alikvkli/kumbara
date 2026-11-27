@@ -78,7 +78,7 @@ Liquid Glass'ın temel ilkesi, uygulamamızın da temel ilkesidir:
 | Kahraman sayı | `.largeTitle`, semibold, monospacedDigit |
 | Satır başlığı | `.body` |
 | Satır tutarı | `.body`, monospacedDigit, sağa yaslı |
-| İkincil (kaynak, zaman, fiyat tipi) | `.footnote`, `.secondary` |
+| İkincil (fiyat tipi, tazelik) | `.footnote`, `.secondary` |
 | Bölüm başlığı | sistem `Section` başlığı |
 
 ## 5. İkonografi ve hareket
@@ -242,7 +242,7 @@ PR'da biri varsa reddedilir:
 ┌──────────────────────────────────┐
 │ Birikim                  ( + )   │
 │ ₺412.870                ▲ %18,2  │
-│ Bozdurma · Truncgil · 14:05      │
+│ Bozdurma · 5 dk önce             │
 │ USD'ye göre ▲ %4,1 · TÜFE ▼ %2,3 │
 │ [1A][3A][1Y][Tümü]               │ ← segmented Picker
 │ ╱╲__╱‾‾╲_╱‾‾‾ (Swift Charts)      │

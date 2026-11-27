@@ -97,7 +97,7 @@ struct TradeEditor: View {
                     }
                 } footer: {
                     if priceIsPrefilled, let asset, let quote = board.quote(asset) {
-                        Text("\(side == .buy ? Text("Satış") : Text("Bozdurma")) fiyatı · \(quote.source.label) · \(quote.asOf.formatted(date: .omitted, time: .shortened)). Kuyumcunun verdiği fiyatı yazabilirsin.")
+                        Text("\(side == .buy ? Text("Satış") : Text("Bozdurma")) fiyatı · \(RelativeTimeText.text(for: quote.asOf)). Kuyumcunun verdiği fiyatı yazabilirsin.")
                     }
                 }
 

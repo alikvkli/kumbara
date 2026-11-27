@@ -125,16 +125,33 @@ extension CostMethod {
     }
 }
 
-extension ProviderID {
-    var label: String {
-        switch self {
-        case .truncgil: "Truncgil"
-        case .goldAPI: "gold-api"
-        case .tcmb: "TCMB"
-        case .frankfurter: "ECB"
-        case .coingecko: "CoinGecko"
-        case .manual: String(localized: "Elle")
+/// "az önce", "5 dk önce", "dün 18:05": kendini yenileyen göreli zaman (specs/06 §2.4).
+struct RelativeTimeText: View {
+    let date: Date
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: RelativeAge.of(date, now: .now, calendar: .current).refreshInterval)) { context in
+            Self.text(for: date, now: context.date)
         }
+    }
+
+    static func text(for date: Date, now: Date = .now) -> Text {
+        switch RelativeAge.of(date, now: now, calendar: .current) {
+        case .justNow: Text("az önce")
+        case .minutes(let n): Text("\(n) dk önce")
+        case .hours(let n): Text("\(n) sa önce")
+        case .yesterday(let d): Text("dün \(d.formatted(date: .omitted, time: .shortened))")
+        case .earlier(let d): Text(d, format: .dateTime.day().month(.abbreviated).hour().minute())
+        }
+    }
+}
+
+extension Quote {
+    /// Kullanıcıya kaynak adı yerine fiyatın niteliği söylenir: hesaplanan ya da elle girilen.
+    var originNote: LocalizedStringKey? {
+        if source == .manual { return "elle girildi" }
+        if isDerived { return "tahmini" }
+        return nil
     }
 }
 
@@ -144,7 +161,7 @@ enum SettingsKey {
     static let costMethod = "valuation.costMethod"
 }
 
-/// "Bozdurma · Truncgil · 07:16" ve tazelik uyarısı (C4, C6, specs/06 §2.4).
+/// "Bozdurma · 5 dk önce" ve tazelik uyarısı (C4, C6, specs/06 §2.4). Sağlayıcı adı gösterilmez.
 struct QuoteProvenance: View {
     let quote: Quote?
     let priceKind: PriceKind
@@ -155,10 +172,12 @@ struct QuoteProvenance: View {
         HStack(spacing: 4) {
             if let quote {
                 Text(priceKind.shortLabel)
+                if let note = quote.originNote {
+                    Text(verbatim: "·")
+                    Text(note)
+                }
                 Text(verbatim: "·")
-                Text(verbatim: quote.source.label + (quote.isDerived ? " ≈" : ""))
-                Text(verbatim: "·")
-                Text(quote.asOf, format: .dateTime.hour().minute())
+                RelativeTimeText(date: quote.asOf)
                 if isOffline {
                     Label("çevrimdışı", systemImage: "wifi.slash").labelStyle(.titleAndIcon).foregroundStyle(.orange)
                 } else if freshness == .stale {

@@ -211,3 +211,28 @@ struct MarketPolicyTests {
         #expect(Freshness.evaluate(asOf: at(27, 18, 0), now: at(30, 10, 0), calendar: cal) == .stale)
     }
 }
+
+@Suite("Fiyat yaşı (specs/06 §2.4)")
+struct RelativeAgeTests {
+    var calendar: Calendar = {
+        var c = Calendar(identifier: .gregorian)
+        c.timeZone = TimeZone(identifier: "Europe/Istanbul")!
+        return c
+    }()
+
+    @Test("az önce → dk → sa → dün → daha eski")
+    func buckets() {
+        // 27 Kasım 2026 11:30 (+03)
+        let now = Date(timeIntervalSince1970: 1_795_768_200)
+        let age = { (seconds: TimeInterval) in RelativeAge.of(now.addingTimeInterval(-seconds), now: now, calendar: calendar) }
+        #expect(age(-20) == .justNow)          // saat farkı: gelecekte görünen
+        #expect(age(59) == .justNow)
+        #expect(age(60) == .minutes(1))
+        #expect(age(5 * 60 + 40) == .minutes(5))
+        #expect(age(3599) == .minutes(59))
+        #expect(age(2 * 3600 + 10) == .hours(2))
+        #expect(age(11 * 3600) == .hours(11))                                   // 00:30, aynı gün
+        #expect(age(12 * 3600) == .yesterday(now.addingTimeInterval(-12 * 3600))) // dün 23:30
+        #expect(age(40 * 3600) == .earlier(now.addingTimeInterval(-40 * 3600)))
+    }
+}

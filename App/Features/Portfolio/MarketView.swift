@@ -1,7 +1,7 @@
 import KumbaraCore
 import SwiftUI
 
-/// Piyasa sayfası: tüm altın türleri, metaller ve dövizlerde alış/satış, kaynak ve zaman (REQ-M3).
+/// Piyasa sayfası: tüm altın türleri, metaller ve dövizlerde alış/satış ve fiyatların tazeliği (REQ-M3).
 struct MarketView: View {
     @Environment(PriceBoard.self) private var board
     @Environment(\.locale) private var locale
@@ -22,11 +22,9 @@ struct MarketView: View {
                         Text("Satış").frame(width: 84, alignment: .trailing)
                     }
                 } footer: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        if let attempt = board.lastAttempt {
-                            Text("Son deneme \(attempt.formatted(date: .omitted, time: .shortened))")
-                        }
-                        Text("Alış: kuyumcunun/bankanın senden aldığı (bozdurma). Satış: sana sattığı. Kaynaklar: Truncgil, TCMB, gold-api, ECB, CoinGecko.")
+                    VStack(alignment: .leading, spacing: 6) {
+                        updateStatus
+                        Text("Alış: kuyumcunun/bankanın senden aldığı (bozdurma). Satış: sana sattığı. Tahmini fiyatlar ons ve dolar kurundan hesaplanır.")
                     }
                 }
             }
@@ -49,15 +47,39 @@ struct MarketView: View {
         }
     }
 
+    /// En yeni otomatik fiyatın zamanı, sayfada bir kez: her satırda aynı saati tekrarlamak gürültü.
+    @ViewBuilder
+    private var updateStatus: some View {
+        let newest = PriceBoard.marketAssets.compactMap { board.quote($0) }.filter { $0.source != .manual }.map(\.asOf).max()
+        if board.isOffline {
+            Label {
+                if let newest { Text("Bağlantı yok · fiyatlar \(RelativeTimeText.text(for: newest))") } else { Text("Bağlantı yok") }
+            } icon: { Image(systemName: "wifi.slash") }
+            .foregroundStyle(.orange)
+        } else if let newest {
+            HStack(spacing: 4) {
+                Text("Güncellendi")
+                RelativeTimeText(date: newest)
+            }
+        }
+    }
+
     private func row(_ asset: AssetCode) -> some View {
         let quote = board.quote(asset)
+        let freshness = board.freshness(of: asset)
+        let isLate = freshness == .stale || freshness == .delayed
         return HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: asset.displayName())
-                if let quote {
-                    Text(verbatim: "\(quote.source.label)\(quote.isDerived ? " ≈" : "") · \(quote.asOf.formatted(date: .omitted, time: .shortened))")
-                        .font(.caption)
-                        .foregroundStyle(board.freshness(of: asset) == .stale ? Color.orange : Color.secondary)
+                // Yalnız olağan dışı satırlar not taşır: tahmini/elle fiyat, ya da diğerlerinden eski fiyat.
+                if let quote, quote.originNote != nil || isLate {
+                    HStack(spacing: 4) {
+                        if let note = quote.originNote { Text(note) }
+                        if quote.originNote != nil && isLate { Text(verbatim: "·") }
+                        if isLate { RelativeTimeText(date: quote.asOf) }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(isLate ? Color.orange : Color.secondary)
                 }
             }
             Spacer()

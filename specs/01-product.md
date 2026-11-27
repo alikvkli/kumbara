@@ -89,7 +89,8 @@ benim önerilerimdir; onayına bağlıdır.
   başarısız olursa yedek kaynağa geçilir (02).
 - **REQ-M2** Uygulama ön plandayken fiyatlar en sık 60 sn'de bir yenilenir;
   arka planda BGAppRefresh ile fırsat buldukça.
-- **REQ-M3** Her fiyatın kaynağı ve zaman damgası görüntülenebilir.
+- **REQ-M3** Her fiyatın tazeliği insanca gösterilir ("az önce", "5 dk önce", "dün 18:05"); hesaplanan
+  (tahmini) ve elle girilen fiyat ayrıca belirtilir. Veri sağlayıcının adı ana arayüzde gösterilmez (2026-11-27).
 - **REQ-M4** `[Ö]` Fiyat alarmı: "Gram altın 5.500 ₺ altına düşerse haber ver"
   (arka plan yenilemesinde kontrol; garanti anlık değildir, arayüz bunu söyler).
 
@@ -136,6 +137,6 @@ benim önerilerimdir; onayına bağlıdır.
 - **AC-C3-1** "TOPLAM *1.249,90" satırı içeren Migros fişinden tutar 1249.90,
   satıcı "Migros", kategori "Market" önerilir.
 - **AC-M1-1** Birincil kaynak 10 sn içinde cevap vermezse yedekten alınan fiyat
-  gösterilir ve kaynak etiketi değişir.
+  gösterilir; yedek ons fiyatından hesaplandıysa "tahmini" notu çıkar.
 - **AC-C4** Ağ kapalıyken uygulama açılır, son fiyatlar zaman damgasıyla ve
   "çevrimdışı" etiketiyle görünür.
