@@ -201,7 +201,7 @@ struct LockSettingsView: View {
                 }
             } footer: {
                 if AppLock.canAuthenticate {
-                    Text("Açınca Kumbara her açılışta kilidini sorar. Tanınmazsa cihaz parolası kullanılır; Kumbara'nın ayrı bir parolası yok.")
+                    Text("Açıkken Kumbara, seçtiğin süre geçince kilidi sorar. Yüzün ya da parmak izin tanınmazsa cihaz parolası kullanılır; Kumbara'nın ayrı bir parolası yok.")
                 } else {
                     Text("Bu cihazda parola ya da Face ID tanımlı değil; kilit kullanılamıyor.")
                 }

@@ -88,7 +88,7 @@ struct EmptyWidgetView: View {
         VStack(alignment: .leading, spacing: 4) {
             Image(systemName: "circle.circle").font(.title3).foregroundStyle(.tint)
             Text("Kumbara'yı bir kez aç").font(.subheadline.weight(.semibold))
-            Text("Veriler uygulama açılınca gelir.").font(.caption).foregroundStyle(.secondary)
+            Text("Bilgiler uygulamayı açınca burada görünür.").font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
@@ -104,7 +104,7 @@ struct PriceWidget: Widget {
                 .widgetURL(DeepLinkURL.market)
         }
         .configurationDisplayName("Gram altın")
-        .description("Gram altın ve dolar; bozdurma fiyatı.")
+        .description("Gram altın ve dolar, bozdurma fiyatıyla.")
         .supportedFamilies(Self.families)
     }
 
@@ -176,7 +176,7 @@ struct BudgetWidget: Widget {
                 .widgetURL(DeepLinkURL.budget)
         }
         .configurationDisplayName("Bugün harcayabileceğin")
-        .description("Bütçene göre bugünkü hakkın ve ayın gidişi.")
+        .description("Bütçene göre bugün ne kadar harcayabileceğin.")
         .supportedFamilies(Self.families)
     }
 

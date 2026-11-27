@@ -20,12 +20,12 @@ struct DataExchangeView: View {
     var body: some View {
         Form {
             Section {
-                Button("İşlemleri CSV olarak dışa aktar", systemImage: "tablecells") { exportCSV() }
-                Button("Tam yedek al (JSON)", systemImage: "externaldrive") { exportBackup() }
+                Button("İşlemleri tabloya aktar (CSV)", systemImage: "tablecells") { exportCSV() }
+                Button("Tam yedek al", systemImage: "externaldrive") { exportBackup() }
             } header: {
                 Text("Dışa aktar")
             } footer: {
-                Text("CSV, Excel ve Numbers'da açılır. Yedek; hesapları, kategorileri, işlemleri, bütçeleri, birikimleri ve alarmları içerir, fiş görüntülerini içermez.")
+                Text("Tablo Excel ve Numbers'da açılır. Yedek tek bir dosyadır; hesapları, kategorileri, işlemleri, bütçeleri, birikimleri, hedefleri ve alarmları içerir, fiş görüntülerini içermez.")
             }
             Section {
                 Button("Banka ekstresi içe aktar (CSV)…", systemImage: "doc.text") { isPickingStatement = true }

@@ -64,8 +64,8 @@ struct TradeEditor: View {
             Form {
                 Section {
                     Picker("Yön", selection: $side) {
-                        Text("Alış").tag(Trade.Side.buy)
-                        Text("Satış").tag(Trade.Side.sell)
+                        Text("Aldım").tag(Trade.Side.buy)
+                        Text("Sattım").tag(Trade.Side.sell)
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
@@ -99,7 +99,7 @@ struct TradeEditor: View {
                     }
                 } footer: {
                     if priceIsPrefilled, let asset, let quote = board.quote(asset) {
-                        Text("\(side == .buy ? Text("Satış") : Text("Bozdurma")) fiyatı · \(RelativeTimeText.text(for: quote.asOf)). Kuyumcunun verdiği fiyatı yazabilirsin.")
+                        Text("\(side == .buy ? Text("Satın alma") : Text("Bozdurma")) fiyatı · \(RelativeTimeText.text(for: quote.asOf)). Kuyumcunun verdiği fiyatı yazabilirsin.")
                     }
                 }
 
@@ -136,7 +136,7 @@ struct TradeEditor: View {
                 }
             }
             .formStyle(.grouped)
-            .navigationTitle(editing == nil ? (side == .buy ? "Alış" : "Satış") : "İşlemi düzenle")
+            .navigationTitle(editing == nil ? (side == .buy ? "Alım" : "Satım") : "İşlemi düzenle")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -275,9 +275,9 @@ struct AssetPicker: View {
             Section("Kripto") { ForEach(Self.cryptos, id: \.self) { row(.crypto($0)) } }
             Section {
                 ForEach(customAssets) { custom in row(custom.code, name: custom.name) }
-                Button("Yeni serbest varlık…", systemImage: "plus") { creatingCustom = true }
+                Button("Fon, hisse, mevduat ekle…", systemImage: "plus") { creatingCustom = true }
             } header: {
-                Text("Serbest varlık")
+                Text("Diğer varlıklar")
             } footer: {
                 Text("Fon, hisse, mevduat gibi fiyatını kendin girdiğin varlıklar.")
             }
@@ -348,7 +348,7 @@ struct CustomAssetEditor: View {
                 }
             }
             .formStyle(.grouped)
-            .navigationTitle(asset == nil ? "Serbest varlık" : "Fiyatı güncelle")
+            .navigationTitle(asset == nil ? "Diğer varlık" : "Fiyatı güncelle")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif

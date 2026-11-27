@@ -51,7 +51,7 @@ struct PriceAlertEditor: View {
                         if let quote {
                             Text("Şu an \(asset.formatPrice(quote.price(priceKind), locale: locale)) ₺ · \(RelativeTimeText.text(for: quote.asOf))")
                         }
-                        Text("Fiyat eşiği geçtiğinde bir kez haber veririm. Uygulama kapalıyken kontrol, telefonun arka planda yenilemeye izin verdiği sıklıkta yapılır; anlık değildir.")
+                        Text("Fiyat eşiği geçince bir kez bildirim gelir. Uygulama kapalıyken fiyat, telefonun arka planda izin verdiği sıklıkta kontrol edilir; anlık değildir.")
                     }
                 }
             }
@@ -63,7 +63,7 @@ struct PriceAlertEditor: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Vazgeç") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Kur", action: save)
+                    Button("Alarmı kur", action: save)
                         .primaryActionStyle()
                         .disabled(threshold == nil)
                 }

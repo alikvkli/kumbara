@@ -135,7 +135,7 @@ struct AccountEditor: View {
                 }
                 if kind == .card {
                     Section {
-                        Picker("Hesap kesim günü", selection: $statementDay) {
+                        Picker("Ekstre kesim günü", selection: $statementDay) {
                             Text("Belirtilmedi").tag(Int?.none)
                             ForEach(1...31, id: \.self) { Text(verbatim: "\($0)").tag(Int?.some($0)) }
                         }
@@ -147,7 +147,7 @@ struct AccountEditor: View {
                     } header: {
                         Text("Ekstre")
                     } footer: {
-                        Text("Kesim günüyle dönem harcaman, ekstre borcun ve son ödeme tarihin gösterilir; son ödemeden 3 gün önce hatırlatırım.")
+                        Text("Kesim gününe göre dönem harcaman, ekstre borcun ve son ödeme tarihin gösterilir; son ödemeden 3 gün önce hatırlatma gelir.")
                     }
                 }
                 if existing != nil {

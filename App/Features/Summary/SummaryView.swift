@@ -141,7 +141,7 @@ private struct MonthHeader: View {
             VStack(alignment: .leading, spacing: 2) {
                 Group {
                     if summary.net.isNegative {
-                        Text("Gelirden fazla harcandı")
+                        Text("Gelirinden fazla harcadın")
                     } else {
                         Text(isCurrentMonth ? "Bu ay kalan" : "Ay sonunda kalan")
                     }

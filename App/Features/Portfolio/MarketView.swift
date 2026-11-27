@@ -36,8 +36,8 @@ struct MarketView: View {
                     HStack {
                         Text("Varlık")
                         Spacer()
-                        Text("Alış").frame(width: 84, alignment: .trailing)
-                        Text("Satış").frame(width: 84, alignment: .trailing)
+                        Text("Bozdurma").frame(width: 88, alignment: .trailing)
+                        Text("Satın alma").frame(width: 88, alignment: .trailing)
                     }
                 } footer: {
                     VStack(alignment: .leading, spacing: 6) {
@@ -61,7 +61,7 @@ struct MarketView: View {
                         }
                         .disabled(board.isRefreshing)
                     } footer: {
-                        Text("Kaynak bu fiyatları şu an vermiyor. Sayfa açıkken kendiliğinden tekrar denenir.")
+                        Text("Bu fiyatlar şu an alınamıyor; sayfa açıkken kendiliğinden yeniden denenir.")
                     }
                 }
             }
@@ -188,8 +188,8 @@ enum MarketGroup: String, CaseIterable, Identifiable {
 
     var footnote: LocalizedStringKey {
         switch self {
-        case .gold: "Alış: kuyumcunun senden aldığı (bozdurma). Satış: sana sattığı. Tahmini fiyatlar ons ve dolar kurundan hesaplanır."
-        case .fx: "Alış: bankanın senden aldığı. Satış: sana sattığı."
+        case .gold: "Bozdurma: kuyumcuya satınca eline geçen. Satın alma: kuyumcudan alırken ödediğin. Tahmini fiyatlar ons altın ve dolar kurundan hesaplanır."
+        case .fx: "Bozdurma: bankaya satınca eline geçen. Satın alma: bankadan alırken ödediğin."
         }
     }
 }

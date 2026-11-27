@@ -283,7 +283,7 @@ struct GoalEditor: View {
                         DatePicker("Tarih", selection: $deadline, in: Date.now..., displayedComponents: .date)
                     }
                 } footer: {
-                    if hasDeadline { Text("Ayda ne kadar ayırman gerektiğini söylerim.") }
+                    if hasDeadline { Text("Hedefe yetişmek için ayda ne kadar ayırman gerektiği gösterilir.") }
                 }
             }
             .formStyle(.grouped)

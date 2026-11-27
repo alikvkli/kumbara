@@ -36,7 +36,7 @@ struct ICloudSettingsView: View {
                     .disabled(!ICloudSync.hasAccount && !enabled)
                 LabeledContent("Durum") { status }
             } footer: {
-                Text("Verilerin Apple hesabındaki özel iCloud alanına şifreli gider ve diğer cihazlarınla eşitlenir. Kumbara'nın sunucusu yok; biz göremeyiz.")
+                Text("Verilerin Apple hesabındaki özel iCloud alanına şifreli gider ve diğer cihazlarınla eşitlenir. Kumbara'nın sunucusu yok; verine yalnızca sen erişirsin.")
             }
             if enabled != activeAtLaunch {
                 Section {
@@ -45,7 +45,7 @@ struct ICloudSettingsView: View {
                 }
             }
             Section {
-                Text("Eşitlemeyi kapatınca bu cihazdaki veri kalır; iCloud'daki kopya silinmez. Silmek için: Ayarlar › Apple Hesabı › iCloud › Depolamayı Yönet › Kumbara.")
+                Text("Eşitlemeyi kapatınca bu cihazdaki veri kalır; iCloud'daki kopya silinmez. Silmek için iPhone Ayarlar'ında adına dokun › iCloud › Depolamayı Yönet › Kumbara.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

@@ -57,7 +57,7 @@ final class BudgetMonitor: NSObject, UNUserNotificationCenterDelegate {
             content.title = String(localized: "\(subject) aşıldı")
             content.body = String(localized: "\((status.spent - status.limit).formatted(locale: locale, fractionDigits: 0)) fazla harcandı.")
         } else {
-            content.title = String(localized: "\(subject) %\(threshold) doldu")
+            content.title = String(localized: "\(subject): %\(threshold) kullanıldı")
             let remaining = status.remaining.formatted(locale: locale, fractionDigits: 0)
             content.body = remainingDays.map { String(localized: "Kalan \(remaining) · \($0) gün") } ?? String(localized: "Kalan \(remaining)")
         }

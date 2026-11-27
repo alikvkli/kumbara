@@ -58,7 +58,7 @@ struct RootSplitView: View {
             }
             ToolbarSpacer(.fixed, placement: .primaryAction)
             ToolbarItem(placement: .primaryAction) {
-                Button("Denetçi", systemImage: "sidebar.right") { showsInspector.toggle() }
+                Button("Ayrıntılar", systemImage: "sidebar.right") { showsInspector.toggle() }
             }
         }
         .sheet(isPresented: $router.isPresentingQuickAdd, onDismiss: { router.presentPendingSavingsSplit() }) {

@@ -35,7 +35,7 @@ extension AssetCode {
         case .crypto(let id):
             Self.cryptoNames[id] ?? id.capitalized
         case .custom:
-            customName ?? String(localized: "Serbest varlık")
+            customName ?? String(localized: "Diğer varlık")
         }
     }
 
@@ -101,8 +101,8 @@ extension AssetCode {
 extension PriceKind {
     var label: LocalizedStringKey {
         switch self {
-        case .bid: "Bozdurma (alış)"
-        case .ask: "Satış"
+        case .bid: "Bozdurma"
+        case .ask: "Satın alma"
         case .mid: "Orta"
         }
     }
@@ -110,7 +110,7 @@ extension PriceKind {
     var shortLabel: LocalizedStringKey {
         switch self {
         case .bid: "Bozdurma"
-        case .ask: "Satış"
+        case .ask: "Satın alma"
         case .mid: "Orta fiyat"
         }
     }
@@ -180,7 +180,7 @@ struct QuoteProvenance: View {
                 Text(verbatim: "·")
                 RelativeTimeText(date: quote.asOf)
                 if isOffline {
-                    Label("çevrimdışı", systemImage: "wifi.slash").labelStyle(.titleAndIcon).foregroundStyle(.orange)
+                    Label("bağlantı yok", systemImage: "wifi.slash").labelStyle(.titleAndIcon).foregroundStyle(.orange)
                 } else if freshness == .stale {
                     Label("eski fiyat", systemImage: "clock.badge.exclamationmark").foregroundStyle(.orange)
                 } else if freshness == .delayed {

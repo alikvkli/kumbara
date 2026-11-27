@@ -287,3 +287,22 @@ Bu spec WWDC25/WWDC26 açıklamalarına dayanır. Xcode 27 SDK'sında şunlar
 doğrulanıp gerekirse spec güncellenecek: macOS 27 menü ikonu API adı,
 `ConcentricRectangle` imzası, `tabViewBottomAccessory` placement davranışı,
 iOS 27 kaydırma kenarı varsayılanları, Icon Composer kırılma ek açıklamaları.
+
+## 11. Metin dili (CX, 2026-11-27 gözden geçirmesi)
+- **Ses:** Kullanıcıya "sen" diye, sıcak ama kısa. Uygulama kendinden "ben" diye söz etmez
+  ("hatırlatırım" değil "hatırlatma gelir"; "okudum" değil "okundu").
+- **Bakış açısı her yerde kullanıcınınki:** "Bozdurma" = kuyumcuya/bankaya satınca eline geçen,
+  "Satın alma" = alırken ödediğin. Kuyumcu tabelasındaki "Alış/Satış" (dükkânın bakışı) kullanılmaz;
+  kayıtlarda "Aldım/Sattım", listede "Alım/Satım".
+- **Jargon yok:** "mükerrer" → "daha önce kaydedilmiş olabilir"; "serbest varlık" → "diğer varlık";
+  dosya biçimi (CSV) yalnız parantezde, eylemin adı önce ("İşlemleri tabloya aktar (CSV)").
+- **Dürüst ve somut:** Tahmini fiyat, gecikme, eksik veri her zaman yazılır, nedeniyle birlikte
+  ("Tahmini fiyat: ons altın ve dolar kurundan hesaplandı"). Söz verilemeyen şey vaat edilmez
+  ("anlık değildir").
+- **Eylem söyleyen hata:** Ne oldu + ne yapabilirsin ("Görüntüde toplam tutar bulunamadı. İşlemi elle
+  ekleyebilirsin."). Teknik ayrıntı ve hata kodu gösterilmez.
+- **Türkçe ekler:** Değişken sayı/ad sonrasına ek getirilmez (%80'i / %40'ı sorunu); cümle eki
+  gerektirmeyecek biçimde kurulur ("Market bütçesi: %80 kullanıldı").
+- **Belirsiz kelime yok:** Aynı yerde iki anlama gelen sözcük kullanılmaz ("Kur" düğmesi → "Alarmı kur",
+  çünkü "kur" döviz kuru da demek).
+- Geliştirici araçları (OCR çıktısı paylaşma) yalnız DEBUG derlemesinde.

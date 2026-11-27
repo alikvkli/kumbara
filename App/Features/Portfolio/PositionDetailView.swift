@@ -70,7 +70,7 @@ struct PositionDetailView: View {
                         LabeledContent { amount(valuation.unitPrice) } label: { Text(priceKind.shortLabel) }
                     }
                     if let quote, let bid = quote.bid, let ask = quote.ask, priceKind != .ask {
-                        LabeledContent("Satış fiyatı") { amount(ask) }
+                        LabeledContent("Satın alma fiyatı") { amount(ask) }
                         if let spread = valuation?.spreadCost, spread > 0 {
                             LabeledContent("Makas") { amount(spread) }
                                 .help(Text("Bugün alıp hemen bozdursan kaybın: \(Money(ask - bid, .TRY).formatted(locale: locale)) / \(asset.unitLabel)"))
@@ -84,7 +84,7 @@ struct PositionDetailView: View {
                     }
                 } footer: {
                     if quote?.isDerived == true {
-                        Text("Fiyat ons fiyatından türetildi; kuyumcu makası bilinmediği için yaklaşıktır.")
+                        Text("Tahmini fiyat: ons altın ve dolar kurundan hesaplandı; kuyumcunun fiyatı biraz farklı olabilir.")
                     }
                 }
 
@@ -160,7 +160,7 @@ private struct TradeRow: View {
         if let trade = record.trade {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(trade.side == .buy ? "Alış" : "Satış")
+                    Text(trade.side == .buy ? "Alım" : "Satım")
                     Text(verbatim: "\(trade.asset.formatQuantity(trade.quantity, locale: locale)) \(trade.asset.unitLabel) × \(trade.unitPrice.formattedNumber(locale: locale, fractionDigits: 0...2))")
                         .font(.footnote)
                         .foregroundStyle(.secondary)

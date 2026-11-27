@@ -33,7 +33,7 @@ struct BudgetView: View {
                 ContentUnavailableView {
                     Label("Bütçe yok", systemImage: "chart.pie")
                 } description: {
-                    Text("Aylık limit belirle; her gün ne kadar harcayabileceğini ve ay sonuna nasıl gittiğini göstereyim.")
+                    Text("Aylık bir limit belirle; her gün ne kadar harcayabileceğini ve ayı nasıl kapatacağını gör.")
                 } actions: {
                     Button("Bütçe ekle") { editing = .new }
                         .primaryActionStyle()

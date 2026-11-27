@@ -19,16 +19,19 @@ struct CaptureReviewView: View {
                     SingleDraftReview(review: review, suggestion: draft)
                 } else {
                     ContentUnavailableView("Tutar bulunamadı", systemImage: "doc.text.magnifyingglass",
-                                           description: Text("Görüntüde bir toplam tutar tanıyamadım. İşlemi elle ekleyebilirsin."))
+                                           description: Text("Görüntüde toplam tutar bulunamadı. İşlemi elle ekleyebilirsin."))
                 }
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Vazgeç", role: .cancel) { dismiss() }
                 }
+                // Geliştirici aracı (test korpusu, T3.1): kullanıcıya gösterilmez.
+                #if DEBUG
                 ToolbarItem(placement: .secondaryAction) {
                     CorpusExportButton(lines: review.lines, kind: review.result.kind)
                 }
+                #endif
             }
         }
         #if os(macOS)
@@ -101,12 +104,12 @@ private struct SingleDraftReview: View {
                     if let conflicts = suggestion.modelCheck?.conflicts, !conflicts.isEmpty {
                         // Çapraz kontrol (specs/04 §2.5): iki okuma uyuşmadı; neyin farklı olduğu söylenir.
                         if conflicts.contains(.amount) {
-                            Text("Fişi iki farklı yöntemle okudum, tutarlar uyuşmadı. Fişteki TOPLAM'a bakıp düzelt.")
+                            Text("Fiş iki ayrı yöntemle okundu ve tutarlar farklı çıktı. Fişteki TOPLAM satırına bakıp düzelt.")
                         } else {
-                            Text("Fişi iki farklı yöntemle okudum, tarihler uyuşmadı. Kontrol et.")
+                            Text("Fiş iki ayrı yöntemle okundu ve tarihler farklı çıktı. Fişteki tarihe bakıp düzelt.")
                         }
                     } else if (suggestion.amount?.isLowConfidence ?? true) || suggestion.date.isLowConfidence {
-                        Text("Turuncu işaretli alanlardan emin olamadım; kontrol et.")
+                        Text("Turuncu alanlar net okunamadı; fişe bakıp kontrol et.")
                     }
                 }
                 Section {
@@ -271,11 +274,11 @@ private struct MultiDraftReview: View {
                     Toggle(isOn: $row.include) {
                         HStack(alignment: .firstTextBaseline) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(verbatim: row.draft.merchant?.value ?? String(localized: "Açıklamasız"))
+                                Text(verbatim: row.draft.merchant?.value ?? String(localized: "Açıklama yok"))
                                 HStack(spacing: 4) {
                                     Text(row.draft.date.value, format: .dateTime.day().month(.abbreviated))
                                     if let category = row.category { Text(verbatim: "· \(category.name)") }
-                                    if row.isDuplicate { Text("· olası mükerrer").foregroundStyle(.orange) }
+                                    if row.isDuplicate { Text("· daha önce kaydedilmiş olabilir").foregroundStyle(.orange) }
                                 }
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
@@ -290,7 +293,7 @@ private struct MultiDraftReview: View {
             } header: {
                 Text("\(rows.count) hareket bulundu")
             } footer: {
-                Text("Mükerrer olabilecekler seçili gelmez. Eklemek istemediklerinin işaretini kaldır.")
+                Text("Daha önce kaydedilmiş olabilecekler seçili gelmez. Eklemek istemediklerinin işaretini kaldır.")
             }
         }
         .navigationTitle("Hesap hareketleri")

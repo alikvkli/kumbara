@@ -32,7 +32,7 @@ struct SettingsView: View {
                 Text("Fiş okuma")
             } footer: {
                 if SmartReader.isAvailable {
-                    Text("Fişler, kurallara ek olarak Apple Intelligence ile cihazında bir kez daha okunur; iki sonuç uyuşmazsa uyarırım. Fiş cihazından çıkmaz.")
+                    Text("Fişler, kurallara ek olarak Apple Intelligence ile cihazında bir kez daha okunur; iki sonuç farklıysa uyarı görürsün. Fiş cihazından çıkmaz.")
                 } else {
                     Text("Bu cihazda Apple Intelligence kullanılamıyor; fişler yalnızca kurallarla okunur.")
                 }
