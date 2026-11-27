@@ -203,6 +203,25 @@ final class ScreenshotTests: XCTestCase {
             app.swipeDown()
             app.swipeDown()
         }
+        // Alacak ve borçlar (specs/10 §4)
+        let debts = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Alacak ve borçlar")).firstMatch
+        for _ in 0..<3 where !debts.isHittable { app.swipeUp() }
+        if debts.waitForExistence(timeout: 3) {
+            debts.tap()
+            Thread.sleep(forTimeInterval: 1)
+            try shot("23-alacak-borc")
+            let ayse = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Ayşe")).firstMatch
+            if ayse.waitForExistence(timeout: 2) {
+                ayse.tap()
+                Thread.sleep(forTimeInterval: 1)
+                try shot("24-kisi")
+                app.navigationBars.buttons.firstMatch.tap()
+            }
+            app.navigationBars.buttons.firstMatch.tap()
+            app.swipeDown()
+            app.swipeDown()
+            app.swipeDown()
+        }
         app.buttons["Ayarlar"].firstMatch.tap()
         if app.buttons["Hesaplar"].firstMatch.waitForExistence(timeout: 3) {
             try shot("15-ayarlar")

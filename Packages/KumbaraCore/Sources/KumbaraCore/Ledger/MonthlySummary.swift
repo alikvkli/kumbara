@@ -77,8 +77,9 @@ public struct MonthlySummary: Hashable, Sendable {
             if entry.kind == .income {
                 income += entry.amount
             } else {
-                expense += entry.amount
-                byCategory[entry.categoryID, default: .zero(currency)] += entry.amount
+                // Bölünen giderde yalnız kendi payın (specs/10 §4).
+                expense += entry.ownAmount
+                byCategory[entry.categoryID, default: .zero(currency)] += entry.ownAmount
             }
         }
 

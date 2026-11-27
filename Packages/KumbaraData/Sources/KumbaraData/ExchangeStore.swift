@@ -152,6 +152,7 @@ public struct ExchangeStore {
             transaction.installmentPlanID = record.installmentPlanID
             transaction.installmentIndex = record.installmentIndex
             transaction.installmentCount = record.installmentCount
+            transaction.sharedRaw = record.shared
             context.insert(transaction)
             transaction.account = record.accountID.flatMap { accounts[$0] }
             transaction.toAccount = record.toAccountID.flatMap { accounts[$0] }
@@ -256,6 +257,26 @@ public struct ExchangeStore {
             context.insert(plan)
         }
 
+        let existingPeople = Set(try context.fetch(FetchDescriptor<Person>()).map(\.id))
+        for record in backup.people ?? [] where !existingPeople.contains(record.id) {
+            let person = Person(name: record.name, contactID: record.contactID)
+            person.id = record.id
+            person.remindAt = record.remindAt
+            person.isArchived = record.isArchived
+            person.createdAt = record.createdAt
+            context.insert(person)
+        }
+        let existingDebts = Set(try context.fetch(FetchDescriptor<DebtRecord>()).map(\.id))
+        for record in backup.debts ?? [] where !existingDebts.contains(record.id) {
+            guard let kind = DebtKind(rawValue: record.kind), let amount = Decimal(canonical: record.amount) else { continue }
+            let debt = DebtRecord(personID: record.personID, kind: kind, amount: amount, date: record.date,
+                                  transactionID: record.transactionID)
+            debt.id = record.id
+            debt.note = record.note
+            debt.createdAt = record.createdAt
+            context.insert(debt)
+        }
+
         let existingAlerts = Set(try context.fetch(FetchDescriptor<PriceAlert>()).map(\.id))
         for record in backup.priceAlerts where !existingAlerts.contains(record.id) {
             guard let asset = AssetCode(id: record.assetID), let threshold = Decimal(canonical: record.threshold) else { continue }
@@ -288,6 +309,8 @@ public struct ExchangeStore {
         try context.delete(model: PriceAlert.self)
         try context.delete(model: Goal.self)
         try context.delete(model: SavingsPlan.self)
+        try context.delete(model: Person.self)
+        try context.delete(model: DebtRecord.self)
         try context.save()
     }
 
@@ -310,7 +333,7 @@ public struct ExchangeStore {
                       createdAt: $0.createdAt, updatedAt: $0.updatedAt, accountID: $0.account?.id,
                       toAccountID: $0.toAccount?.id, categoryID: $0.category?.id, recurrenceID: $0.recurrenceID,
                       dueDay: $0.dueDay, installmentPlanID: $0.installmentPlanID, installmentIndex: $0.installmentIndex,
-                      installmentCount: $0.installmentCount)
+                      installmentCount: $0.installmentCount, shared: $0.sharedRaw)
             },
             merchantMemories: try context.fetch(FetchDescriptor<MerchantMemory>()).compactMap { memory in
                 memory.category.map { .init(key: memory.key, displayName: memory.displayName, lastUsed: memory.lastUsed,
@@ -350,6 +373,14 @@ public struct ExchangeStore {
             plans: try context.fetch(FetchDescriptor<SavingsPlan>()).map {
                 .init(id: $0.id, assetID: $0.assetID, target: $0.targetRaw, trigger: $0.triggerRaw, start: $0.start,
                       goalID: $0.goalID, isActive: $0.isActive, createdAt: $0.createdAt)
+            },
+            people: try context.fetch(FetchDescriptor<Person>()).map {
+                .init(id: $0.id, name: $0.name, contactID: $0.contactID, remindAt: $0.remindAt, isArchived: $0.isArchived,
+                      createdAt: $0.createdAt)
+            },
+            debts: try context.fetch(FetchDescriptor<DebtRecord>()).map {
+                .init(id: $0.id, personID: $0.personID, kind: $0.kindRaw, amount: $0.amountRaw, date: $0.date,
+                      transactionID: $0.transactionID, note: $0.note, createdAt: $0.createdAt)
             })
     }
 }
@@ -376,6 +407,9 @@ struct Backup: Codable {
     var goals: [GoalRecord]?
     /// Sonradan eklendi (specs/10 §7); eski yedeklerde yok.
     var plans: [PlanRecord]?
+    /// Alacak/borç (specs/10 §4); eski yedeklerde yok.
+    var people: [PersonRecord]?
+    var debts: [DebtRecordBackup]?
 
     struct Account: Codable {
         var id: UUID; var name: String; var kind: String; var currency: String; var openingBalance: String
@@ -390,6 +424,7 @@ struct Backup: Codable {
         var origin: String; var merchant: String?; var note: String; var createdAt: Date; var updatedAt: Date
         var accountID: UUID?; var toAccountID: UUID?; var categoryID: UUID?; var recurrenceID: UUID?; var dueDay: Date?
         var installmentPlanID: UUID?; var installmentIndex: Int?; var installmentCount: Int?
+        var shared: String?
     }
     struct Memory: Codable {
         var key: String; var displayName: String; var lastUsed: Date; var useCount: Int; var categoryID: UUID
@@ -416,6 +451,13 @@ struct Backup: Codable {
     struct GoalRecord: Codable {
         var id: UUID; var name: String; var kind: String; var assetID: String?; var target: String; var deadline: Date?
         var isArchived: Bool; var createdAt: Date
+    }
+    struct PersonRecord: Codable {
+        var id: UUID; var name: String; var contactID: String?; var remindAt: Date?; var isArchived: Bool; var createdAt: Date
+    }
+    struct DebtRecordBackup: Codable {
+        var id: UUID; var personID: UUID; var kind: String; var amount: String; var date: Date; var transactionID: UUID?
+        var note: String; var createdAt: Date
     }
     struct PlanRecord: Codable {
         var id: UUID; var assetID: String; var target: String; var trigger: String; var start: Date; var goalID: UUID?

@@ -50,10 +50,14 @@ public struct LedgerEntry: Hashable, Sendable, Identifiable {
     public var toAccountID: UUID?
     public var categoryID: UUID?
     public var merchant: String?
+    /// Bölünen giderde başkalarının payı (specs/10 §4). Hesaptan tamamı çıkar; bütçeye ve özete yalnız
+    /// kendi payın (`ownAmount`) girer.
+    public var sharedAmount: Decimal
 
     public init(id: UUID = UUID(), date: Date, amount: Money, kind: TransactionKind,
                 status: TransactionStatus = .posted, accountID: UUID? = nil, toAccountID: UUID? = nil,
-                categoryID: UUID? = nil, merchant: String? = nil) {
+                categoryID: UUID? = nil, merchant: String? = nil, sharedAmount: Decimal = 0) {
+        self.sharedAmount = sharedAmount
         self.id = id
         self.date = date
         self.amount = amount
@@ -63,6 +67,12 @@ public struct LedgerEntry: Hashable, Sendable, Identifiable {
         self.toAccountID = toAccountID
         self.categoryID = categoryID
         self.merchant = merchant
+    }
+
+    /// Bütçe ve özet için tutar: giderde başkalarının payı düşülmüş (en az sıfır).
+    public var ownAmount: Money {
+        guard kind == .expense, sharedAmount > 0 else { return amount }
+        return Money(max(amount.amount - sharedAmount, 0), amount.currency)
     }
 
     /// Gelir +, gider −, transfer 0 (toplam gelir/gidere girmez — REQ-L3).

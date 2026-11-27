@@ -174,9 +174,10 @@ public enum BudgetMath {
         }
         // Gider kategorisindeki gelir iadedir: harcamadan düşer.
         let sign: Decimal = entry.kind == .expense ? 1 : -1
-        if entry.amount.currency == .TRY { return .amount(sign * entry.amount.amount) }
-        guard let rate = rate(entry.amount.currency, entry.date) else { return .unconverted }
-        return .amount(sign * entry.amount.amount * rate)
+        let amount = entry.ownAmount
+        if amount.currency == .TRY { return .amount(sign * amount.amount) }
+        guard let rate = rate(amount.currency, entry.date) else { return .unconverted }
+        return .amount(sign * amount.amount * rate)
     }
 
     /// Ayın her günü için o güne kadarki birikimli harcama (grafik için). `through`: son gün (dahil).

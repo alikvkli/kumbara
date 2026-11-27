@@ -14,7 +14,7 @@ public enum SchemaV1: VersionedSchema {
     public static var models: [any PersistentModel.Type] {
         [LedgerAccount.self, LedgerCategory.self, LedgerTransaction.self, MerchantMemory.self,
          AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self, RecurringRule.self, PriceAlert.self,
-         Goal.self, SavingsPlan.self]
+         Goal.self, SavingsPlan.self, Person.self, DebtRecord.self]
     }
 
     @Model
@@ -121,6 +121,8 @@ public enum SchemaV1: VersionedSchema {
         public var installmentPlanID: UUID?
         public var installmentIndex: Int?
         public var installmentCount: Int?
+        /// Bölünen giderde başkalarının payı toplamı (specs/10 §4); yoksa `nil`.
+        var sharedRaw: String?
 
         public init(date: Date, amount: Money, kind: TransactionKind,
                     status: TransactionStatus = .posted, origin: TransactionOrigin = .manual) {
@@ -398,6 +400,8 @@ extension SchemaV1 {
 
 public typealias Goal = SchemaV1.Goal
 public typealias SavingsPlan = SchemaV1.SavingsPlan
+public typealias Person = SchemaV1.Person
+public typealias DebtRecord = SchemaV1.DebtRecord
 public typealias PriceAlert = SchemaV1.PriceAlert
 public typealias RecurringRule = SchemaV1.RecurringRule
 public typealias Budget = SchemaV1.Budget
@@ -448,5 +452,53 @@ extension SchemaV1 {
                   let trigger = SavingsPlanRule.trigger(canonical: triggerRaw) else { return nil }
             return SavingsPlanRule(id: id, asset: asset, target: target, trigger: trigger, start: start, goalID: goalID)
         }
+    }
+}
+
+extension SchemaV1 {
+    /// Alacak/borç defterindeki kişi (specs/10 §4). Rehberden seçildiyse yalnız kimliği tutulur.
+    @Model
+    public final class Person {
+        public var id: UUID = UUID()
+        public var name: String = ""
+        public var contactID: String?
+        /// İsteğe bağlı hatırlatma günü.
+        public var remindAt: Date?
+        public var isArchived: Bool = false
+        public var createdAt: Date = Date.now
+
+        public init(name: String, contactID: String? = nil) {
+            self.name = name
+            self.contactID = contactID
+        }
+    }
+
+    /// Alacak/borç kaydı. İşaret: + kişi bana borçlu (DebtEntry ile aynı).
+    @Model
+    public final class DebtRecord {
+        public var id: UUID = UUID()
+        public var personID: UUID = UUID()
+        var kindRaw: String = DebtKind.split.rawValue
+        var amountRaw: String = "0"
+        public var date: Date = Date.now
+        /// Bölünen gider ya da kapanış/borç transferi.
+        public var transactionID: UUID?
+        public var note: String = ""
+        public var createdAt: Date = Date.now
+
+        public init(personID: UUID, kind: DebtKind, amount: Decimal, date: Date, transactionID: UUID?) {
+            self.personID = personID
+            self.kindRaw = kind.rawValue
+            self.amountRaw = amount.canonicalString
+            self.date = date
+            self.transactionID = transactionID
+        }
+
+        public var kind: DebtKind { DebtKind(rawValue: kindRaw) ?? .split }
+        public var amount: Decimal {
+            get { Decimal(canonical: amountRaw) ?? 0 }
+            set { amountRaw = newValue.canonicalString }
+        }
+        public var entry: DebtEntry { DebtEntry(id: id, personID: personID, kind: kind, amount: amount, date: date) }
     }
 }

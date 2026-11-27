@@ -98,7 +98,13 @@ extension LedgerTransaction {
     public var entry: LedgerEntry {
         LedgerEntry(id: id, date: date, amount: amount, kind: kind, status: status,
                     accountID: account?.id, toAccountID: toAccount?.id,
-                    categoryID: category?.id, merchant: merchant)
+                    categoryID: category?.id, merchant: merchant, sharedAmount: sharedAmount)
+    }
+
+    /// Bölünen giderde başkalarının payı (specs/10 §4).
+    public var sharedAmount: Decimal {
+        get { sharedRaw.flatMap { Decimal(canonical: $0) } ?? 0 }
+        set { sharedRaw = newValue > 0 ? newValue.canonicalString : nil }
     }
 
     /// Düzenleme formu için taslak.

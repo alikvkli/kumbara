@@ -146,6 +146,27 @@ enum Reminders {
         }
     }
 
+    /// Alacak/borç hatırlatması: seçilen gün 10:00 (specs/10 §4). Bakiye kapanınca kaldırılır.
+    static func schedulePerson(_ person: Person, balance: Decimal, locale: Locale = .current, calendar: Calendar = .current) {
+        guard !isUITesting else { return }
+        let center = UNUserNotificationCenter.current()
+        let id = "person:\(person.id.uuidString)"
+        center.removePendingNotificationRequests(withIdentifiers: [id])
+        guard let day = person.remindAt, balance != 0, day > .now || calendar.isDateInToday(day) else { return }
+        let content = UNMutableNotificationContent()
+        let amount = Money(abs(balance), .TRY).formatted(locale: locale)
+        content.title = person.name
+        content.body = balance > 0
+            ? String(localized: "Alacağın \(amount) · hatırlatma günü")
+            : String(localized: "Borcun \(amount) · ödeme günü")
+        content.threadIdentifier = "person"
+        var components = calendar.dateComponents([.year, .month, .day], from: day)
+        components.hour = 10
+        center.add(UNNotificationRequest(identifier: id, content: content,
+                                         trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)),
+                   withCompletionHandler: nil)
+    }
+
     static func cancel(_ rule: RecurringRule) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier(for: rule)])
     }

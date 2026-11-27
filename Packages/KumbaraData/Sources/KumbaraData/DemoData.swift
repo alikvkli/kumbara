@@ -150,6 +150,18 @@ public enum DemoData {
                                             date: calendar.date(bySettingHour: 11, minute: 0, second: 0, of: paid) ?? paid,
                                             account: bank.ref, toAccount: card.ref), now: now)
         }
+        // Alacak / borç (specs/10 §4): bu ayki Köfteci Yusuf hesabı Ayşe ile yarı yarıya; Can'a geçen ay elden borç.
+        let debts = DebtStore(context: context)
+        let ayse = try debts.addPerson(name: "Ayşe")
+        let can = try debts.addPerson(name: "Can")
+        let thisInterval = thisMonth.interval(in: calendar)
+        if let dinner = all.first(where: { $0.merchant == "Köfteci Yusuf" && $0.date >= thisInterval.start }) {
+            try debts.split(dinner, shares: [(ayse, DebtMath.equalShares(total: dinner.amount.amount, others: 1).each)])
+        }
+        if let lentDay = calendar.date(from: DateComponents(year: thisMonth.previous.year, month: thisMonth.previous.month, day: 18, hour: 19)),
+           lentDay <= now {
+            try debts.record(.lent, person: can, amount: 1_500, account: bank, date: lentDay)
+        }
         try loadPortfolio(into: context, now: now, calendar: calendar)
     }
 

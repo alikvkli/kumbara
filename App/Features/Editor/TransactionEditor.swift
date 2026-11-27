@@ -51,6 +51,7 @@ struct TransactionEditor: View {
     @State private var confirmsDeletion = false
     @State private var repetition: Repetition = .none
     @State private var installments = 1
+    @State private var isSplitting = false
 
     /// Kartla yapılan yeni giderde taksit seçilebilir (REQ-L9).
     private var offersInstallments: Bool { editing == nil && kind == .expense && account?.kind == .card }
@@ -117,6 +118,16 @@ struct TransactionEditor: View {
                         }
                     }
                 }
+                // Arkadaşlarla böl (specs/10 §4): yalnız kaydedilmiş giderde.
+                if let editing, editing.kind == .expense, kind == .expense {
+                    Section {
+                        Button(editing.sharedAmount > 0 ? "Bölmeyi düzenle" : "Böl", systemImage: "person.2") { isSplitting = true }
+                    } footer: {
+                        if editing.sharedAmount > 0 {
+                            Text("Senin payın \(editing.entry.ownAmount.formatted(locale: locale)); kalanı alacak olarak yazıldı.")
+                        }
+                    }
+                }
                 if editing != nil {
                     Section {
                         Button("İşlemi sil", role: .destructive) { confirmsDeletion = true }
@@ -139,6 +150,9 @@ struct TransactionEditor: View {
                         .keyboardShortcut(.defaultAction)
                         .accessibilityIdentifier("editor.save")
                 }
+            }
+            .sheet(isPresented: $isSplitting) {
+                if let editing { SplitSheet(transaction: editing) }
             }
             .confirmationDialog("Bu işlem silinsin mi?", isPresented: $confirmsDeletion, titleVisibility: .visible) {
                 Button("Sil", role: .destructive, action: delete)

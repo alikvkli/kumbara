@@ -147,6 +147,9 @@ struct SummaryView: View {
                 NavigationLink { ReportsListView() } label: {
                     Label("Aylık raporlar", systemImage: "doc.text.magnifyingglass")
                 }
+                NavigationLink { PeopleView() } label: {
+                    DebtsLinkLabel()
+                }
             }
         }
     }

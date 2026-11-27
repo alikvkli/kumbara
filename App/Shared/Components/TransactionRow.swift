@@ -71,7 +71,8 @@ extension LedgerTransaction {
     /// "Market › Gıda · Nakit" veya transferde "Banka → Nakit".
     var subtitle: String {
         if kind == .transfer {
-            return "\(account?.name ?? "—") → \(toAccount?.name ?? "—")"
+            // Kişiyle borç/ödeme transferinde karşı taraf kişidir (specs/10 §4).
+            return "\(account?.name ?? merchant ?? "—") → \(toAccount?.name ?? merchant ?? "—")"
         }
         return [category?.path, account?.name].compactMap { $0 }.joined(separator: " · ")
     }
