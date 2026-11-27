@@ -79,13 +79,13 @@ struct BudgetView: View {
                         Section {
                             ForEach(suggestions, id: \.category.id) { item in
                                 SuggestionRow(category: item.category, limit: item.limit) {
-                                    try? store.setLimit(item.limit, for: item.category, from: month)
+                                    _ = try? store.setLimit(item.limit, for: item.category, from: month)
                                     BudgetMonitor.shared.requestAuthorizationIfNeeded()
                                 }
                             }
                             if suggestions.count > 1 {
                                 Button("Hepsini ekle") {
-                                    for item in suggestions { try? store.setLimit(item.limit, for: item.category, from: month) }
+                                    for item in suggestions { _ = try? store.setLimit(item.limit, for: item.category, from: month) }
                                     BudgetMonitor.shared.requestAuthorizationIfNeeded()
                                 }
                             }

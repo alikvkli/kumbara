@@ -25,11 +25,9 @@ final class BudgetMonitor: NSObject, UNUserNotificationCenterDelegate {
     /// İzin, ilk bütçe oluşturulunca istenir (açılışta değil).
     func requestAuthorizationIfNeeded() {
         guard !isUITesting else { return }
-        Task {
-            let center = UNUserNotificationCenter.current()
-            let settings = await center.notificationSettings()
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
             guard settings.authorizationStatus == .notDetermined else { return }
-            _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
         }
     }
 
@@ -73,7 +71,7 @@ final class BudgetMonitor: NSObject, UNUserNotificationCenterDelegate {
         content.threadIdentifier = "budget"
         let id = BudgetStore.notificationKey(budget: status.id, month: month, threshold: threshold)
         let request = UNNotificationRequest(identifier: id, content: content, trigger: nil)
-        Task { try? await UNUserNotificationCenter.current().add(request) }
+        UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
     }
 
     // Uygulama öndeyken de afiş göster: eşiği geçiren kaydı kullanıcı az önce yaptı.

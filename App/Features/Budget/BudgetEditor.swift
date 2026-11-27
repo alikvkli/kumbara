@@ -151,7 +151,7 @@ struct BudgetEditor: View {
 
     private func save() {
         guard let limit else { return }
-        try? store.setLimit(limit, for: isOverall ? nil : category, from: month)
+        _ = try? store.setLimit(limit, for: isOverall ? nil : category, from: month)
         BudgetMonitor.shared.requestAuthorizationIfNeeded()
         dismiss()
     }
