@@ -127,10 +127,7 @@ enum Reminders {
     static func schedulePlans(_ plans: [SavingsPlan], now: Date = .now, calendar: Calendar = .current, locale: Locale = .current) {
         guard !isUITesting else { return }
         let center = UNUserNotificationCenter.current()
-        center.getPendingNotificationRequests { requests in
-            let stale = requests.map(\.identifier).filter { $0.hasPrefix("plan:") }
-            center.removePendingNotificationRequests(withIdentifiers: stale)
-        }
+        center.removePendingNotificationRequests(withIdentifiers: plans.map { planIdentifier($0.id) })
         for plan in plans where plan.isActive {
             guard let rule = plan.rule, let next = rule.schedule?.nextDue(after: now, calendar: calendar) else { continue }
             let content = UNMutableNotificationContent()
@@ -140,10 +137,16 @@ enum Reminders {
             content.userInfo = ["link": DeepLink.plan.url.absoluteString, "planID": plan.id.uuidString]
             var components = calendar.dateComponents([.year, .month, .day], from: next)
             components.hour = 9
-            center.add(UNNotificationRequest(identifier: "plan:\(plan.id.uuidString)", content: content,
+            center.add(UNNotificationRequest(identifier: planIdentifier(plan.id), content: content,
                                              trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)),
                        withCompletionHandler: nil)
         }
+    }
+
+    static func planIdentifier(_ id: UUID) -> String { "plan:\(id.uuidString)" }
+
+    static func cancelPlan(_ id: UUID) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [planIdentifier(id)])
     }
 
     /// Alacak/borç hatırlatması: seçilen gün 10:00 (specs/10 §4). Bakiye kapanınca kaldırılır.

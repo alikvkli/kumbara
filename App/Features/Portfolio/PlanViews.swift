@@ -188,8 +188,8 @@ struct PlanDetailView: View {
         }
         .confirmationDialog("Plan silinsin mi?", isPresented: $confirmsDeletion) {
             Button("Planı sil", role: .destructive) {
+                Reminders.cancelPlan(plan.id)
                 try? store.delete(plan)
-                Reminders.schedulePlans((try? store.plans()) ?? [])
                 dismiss()
             }
         }
