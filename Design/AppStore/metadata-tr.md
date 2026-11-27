@@ -83,7 +83,7 @@ CI'ın ekran görüntüsü işi (`[screenshots]`) bu sırayı üretir; mağazaya
 | 7 | ios-13-kart | Kart ekstresi ve taksitler |
 | 8 | ios-7-piyasa | Tüm altın ve döviz fiyatları |
 
-Not: Şu anki ekran görüntüleri iPhone 17 Pro (6,3") boyutunda. Mağaza için CI'da 6,9" bir
+Not: Varsayılan ekran görüntüleri 6,3" (iPhone Pro). Mağaza boyutu için commit mesajına `[store]` yaz ya da Actions › CI › Run workflow › "Mağaza boyutu" seç; 6,9" bir
 simülatörle (iPhone 17 Pro Max) bir tur daha alınmalı.
 
 ## Destek
