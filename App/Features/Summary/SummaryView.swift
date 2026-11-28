@@ -150,6 +150,9 @@ struct SummaryView: View {
                 NavigationLink { PeopleView() } label: {
                     DebtsLinkLabel()
                 }
+                NavigationLink { LoansView() } label: {
+                    LoansLinkLabel()
+                }
             }
         }
     }

@@ -169,6 +169,7 @@ struct RootView: View {
             InsightMonitor.check(context)
             Reminders.schedulePlans((try? PlanStore(context: context).plans()) ?? [])
             RentReminders.schedule((try? RentStore(context: context).contracts()) ?? [])
+            Reminders.scheduleLoans((try? LoanStore(context: context).loans()) ?? [], context: context)
         }
     }
 }

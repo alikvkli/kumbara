@@ -2,7 +2,7 @@ import Foundation
 import KumbaraCore
 import SwiftData
 
-/// Ödeme takvimi kaynakları (specs/10 §5). Kartla ödenen tekrarlar ve abonelikler ayrı kalem değildir;
+/// Ödeme takvimi kaynakları (specs/10 §5, kredi taksitleri specs/13). Kartla ödenen tekrarlar ve abonelikler ayrı kalem değildir;
 /// kart son ödemesinin içindedir (çift sayım olmasın).
 extension InsightStore {
     public func upcomingPayments(from: Date = .now, days: Int = 62, now: Date = .now,
@@ -28,6 +28,8 @@ extension InsightStore {
             items += PaymentCalendar.card(id: card.id, name: card.name, statement: statement, from: start, through: through,
                                           calendar: calendar)
         }
+
+        items += try LoanStore(context: context).upcoming(from: start, through: through, calendar: calendar)
 
         let onCard = try merchantKeysPaidByCard()
         let subscriptions = try subscriptions(now: now, calendar: calendar).filter { !onCard.contains($0.merchantKey) }

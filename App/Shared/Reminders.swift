@@ -173,4 +173,36 @@ enum Reminders {
     static func cancel(_ rule: RecurringRule) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier(for: rule)])
     }
+
+    // MARK: Krediler (specs/13)
+
+    static func loanIdentifier(_ id: UUID) -> String { "loan:\(id.uuidString)" }
+
+    /// Sıradaki taksitin vadesinden 1 gün önce 10:00. Kapanan, silinen ya da taksiti kalmayan kredinin
+    /// bekleyen hatırlatması kaldırılır.
+    static func scheduleLoans(_ loans: [Loan], context: ModelContext, now: Date = .now, calendar: Calendar = .current,
+                              locale: Locale = .current) {
+        guard !isUITesting else { return }
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: loans.map { loanIdentifier($0.id) })
+        let store = LoanStore(context: context)
+        for loan in loans {
+            guard let next = store.nextInstallment(of: loan, calendar: calendar),
+                  let remind = calendar.date(byAdding: .day, value: -1, to: next.due),
+                  let fire = calendar.date(bySettingHour: 10, minute: 0, second: 0, of: remind), fire > now else { continue }
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "\(loan.name) taksiti yarın")
+            content.body = String(localized: "\(Money(next.payment, .TRY).formatted(locale: locale)) · \(next.number). taksit / \(loan.termMonths)")
+            content.threadIdentifier = "loan"
+            content.userInfo = ["link": DeepLink.calendar.url.absoluteString]
+            let components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fire)
+            center.add(UNNotificationRequest(identifier: loanIdentifier(loan.id), content: content,
+                                             trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)),
+                       withCompletionHandler: nil)
+        }
+    }
+
+    static func cancelLoan(_ id: UUID) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [loanIdentifier(id)])
+    }
 }

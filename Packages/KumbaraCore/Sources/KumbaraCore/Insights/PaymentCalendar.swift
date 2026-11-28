@@ -11,6 +11,7 @@ public struct UpcomingPayment: Hashable, Sendable, Identifiable {
         case subscription(String)
         case person(UUID)
         case plan(UUID)
+        case loan(UUID)
     }
 
     public var id: String
@@ -100,6 +101,21 @@ public enum PaymentCalendar {
             }
         }
         return result
+    }
+
+    /// Kredinin ödenmemiş taksitleri (specs/13). İlk `paidCount` taksit ödenmiş sayılır; gecikmiş taksit
+    /// kredi ekranında gösterilir, takvimde kendi gününde kalır.
+    public static func loan(id: UUID, title: String, terms: LoanTerms, paidCount: Int, from: Date, through: Date,
+                            calendar: Calendar) -> [UpcomingPayment] {
+        let start = calendar.startOfDay(for: from)
+        let end = calendar.startOfDay(for: through)
+        return LoanMath.schedule(terms, calendar: calendar)
+            .dropFirst(max(paidCount, 0))
+            .filter { $0.due >= start && $0.due <= end }
+            .map { row in
+                UpcomingPayment(id: "loan:\(id.uuidString):\(row.number)", date: row.due, amount: row.payment,
+                                title: title, source: .loan(id))
+            }
     }
 
     /// Belirli bir pencerenin özeti.
