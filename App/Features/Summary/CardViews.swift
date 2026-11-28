@@ -136,6 +136,18 @@ struct CardDetailView: View {
                     .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 8, trailing: 4))
                 }
 
+                // Faiz hesabı yalnız TL kartta ve ödenmemiş ekstre varken (specs/11 §4).
+                if hasDue, account.currency == .TRY {
+                    Section {
+                        NavigationLink {
+                            CardInterestView(cardID: account.id, statement: statement.lastStatement.amount,
+                                             paid: statement.paidSinceClosing.amount, due: statement.last.due)
+                        } label: {
+                            CardInterestLinkLabel(cardID: account.id, statement: statement)
+                        }
+                    }
+                }
+
                 if !period.isEmpty {
                     Section("Bu dönemin işlemleri") {
                         ForEach(period) { transaction in
