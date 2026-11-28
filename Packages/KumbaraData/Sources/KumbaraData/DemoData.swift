@@ -162,7 +162,22 @@ public enum DemoData {
            lentDay <= now {
             try debts.record(.lent, person: can, amount: 1_500, account: bank, date: lentDay)
         }
+        try loadLoan(into: context, bank: bank, now: now, calendar: calendar)
         try loadPortfolio(into: context, now: now, calendar: calendar)
+    }
+
+    /// Kredi (specs/13): 5 ay önce çekilmiş ₺60.000 ihtiyaç kredisi, 12 ay, her ayın 5'i. Geçmiş taksitler
+    /// uygulamadan önce ödenmiş sayılır (defterde gider kaydı yok; demo toplamları değişmez).
+    private static func loadLoan(into context: ModelContext, bank: LedgerAccount, now: Date, calendar: Calendar) throws {
+        var month = LedgerMonth(containing: now, calendar: calendar)
+        for _ in 0..<4 { month = month.previous }
+        guard let firstDue = calendar.date(from: DateComponents(year: month.year, month: month.month, day: 5)) else { return }
+        let terms = LoanTerms(kind: .personal, principal: 60_000, monthlyRate: Decimal(canonical: "0.0329")!, termMonths: 12,
+                              firstDue: firstDue)
+        let paid = LoanMath.schedule(terms, calendar: calendar).filter { $0.due <= now }.count
+        let other = try LedgerStore(context: context).category(seedKey: "other.expense")
+        try LoanStore(context: context).save(name: "İhtiyaç kredisi", terms: terms, paidCount: paid, accountID: bank.id,
+                                             categoryID: other?.id)
     }
 
     /// Birikim örneği: gram altın, çeyrek, USD ve bir serbest fon; son 210 gün için **yapay**

@@ -81,7 +81,7 @@ struct PaymentCalendarView: View {
                     Text("Önümüzdeki 30 gün")
                 }
             } footer: {
-                Text("Tekrarlayan işlemler, kart son ödemeleri ve aboneliklerden. Kartla ödenen abonelikler kart ödemesinin içindedir; \"tahmini\" yazanlar geçmiş ödemelerden çıkarıldı.")
+                Text("Tekrarlayan işlemler, kart son ödemeleri, kredi taksitleri ve aboneliklerden. Kartla ödenen abonelikler kart ödemesinin içindedir; \"tahmini\" yazanlar geçmiş ödemelerden çıkarıldı.")
             }
         }
         .navigationTitle("Ödeme takvimi")

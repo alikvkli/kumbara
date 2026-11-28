@@ -14,7 +14,7 @@ public enum SchemaV1: VersionedSchema {
     public static var models: [any PersistentModel.Type] {
         [LedgerAccount.self, LedgerCategory.self, LedgerTransaction.self, MerchantMemory.self,
          AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self, RecurringRule.self, PriceAlert.self,
-         Goal.self, SavingsPlan.self, Person.self, DebtRecord.self]
+         Goal.self, SavingsPlan.self, Person.self, DebtRecord.self, Loan.self]
     }
 
     @Model
@@ -500,5 +500,68 @@ extension SchemaV1 {
             set { amountRaw = newValue.canonicalString }
         }
         public var entry: DebtEntry { DebtEntry(id: id, personID: personID, kind: kind, amount: amount, date: date) }
+    }
+}
+
+extension SchemaV1 {
+    /// Kredi (REQ-I10, specs/13). Ödeme planı koşullardan hesaplanır, saklanmaz. Ödenen her taksit,
+    /// seçilen hesaptan bir gider kaydıdır; kimlikleri sırayla `paymentIDsRaw` içinde tutulur.
+    @Model
+    public final class Loan {
+        public var id: UUID = UUID()
+        public var name: String = ""
+        var kindRaw: String = LoanKind.personal.rawValue
+        var principalRaw: String = "0"
+        var monthlyRateRaw: String = "0"
+        var taxRateRaw: String = "0"
+        public var termMonths: Int = 12
+        public var firstDue: Date = Date.now
+        /// Bankanın bildirdiği taksit; boşsa formülden.
+        var paymentRaw: String = ""
+        public var isVariableRate: Bool = false
+        /// Taksitin çıktığı hesap (nakit/banka).
+        public var accountID: UUID?
+        public var categoryID: UUID?
+        /// Ödenmiş taksit sayısı (uygulamaya eklenmeden önce ödenenler dahil).
+        public var paidCount: Int = 0
+        /// Uygulamada işaretlenen ödemeler sırayla, virgülle: gider kaydının kimliği ya da kayıtsız
+        /// işaretlenen ödeme için `-`.
+        var paymentIDsRaw: String = ""
+        public var closedAt: Date?
+        /// Erken kapama gider kaydı.
+        public var closingTransactionID: UUID?
+        public var createdAt: Date = Date.now
+
+        public init(name: String, terms: LoanTerms) {
+            self.name = name
+            apply(terms)
+        }
+
+        public func apply(_ terms: LoanTerms) {
+            kindRaw = terms.kind.rawValue
+            principalRaw = terms.principal.canonicalString
+            monthlyRateRaw = terms.monthlyRate.canonicalString
+            taxRateRaw = terms.taxRate.canonicalString
+            termMonths = terms.termMonths
+            firstDue = terms.firstDue
+            paymentRaw = terms.payment?.canonicalString ?? ""
+            isVariableRate = terms.isVariableRate
+        }
+
+        public var kind: LoanKind { LoanKind(rawValue: kindRaw) ?? .personal }
+        public var terms: LoanTerms {
+            LoanTerms(kind: kind, principal: Decimal(canonical: principalRaw) ?? 0,
+                      monthlyRate: Decimal(canonical: monthlyRateRaw) ?? 0, taxRate: Decimal(canonical: taxRateRaw) ?? 0,
+                      termMonths: termMonths, firstDue: firstDue, payment: Decimal(canonical: paymentRaw),
+                      isVariableRate: isVariableRate)
+        }
+
+        /// Uygulamada işaretlenen ödemeler; `nil` = gider kaydı olmadan işaretlendi.
+        public var payments: [UUID?] {
+            get { paymentIDsRaw.split(separator: ",").map { UUID(uuidString: String($0)) } }
+            set { paymentIDsRaw = newValue.map { $0?.uuidString ?? "-" }.joined(separator: ",") }
+        }
+
+        public var isClosed: Bool { closedAt != nil || paidCount >= termMonths }
     }
 }

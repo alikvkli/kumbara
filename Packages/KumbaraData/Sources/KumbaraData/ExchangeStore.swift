@@ -277,6 +277,8 @@ public struct ExchangeStore {
             context.insert(debt)
         }
 
+        try restoreLoans(backup.loans ?? [])
+
         let existingAlerts = Set(try context.fetch(FetchDescriptor<PriceAlert>()).map(\.id))
         for record in backup.priceAlerts where !existingAlerts.contains(record.id) {
             guard let asset = AssetCode(id: record.assetID), let threshold = Decimal(canonical: record.threshold) else { continue }
@@ -311,10 +313,17 @@ public struct ExchangeStore {
         try context.delete(model: SavingsPlan.self)
         try context.delete(model: Person.self)
         try context.delete(model: DebtRecord.self)
+        try context.delete(model: Loan.self)
         try context.save()
     }
 
     private func makeBackup(now: Date) throws -> Backup {
+        var backup = try makeBaseBackup(now: now)
+        backup.loans = try loanRecords()
+        return backup
+    }
+
+    private func makeBaseBackup(now: Date) throws -> Backup {
         Backup(
             version: Backup.currentVersion,
             exportedAt: now,
@@ -410,6 +419,8 @@ struct Backup: Codable {
     /// Alacak/borç (specs/10 §4); eski yedeklerde yok.
     var people: [PersonRecord]?
     var debts: [DebtRecordBackup]?
+    /// Krediler (specs/13); eski yedeklerde yok.
+    var loans: [LoanRecord]?
 
     struct Account: Codable {
         var id: UUID; var name: String; var kind: String; var currency: String; var openingBalance: String
@@ -459,6 +470,12 @@ struct Backup: Codable {
         var id: UUID; var personID: UUID; var kind: String; var amount: String; var date: Date; var transactionID: UUID?
         var note: String; var createdAt: Date
     }
+    struct LoanRecord: Codable {
+        var id: UUID; var name: String; var kind: String; var principal: String; var monthlyRate: String
+        var taxRate: String; var termMonths: Int; var firstDue: Date; var payment: String; var isVariableRate: Bool
+        var accountID: UUID?; var categoryID: UUID?; var paidCount: Int; var payments: String; var closedAt: Date?
+        var closingTransactionID: UUID?; var createdAt: Date
+    }
     struct PlanRecord: Codable {
         var id: UUID; var assetID: String; var target: String; var trigger: String; var start: Date; var goalID: UUID?
         var isActive: Bool; var createdAt: Date
@@ -466,5 +483,41 @@ struct Backup: Codable {
     struct Alert: Codable {
         var id: UUID; var assetID: String; var direction: String; var threshold: String; var priceKind: String
         var lastSatisfied: Bool?; var isActive: Bool; var firedAt: Date?; var firedPrice: String?; var createdAt: Date
+    }
+}
+
+// MARK: Krediler (specs/13)
+
+extension ExchangeStore {
+    func loanRecords() throws -> [Backup.LoanRecord] {
+        try context.fetch(FetchDescriptor<Loan>()).map {
+            .init(id: $0.id, name: $0.name, kind: $0.kindRaw, principal: $0.principalRaw, monthlyRate: $0.monthlyRateRaw,
+                  taxRate: $0.taxRateRaw, termMonths: $0.termMonths, firstDue: $0.firstDue, payment: $0.paymentRaw,
+                  isVariableRate: $0.isVariableRate, accountID: $0.accountID, categoryID: $0.categoryID,
+                  paidCount: $0.paidCount, payments: $0.paymentIDsRaw, closedAt: $0.closedAt,
+                  closingTransactionID: $0.closingTransactionID, createdAt: $0.createdAt)
+        }
+    }
+
+    func restoreLoans(_ records: [Backup.LoanRecord]) throws {
+        let existing = Set(try context.fetch(FetchDescriptor<Loan>()).map(\.id))
+        for record in records where !existing.contains(record.id) {
+            guard let principal = Decimal(canonical: record.principal), let rate = Decimal(canonical: record.monthlyRate)
+            else { continue }
+            let terms = LoanTerms(kind: LoanKind(rawValue: record.kind) ?? .personal, principal: principal, monthlyRate: rate,
+                                  taxRate: Decimal(canonical: record.taxRate), termMonths: record.termMonths,
+                                  firstDue: record.firstDue, payment: Decimal(canonical: record.payment),
+                                  isVariableRate: record.isVariableRate)
+            let loan = Loan(name: record.name, terms: terms)
+            loan.id = record.id
+            loan.accountID = record.accountID
+            loan.categoryID = record.categoryID
+            loan.paidCount = record.paidCount
+            loan.paymentIDsRaw = record.payments
+            loan.closedAt = record.closedAt
+            loan.closingTransactionID = record.closingTransactionID
+            loan.createdAt = record.createdAt
+            context.insert(loan)
+        }
     }
 }
