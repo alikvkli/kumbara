@@ -74,10 +74,10 @@ birlikte M4'e (T4.5) taşındı; ön planda 60 sn yenileme M2'de tamam.
 - [x] T6.4 Alacak / borç: kişiler (iOS'ta sistem kişi seçicisi), gider bölme (eşit/tutar/yüzde; bütçeye yalnız kendi payın), elden borç ve kapatma (transfer; bütçeye girmez), hatırlatma, hazır mesajla "Hatırlat"; yedekte (REQ-I4).
 - [x] T6.6 Hızlı ekleme önerisi: yeni gider formunda "Bu saatlerde sık" çipleri (gün türü + ±60 dk, en az 4 tekrar), uzun basınca "Bunu önerme", Ayarlar'dan kapatılır; konum yok (K3) (REQ-I6).
 
-## M7 — Borç ve kira araçları — ayrıntı: 11, 12, 13
-- [ ] T7.1 Kart faizi: "Asgari ödersen" — tam / asgari / özel tutar, KKDF + BSMV, asgariyle kapanma süresi (REQ-I8, specs/11).
-- [ ] T7.2 Kira artışı: 12 aylık TÜFE ortalamasıyla yasal sınır, kiracı / ev sahibi, yenilemeden 30 gün önce hatırlatma (REQ-I9, specs/12).
-- [ ] T7.3 Krediler: ödeme planı, taksitten faiz çözümü, erken kapama, ödeme takviminde taksitler (REQ-I10, specs/13).
+## M7 — Borç ve kira araçları — ayrıntı: 11, 12, 13 ✓
+- [x] T7.1 Kart faizi: "Asgari ödersen" — tam / asgari / özel tutar, KKDF + BSMV, asgariyle kapanma süresi (REQ-I8, specs/11).
+- [x] T7.2 Kira artışı: 12 aylık TÜFE ortalamasıyla yasal sınır, kiracı / ev sahibi, yenilemeden 30 gün önce hatırlatma (REQ-I9, specs/12).
+- [x] T7.3 Krediler: ödeme planı, taksitten faiz çözümü, erken kapama, ödeme takviminde taksitler (REQ-I10, specs/13).
 
 ## Sonrası (v1.x adayları)
 Kestirmeler / App Intents (REQ-C7), BIST/fon fiyatları (kaynak bulunursa), ortak bütçe
