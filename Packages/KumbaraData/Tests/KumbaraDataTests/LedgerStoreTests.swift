@@ -172,11 +172,12 @@ struct DemoDataTests {
         #expect(summary.expense == Money(Decimal(canonical: "37435.69")!, .TRY))
         #expect(try LedgerStore(context: context).suggestedCategory(forMerchant: "migros")?.seedKey == "market.food")
 
-        // Son ekstre ödenmiş: borç yok, bu dönemin harcaması duruyor.
+        // Son ekstrenin yalnız asgarisi ödenmiş: kalan borç duruyor (specs/11).
         let card = try #require(try context.fetch(FetchDescriptor<LedgerAccount>()).first { $0.kind == .card })
         let statement = try #require(try InstallmentStore(context: context).statement(for: card, now: now, calendar: calendar))
-        #expect(statement.remainingDue.amount == 0)
         #expect(statement.lastStatement.amount > 0)
+        #expect(statement.paidSinceClosing.amount == CardInterest.minimum(balance: statement.lastStatement.amount, rule: .standard))
+        #expect(statement.remainingDue.amount == statement.lastStatement.amount - statement.paidSinceClosing.amount)
 
         let portfolio = PortfolioStore(context: context, calendar: calendar)
         #expect(try portfolio.allTrades().count == 7)
