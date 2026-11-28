@@ -161,6 +161,20 @@ final class ScreenshotTests: XCTestCase {
                 }
                 app.buttons["Kapat"].firstMatch.tap()
             }
+            // Kira artışı (specs/12)
+            let rent = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Kira artışı")).firstMatch
+            if !rent.isHittable { app.swipeUp() }
+            if rent.waitForExistence(timeout: 3) {
+                rent.tap()
+                let contract = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Ev kirası")).firstMatch
+                if contract.waitForExistence(timeout: 3) {
+                    contract.tap()
+                    Thread.sleep(forTimeInterval: 1)
+                    try shot("26-kira")
+                    app.navigationBars.buttons.firstMatch.tap()
+                }
+                app.navigationBars.buttons.firstMatch.tap()
+            }
             app.swipeDown()
             app.swipeDown()
         }
@@ -172,6 +186,15 @@ final class ScreenshotTests: XCTestCase {
             card.tap()
             Thread.sleep(forTimeInterval: 1)
             try shot("13-kart")
+            // Asgari ödersen (specs/11)
+            let interest = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Asgari ödersen")).firstMatch
+            for _ in 0..<2 where !interest.isHittable { app.swipeUp() }
+            if interest.waitForExistence(timeout: 2) {
+                interest.tap()
+                Thread.sleep(forTimeInterval: 1)
+                try shot("25-kart-faiz")
+                app.navigationBars.buttons.firstMatch.tap()
+            }
             app.navigationBars.buttons.firstMatch.tap()
             app.swipeDown()
             app.swipeDown()
@@ -217,6 +240,25 @@ final class ScreenshotTests: XCTestCase {
                 ayse.tap()
                 Thread.sleep(forTimeInterval: 1)
                 try shot("24-kisi")
+                app.navigationBars.buttons.firstMatch.tap()
+            }
+            app.navigationBars.buttons.firstMatch.tap()
+            app.swipeDown()
+            app.swipeDown()
+            app.swipeDown()
+        }
+        // Krediler (specs/13)
+        let loans = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Krediler")).firstMatch
+        for _ in 0..<3 where !loans.isHittable { app.swipeUp() }
+        if loans.waitForExistence(timeout: 3) {
+            loans.tap()
+            Thread.sleep(forTimeInterval: 1)
+            try shot("27-krediler")
+            let loan = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "İhtiyaç kredisi")).firstMatch
+            if loan.waitForExistence(timeout: 2) {
+                loan.tap()
+                Thread.sleep(forTimeInterval: 1)
+                try shot("28-kredi")
                 app.navigationBars.buttons.firstMatch.tap()
             }
             app.navigationBars.buttons.firstMatch.tap()
