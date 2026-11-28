@@ -27,6 +27,17 @@ final class ScreenshotTests: XCTestCase {
             tab.tap()
         }
 
+        /// Öğe dokunulabilir olana kadar küçük adımlarla kaydırır (büyük ekranda sekme çubuğu ve şerit
+        /// altta kalanı örter). Bulunamazsa ya da açılamazsa `false`: o kare atlanır, test düşmez.
+        func reveal(_ element: XCUIElement) -> Bool {
+            guard element.waitForExistence(timeout: 3) else { return false }
+            for _ in 0..<6 where !element.isHittable {
+                let start = app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.7))
+                start.press(forDuration: 0.05, thenDragTo: app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)))
+            }
+            return element.isHittable
+        }
+
         func shot(_ name: String) throws {
             Thread.sleep(forTimeInterval: 1.0)
             let data = XCUIScreen.main.screenshot().pngRepresentation
@@ -66,16 +77,14 @@ final class ScreenshotTests: XCTestCase {
         try shot("5b-hedefler")
         // Birikim planı (specs/10 §7)
         let planRow = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", "Her ayın")).firstMatch
-        if planRow.waitForExistence(timeout: 2) {
-            if !planRow.isHittable { app.swipeUp() }
+        if reveal(planRow) {
             planRow.tap()
             Thread.sleep(forTimeInterval: 1)
             try shot("22-birikim-plani")
             app.navigationBars.buttons.firstMatch.tap()
         }
         let gram = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Gram altın")).firstMatch
-        if !gram.isHittable { app.swipeUp() }
-        if gram.waitForExistence(timeout: 3) {
+        if reveal(gram) {
             gram.tap()
             try shot("6-gram-altin")
             app.swipeUp()
@@ -132,8 +141,7 @@ final class ScreenshotTests: XCTestCase {
             }
             // Ödeme takvimi (specs/10 §5)
             let paymentCalendar = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Ödeme takvimi")).firstMatch
-            if !paymentCalendar.isHittable { app.swipeUp() }
-            if paymentCalendar.waitForExistence(timeout: 3) {
+            if reveal(paymentCalendar) {
                 paymentCalendar.tap()
                 Thread.sleep(forTimeInterval: 1)
                 try shot("20-odeme-takvimi")
@@ -141,8 +149,7 @@ final class ScreenshotTests: XCTestCase {
             }
             // Abonelikler (specs/10 §2)
             let subscriptions = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Abonelikler")).firstMatch
-            if !subscriptions.isHittable { app.swipeUp() }
-            if subscriptions.waitForExistence(timeout: 3) {
+            if reveal(subscriptions) {
                 subscriptions.tap()
                 Thread.sleep(forTimeInterval: 1)
                 try shot("17-abonelikler")
@@ -150,8 +157,7 @@ final class ScreenshotTests: XCTestCase {
             }
             // Alabilir miyim? (specs/10 §3)
             let purchase = app.buttons["Alabilir miyim?"].firstMatch
-            if !purchase.isHittable { app.swipeUp() }
-            if purchase.waitForExistence(timeout: 3) {
+            if reveal(purchase) {
                 purchase.tap()
                 let field = app.textFields["purchase.amount"]
                 if field.waitForExistence(timeout: 3) {
@@ -163,8 +169,7 @@ final class ScreenshotTests: XCTestCase {
             }
             // Kira artışı (specs/12)
             let rent = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Kira artışı")).firstMatch
-            if !rent.isHittable { app.swipeUp() }
-            if rent.waitForExistence(timeout: 3) {
+            if reveal(rent) {
                 rent.tap()
                 let contract = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Ev kirası")).firstMatch
                 if contract.waitForExistence(timeout: 3) {
@@ -181,15 +186,13 @@ final class ScreenshotTests: XCTestCase {
 
         tapTab("Özet")
         let card = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Kredi kartı")).firstMatch
-        if !card.isHittable { app.swipeUp() }
-        if card.waitForExistence(timeout: 3) {
+        if reveal(card) {
             card.tap()
             Thread.sleep(forTimeInterval: 1)
             try shot("13-kart")
             // Asgari ödersen (specs/11)
             let interest = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Asgari ödersen")).firstMatch
-            for _ in 0..<2 where !interest.isHittable { app.swipeUp() }
-            if interest.waitForExistence(timeout: 2) {
+            if reveal(interest) {
                 interest.tap()
                 Thread.sleep(forTimeInterval: 1)
                 try shot("25-kart-faiz")
@@ -201,8 +204,7 @@ final class ScreenshotTests: XCTestCase {
         }
         // Aylık rapor (specs/10 §1)
         let reports = app.buttons["Aylık raporlar"].firstMatch
-        for _ in 0..<3 where !reports.isHittable { app.swipeUp() }
-        if reports.waitForExistence(timeout: 3) {
+        if reveal(reports) {
             reports.tap()
             let previousMonth = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
             let year = String(Calendar.current.component(.year, from: previousMonth))
@@ -230,8 +232,7 @@ final class ScreenshotTests: XCTestCase {
         }
         // Alacak ve borçlar (specs/10 §4)
         let debts = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Alacak ve borçlar")).firstMatch
-        for _ in 0..<3 where !debts.isHittable { app.swipeUp() }
-        if debts.waitForExistence(timeout: 3) {
+        if reveal(debts) {
             debts.tap()
             Thread.sleep(forTimeInterval: 1)
             try shot("23-alacak-borc")
@@ -249,8 +250,7 @@ final class ScreenshotTests: XCTestCase {
         }
         // Krediler (specs/13)
         let loans = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Krediler")).firstMatch
-        for _ in 0..<3 where !loans.isHittable { app.swipeUp() }
-        if loans.waitForExistence(timeout: 3) {
+        if reveal(loans) {
             loans.tap()
             Thread.sleep(forTimeInterval: 1)
             try shot("27-krediler")
@@ -270,8 +270,7 @@ final class ScreenshotTests: XCTestCase {
         if app.buttons["Hesaplar"].firstMatch.waitForExistence(timeout: 3) {
             try shot("15-ayarlar")
             let backup = app.buttons["Dışa aktar ve yedekle"].firstMatch
-            if !backup.isHittable { app.swipeUp() }
-            if backup.waitForExistence(timeout: 2) {
+            if reveal(backup) {
                 backup.tap()
                 try shot("16-disa-aktar")
                 app.navigationBars.buttons.firstMatch.tap()
