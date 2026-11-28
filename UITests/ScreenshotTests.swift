@@ -27,15 +27,28 @@ final class ScreenshotTests: XCTestCase {
             tab.tap()
         }
 
-        /// Öğe dokunulabilir olana kadar küçük adımlarla kaydırır (büyük ekranda sekme çubuğu ve şerit
-        /// altta kalanı örter). Bulunamazsa ya da açılamazsa `false`: o kare atlanır, test düşmez.
+        /// Öğe görünür ve dokunulabilir olana kadar yavaşça kaydırır. Liste satırları ekrana gelmeden
+        /// oluşmadığından, öğe yoksa aşağı doğru aranır; varsa ekranın ortasına doğru getirilir (altta sekme
+        /// çubuğu ve piyasa şeridi örter). Bulunamazsa `false`: o kare atlanır, test düşmez.
         func reveal(_ element: XCUIElement) -> Bool {
-            guard element.waitForExistence(timeout: 3) else { return false }
-            for _ in 0..<6 where !element.isHittable {
-                let start = app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.7))
-                start.press(forDuration: 0.05, thenDragTo: app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45)))
+            let window = app.windows.firstMatch
+            _ = element.waitForExistence(timeout: 1)
+            for attempt in 0..<14 {
+                let frame = window.frame
+                if element.exists {
+                    let box = element.frame
+                    let visible = box.minY > frame.minY + 100 && box.maxY < frame.maxY - 220
+                    if visible, element.isHittable { return true }
+                }
+                // İçeriği yukarı it (aşağıdakini getir); öğe yukarıda kaldıysa ya da aşağıda bulunamadıysa
+                // yukarı doğru ara.
+                let towardTop = (element.exists && element.frame.midY < frame.minY + 100) || attempt >= 7
+                let from = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: towardTop ? 0.35 : 0.65))
+                let to = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: towardTop ? 0.6 : 0.4))
+                from.press(forDuration: 0.05, thenDragTo: to, withVelocity: .slow, thenHoldForDuration: 0.2)
+                Thread.sleep(forTimeInterval: 0.4)
             }
-            return element.isHittable
+            return element.exists && element.isHittable
         }
 
         func shot(_ name: String) throws {
