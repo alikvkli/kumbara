@@ -127,3 +127,14 @@ kopyalanır. Bu iş T5.1–T5.4'ün önündedir.
 - **R3** CSV içe aktarma v1'de genel sütun eşleme; banka şablonları v1.x.
 - **R4** Uygulamaya özel parola yok; cihaz parolası yedek.
 - Açık: **Q9** uygulama adı, **Q10** Team ID (iCloud, cihaz testi ve mağaza için).
+
+## 11. Her sürümden önce (gömülü tablolar)
+Uygulama bu verileri ağdan almaz; her sürümde elle güncellenir ve testlerle doğrulanır.
+- [ ] **TÜFE** (`CPIData.swift`): TÜİK her ayın 3'ünde bir önceki ayı açıklar. Şu an Ekim 2026'ya kadar;
+      Kasım 2026 verisi 3 Aralık 2026'da. Yeni ayın 12 aylık ortalama değişimi `RentIncreaseTests`'e eklenir
+      (TÜİK bülteniyle karşılaştırma).
+- [ ] **Kart faizi tavanları** (`CardInterestRates.history`): TCMB her ay duyurabilir; şu an 1 Aralık 2026
+      tablosu son. En üst dilimin gecikme faizi (%4,38) kaynakta yoktu, diğer dilimlerin farkından
+      türetildi — doğrulanmalı (specs/11 F5).
+- [ ] **Asgari ödeme oranı** (`MinimumPaymentRule`): BDDK 1 Ekim 2026 kararı (₺100.000 eşiği, %20/%40).
+- [ ] **KKDF / BSMV** oranları (kart ve ihtiyaç/taşıt kredisi %15 + %15).
