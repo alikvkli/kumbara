@@ -131,6 +131,11 @@ public enum DemoData {
         }
         let rentRules = try recurring.rules().filter { $0.category?.seedKey == "housing.rent" }
         for rule in rentRules { rule.lastDue = rents.last.map { calendar.startOfDay(for: $0.date) } }
+        // Kira sözleşmesi (specs/12): bu ayın 1'inde 3. kira yılı başladı, kural bağlı.
+        if let start = calendar.date(byAdding: .year, value: -2, to: thisMonth.interval(in: calendar).start) {
+            try RentStore(context: context).add(name: "Ev kirası", role: .tenant, start: start, rent: 22_500,
+                                                recurringRuleID: rentRules.first?.id, calendar: calendar)
+        }
         try recurring.generateDrafts(now: now, calendar: calendar)
         // Taksitli alım: geçen ayın 10'unda ₺12.000, 6 taksit (2'si kesin, 4'ü planlı).
         if let date = calendar.date(from: DateComponents(year: thisMonth.previous.year, month: thisMonth.previous.month, day: 10, hour: 16)),

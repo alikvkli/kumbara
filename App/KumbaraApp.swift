@@ -168,6 +168,7 @@ struct RootView: View {
             Reminders.scheduleMonthlyReport(enabled: UserDefaults.standard.object(forKey: SettingsKey.reportNotification) as? Bool ?? true)
             InsightMonitor.check(context)
             Reminders.schedulePlans((try? PlanStore(context: context).plans()) ?? [])
+            RentReminders.schedule((try? RentStore(context: context).contracts()) ?? [])
         }
     }
 }
