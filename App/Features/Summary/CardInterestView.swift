@@ -42,6 +42,9 @@ struct CardInterestView: View {
     @State private var rateText = ""
     @State private var loaded = false
 
+    /// Son ödeme günü geçtiyse sonuç bellidir: yalnız ödenen tutarın sonucu gösterilir.
+    private var isPastDue: Bool { calendar.startOfDay(for: due) < calendar.startOfDay(for: .now) }
+
     private var rates: CardInterestRates { CardInterestRates.current(on: .now, calendar: calendar) }
     private var parser: AmountParser { AmountParser(locale: locale) }
 
@@ -75,42 +78,52 @@ struct CardInterestView: View {
                 .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 8, trailing: 4))
             }
 
-            Section {
-                OutcomeRow(title: "Tamamını ödersen", payment: statement, outcome: nil)
-                OutcomeRow(title: "Asgariyi ödersen", payment: max(minimum, paid), outcome: minimumOutcome)
-                if paid < minimum {
-                    OutcomeRow(title: paid > 0 ? "Başka ödeme yapmazsan" : "Ödeme yapmazsan", payment: paid,
-                               outcome: outcome(paying: paid))
+            if isPastDue {
+                Section {
+                    OutcomeRow(title: "Ödediğin", payment: paid, outcome: outcome(paying: paid))
+                } header: {
+                    Text("Son ödeme günü geçti")
+                } footer: {
+                    Text("Kalan \(format(statement - paid)) ve faizi gelecek ekstreye eklenir. Faize \(share(rates.kkdf)) KKDF ve \(share(rates.bsmv)) BSMV eklenir.")
                 }
-            } header: {
-                Text("Gelecek ekstreye")
-            } footer: {
-                Text("Asgari ödenmezse eksik kalan kısma gecikme faizi işler ve kart kullanıma kapanabilir. Faize \(share(rates.kkdf)) KKDF ve \(share(rates.bsmv)) BSMV eklenir.")
-            }
+            } else {
+                Section {
+                    OutcomeRow(title: "Tamamını ödersen", payment: statement, outcome: nil)
+                    OutcomeRow(title: "Asgariyi ödersen", payment: max(minimum, paid), outcome: minimumOutcome)
+                    if paid < minimum {
+                        OutcomeRow(title: paid > 0 ? "Başka ödeme yapmazsan" : "Ödeme yapmazsan", payment: paid,
+                                   outcome: outcome(paying: paid))
+                    }
+                } header: {
+                    Text("Gelecek ekstreye")
+                } footer: {
+                    Text("Asgari ödenmezse eksik kalan kısma gecikme faizi işler ve kart kullanıma kapanabilir. Faize \(share(rates.kkdf)) KKDF ve \(share(rates.bsmv)) BSMV eklenir.")
+                }
 
-            Section {
-                TextField("Ödeyeceğin tutar", text: $paymentText, prompt: Text(verbatim: format(minimum - min(paid, minimum))))
-                    .monospacedDigit()
-                    .accessibilityIdentifier("cardInterest.payment")
-                    #if os(iOS)
-                    .keyboardType(.decimalPad)
-                    #endif
-                if let custom {
-                    let result = outcome(paying: custom)
-                    if result.unpaid == 0 {
-                        Text("Borcun tamamı kapanır; faiz işlemez.").foregroundStyle(.secondary)
-                    } else {
-                        LabeledContent("Faiz ve vergi", value: format(result.cost)).monospacedDigit()
-                        LabeledContent("Gelecek ekstreye devreden", value: format(result.carried)).monospacedDigit()
-                        if result.isBelowMinimum {
-                            Text("Bu tutar asgarinin altında; eksik kalan \(format(result.minimum - result.payment)) için gecikme faizi işler.")
-                                .font(.footnote)
-                                .foregroundStyle(.orange)
+                Section {
+                    TextField("Ödeyeceğin tutar", text: $paymentText, prompt: Text(verbatim: format(minimum - min(paid, minimum))))
+                        .monospacedDigit()
+                        .accessibilityIdentifier("cardInterest.payment")
+                        #if os(iOS)
+                        .keyboardType(.decimalPad)
+                        #endif
+                    if let custom {
+                        let result = outcome(paying: custom)
+                        if result.unpaid == 0 {
+                            Text("Borcun tamamı kapanır; faiz işlemez.").foregroundStyle(.secondary)
+                        } else {
+                            LabeledContent("Faiz ve vergi", value: format(result.cost)).monospacedDigit()
+                            LabeledContent("Gelecek ekstreye devreden", value: format(result.carried)).monospacedDigit()
+                            if result.isBelowMinimum {
+                                Text("Bu tutar asgarinin altında; eksik kalan \(format(result.minimum - result.payment)) için gecikme faizi işler.")
+                                    .font(.footnote)
+                                    .foregroundStyle(.orange)
+                            }
                         }
                     }
+                } header: {
+                    Text("Başka bir tutar")
                 }
-            } header: {
-                Text("Başka bir tutar")
             }
 
             Section {

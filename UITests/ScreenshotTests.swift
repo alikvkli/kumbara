@@ -30,6 +30,7 @@ final class ScreenshotTests: XCTestCase {
         /// Öğe görünür ve dokunulabilir olana kadar yavaşça kaydırır. Liste satırları ekrana gelmeden
         /// oluşmadığından, öğe yoksa aşağı doğru aranır; varsa ekranın ortasına doğru getirilir (altta sekme
         /// çubuğu ve piyasa şeridi örter). Bulunamazsa `false`: o kare atlanır, test düşmez.
+        var misses = 0
         func reveal(_ element: XCUIElement) -> Bool {
             let window = app.windows.firstMatch
             _ = element.waitForExistence(timeout: 1)
@@ -48,7 +49,15 @@ final class ScreenshotTests: XCTestCase {
                 from.press(forDuration: 0.05, thenDragTo: to, withVelocity: .slow, thenHoldForDuration: 0.2)
                 Thread.sleep(forTimeInterval: 0.4)
             }
-            return element.exists && element.isHittable
+            let found = element.exists && element.isHittable
+            if !found {
+                // Tanı için: bulunamayan öğenin anındaki ekran.
+                misses += 1
+                let data = XCUIScreen.main.screenshot().pngRepresentation
+                try? data.write(to: output.appendingPathComponent("ios-miss-\(misses)-\(suffix).png"))
+                print("reveal: bulunamadı → \(element.debugDescription.prefix(300))")
+            }
+            return found
         }
 
         func shot(_ name: String) throws {

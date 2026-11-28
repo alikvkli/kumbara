@@ -27,7 +27,7 @@ struct CardSummaryRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            CardFacts(statement: statement)
+            CardFacts(statement: statement, cardID: account.id)
         }
         .monospacedDigit()
         .padding(.vertical, 4)
@@ -40,12 +40,24 @@ struct CardSummaryRow: View {
 /// Tarih tek satırda; kalan gün altında ayrı satır (sütun daralınca kırılmasın diye).
 struct CardFacts: View {
     let statement: CardStatement
+    var cardID: UUID?
     @Environment(\.locale) private var locale
+    @Environment(\.calendar) private var calendar
+
+    /// Son ödeme günü geçti ama asgari ödendi: gecikme yok, kalan borç faiziyle devreder (specs/11).
+    private var minimumPaidAfterDue: Bool {
+        guard calendar.startOfDay(for: statement.last.due) < calendar.startOfDay(for: .now) else { return false }
+        let rule = cardID.map { CardInterestSettings.load($0).rule } ?? .standard
+        return statement.paidSinceClosing.amount >= CardInterest.minimum(balance: statement.lastStatement.amount, rule: rule)
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             if !statement.remainingDue.isZero {
-                CardFact(title: "Son ödeme", value: date(statement.last.due), detail: AnyView(DaysLeft(date: statement.last.due, urgent: true)))
+                CardFact(title: "Son ödeme", value: date(statement.last.due),
+                         detail: minimumPaidAfterDue
+                             ? AnyView(Text("asgari ödendi").foregroundStyle(.secondary))
+                             : AnyView(DaysLeft(date: statement.last.due, urgent: true)))
                 CardFact(title: "Kesim", value: date(statement.current.closing), detail: nil)
                 CardFact(title: "Bu dönem",
                          value: Text(verbatim: statement.currentSpending.formatted(locale: locale, fractionDigits: 0)), detail: nil)
@@ -129,7 +141,7 @@ struct CardDetailView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        CardFacts(statement: statement)
+                        CardFacts(statement: statement, cardID: account.id)
                     }
                     .monospacedDigit()
                     .listRowBackground(Color.clear)
