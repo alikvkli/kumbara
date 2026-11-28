@@ -148,6 +148,17 @@ public enum DemoData {
         // Kart ödemesi: son ekstrenin yalnız asgarisi, son ödeme gününden 2 gün önce maaş hesabından ödenmiş
         // olsun; kalan borç sonraki ekstreye devreder ("Asgari ödersen" hesabı örnek veride görünsün, specs/11).
         let installments = InstallmentStore(context: context)
+        // Önceki ekstreler tamamen ödenmiş olsun (kalan limit gerçekçi çıksın, specs/11 §6): son dönemden
+        // önceki borç, son dönemin başında maaş hesabından tek seferde.
+        if let statement = try installments.statement(for: card, now: now, calendar: calendar),
+           let paidEarlier = calendar.date(byAdding: .day, value: 8, to: statement.last.start), paidEarlier <= now {
+            let open = -card.balance.amount - statement.lastStatement.amount - statement.currentSpending.amount
+            if open > 0 {
+                try store.save(TransactionDraft(kind: .transfer, amount: open,
+                                                date: calendar.date(bySettingHour: 11, minute: 0, second: 0, of: paidEarlier) ?? paidEarlier,
+                                                account: bank.ref, toAccount: card.ref), now: now)
+            }
+        }
         if let statement = try installments.statement(for: card, now: now, calendar: calendar),
            statement.remainingDue.amount > 0,
            let paid = calendar.date(byAdding: .day, value: -2, to: statement.last.due),

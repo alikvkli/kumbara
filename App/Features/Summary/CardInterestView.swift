@@ -226,7 +226,7 @@ struct CardInterestView: View {
     private func rate(_ value: Decimal) -> String { value.formattedPercent(locale: locale, fractionDigits: 2) }
     /// 0,0308 → "3,08" (yazma alanı için)
     private func percent(_ value: Decimal) -> String {
-        (value * 100).formatted(.number.precision(.fractionLength(0...2)).locale(locale))
+        (value * 100).formattedNumber(locale: locale, fractionDigits: 0...2)
     }
 }
 

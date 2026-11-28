@@ -160,8 +160,8 @@ struct DemoDataTests {
         try DemoData.load(into: context, now: now, calendar: calendar)
 
         let all = try context.fetch(FetchDescriptor<LedgerTransaction>())
-        // Örnek kayıtlar + spor salonu taslağı + 6 taksit (2 kesin, 4 planlı) + kart ödemesi + Can'a verilen borç.
-        #expect(all.count == 44)
+        // Örnek kayıtlar + spor salonu taslağı + 6 taksit (2 kesin, 4 planlı) + iki kart ödemesi (önceki ekstreler, son ekstrenin asgarisi) + Can'a verilen borç.
+        #expect(all.count == 45)
         #expect(all.filter { $0.status == .draft }.map(\.merchant) == ["MacFit"])
         #expect(all.filter { $0.status == .planned }.count == 4)
         #expect(all.filter { $0.status != .planned }.allSatisfy { $0.date <= now })
@@ -178,6 +178,9 @@ struct DemoDataTests {
         #expect(statement.lastStatement.amount > 0)
         #expect(statement.paidSinceClosing.amount == CardInterest.minimum(balance: statement.lastStatement.amount, rule: .standard))
         #expect(statement.remainingDue.amount == statement.lastStatement.amount - statement.paidSinceClosing.amount)
+        // Önceki ekstreler ödenmiş: borç yalnız son ekstrenin kalanı + bu dönem; kalan limitten planlı taksitler de düşer.
+        #expect(-card.balance.amount == statement.remainingDue.amount + statement.currentSpending.amount)
+        #expect(card.availableLimit == 60_000 + card.balance.amount - statement.upcomingInstallments.amount)
 
         let portfolio = PortfolioStore(context: context, calendar: calendar)
         #expect(try portfolio.allTrades().count == 7)
