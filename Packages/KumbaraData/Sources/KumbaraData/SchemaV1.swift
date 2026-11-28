@@ -29,6 +29,8 @@ public enum SchemaV1: VersionedSchema {
         public var statementDay: Int?
         /// Son ödeme günü (ayın günü); yoksa kesimden 10 gün sonra (specs/08 §3.1).
         public var paymentDueDay: Int?
+        /// Kredi kartı limiti (specs/11 §6); boşsa tanımsız.
+        var creditLimitRaw: String?
         public var isArchived: Bool = false
         public var sortIndex: Int = 0
         public var createdAt: Date = Date.now

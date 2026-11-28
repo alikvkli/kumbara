@@ -27,7 +27,7 @@ struct CardSummaryRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            CardFacts(statement: statement, cardID: account.id)
+            CardFacts(statement: statement, cardID: account.id, limit: account.creditLimit)
         }
         .monospacedDigit()
         .padding(.vertical, 4)
@@ -41,13 +41,14 @@ struct CardSummaryRow: View {
 struct CardFacts: View {
     let statement: CardStatement
     var cardID: UUID?
+    var limit: Decimal?
     @Environment(\.locale) private var locale
     @Environment(\.calendar) private var calendar
 
     /// Son ödeme günü geçti ama asgari ödendi: gecikme yok, kalan borç faiziyle devreder (specs/11).
     private var minimumPaidAfterDue: Bool {
         guard calendar.startOfDay(for: statement.last.due) < calendar.startOfDay(for: .now) else { return false }
-        let rule = cardID.map { CardInterestSettings.load($0).rule } ?? .standard
+        let rule = cardID.map { CardInterestSettings.rule(for: $0, limit: limit) } ?? limit.map(MinimumPaymentRule.init(limit:)) ?? .standard
         return statement.paidSinceClosing.amount >= CardInterest.minimum(balance: statement.lastStatement.amount, rule: rule)
     }
 
@@ -90,6 +91,35 @@ private struct CardFact: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
+}
+
+/// Kalan limit çubuğu (specs/11 §6): borç ve planlı taksitler limitten düşer.
+struct CardLimitBar: View {
+    let limit: Decimal
+    let available: Decimal
+    var currency: CurrencyCode = .TRY
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        let used = min(max(limit - available, 0), limit)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Kalan limit").foregroundStyle(.secondary)
+                Spacer()
+                if available < 0 {
+                    Text("Limit \(money(-available)) aşıldı").foregroundStyle(.orange)
+                } else {
+                    Text("\(money(available)) / \(money(limit))")
+                }
+            }
+            .font(.subheadline)
+            ProgressView(value: NSDecimalNumber(decimal: used).doubleValue, total: NSDecimalNumber(decimal: limit).doubleValue)
+                .tint(available < limit / 10 ? Color.orange : Color.accentColor)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func money(_ value: Decimal) -> String { Money(value, currency).formatted(locale: locale, fractionDigits: 0) }
 }
 
 /// "18 gün" · "bugün" · "geçti". Son ödemede 3 gün ve altı turuncu, geçmişse kırmızı (renk anlam taşır).
@@ -141,7 +171,10 @@ struct CardDetailView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        CardFacts(statement: statement, cardID: account.id)
+                        CardFacts(statement: statement, cardID: account.id, limit: account.creditLimit)
+                        if let limit = account.creditLimit, let available = account.availableLimit {
+                            CardLimitBar(limit: limit, available: available, currency: account.currency)
+                        }
                     }
                     .monospacedDigit()
                     .listRowBackground(Color.clear)
@@ -153,9 +186,10 @@ struct CardDetailView: View {
                     Section {
                         NavigationLink {
                             CardInterestView(cardID: account.id, statement: statement.lastStatement.amount,
-                                             paid: statement.paidSinceClosing.amount, due: statement.last.due)
+                                             paid: statement.paidSinceClosing.amount, due: statement.last.due,
+                                             limit: account.creditLimit)
                         } label: {
-                            CardInterestLinkLabel(cardID: account.id, statement: statement)
+                            CardInterestLinkLabel(cardID: account.id, statement: statement, limit: account.creditLimit)
                         }
                     }
                 }

@@ -99,4 +99,16 @@ struct CardInterestTests {
         #expect(!stuck.finishes)
         #expect(stuck.months == 24)
     }
+
+    @Test("Kalan limit: borç ve planlı taksitler düşer; limit asgari oranı seçer (specs/11 §6)")
+    func limit() {
+        // ₺60.000 limit, ₺7.471 borç (bakiye eksi), ₺8.000 planlı taksit → ₺44.529.
+        #expect(CardLimit.available(limit: 60_000, balance: d("-7471"), plannedInstallments: 8_000) == 44_529)
+        // Artı bakiye (fazla ödeme) limiti artırmaz.
+        #expect(CardLimit.available(limit: 60_000, balance: 500, plannedInstallments: 0) == 60_000)
+        // Aşım eksi döner.
+        #expect(CardLimit.available(limit: 10_000, balance: -9_000, plannedInstallments: 2_000) == -1_000)
+        #expect(MinimumPaymentRule(limit: 100_000) == .standard)
+        #expect(MinimumPaymentRule(limit: 100_001) == .high)
+    }
 }

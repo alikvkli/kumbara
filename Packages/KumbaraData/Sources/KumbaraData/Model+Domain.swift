@@ -24,6 +24,22 @@ extension LedgerAccount {
 
     public var ref: TransactionDraft.AccountRef { .init(id: id, currency: currency) }
 
+    /// Kredi kartı limiti; `nil` ya da sıfır → tanımsız.
+    public var creditLimit: Decimal? {
+        get { creditLimitRaw.flatMap { Decimal(canonical: $0) }.flatMap { $0 > 0 ? $0 : nil } }
+        set { creditLimitRaw = newValue.flatMap { $0 > 0 ? $0.canonicalString : nil } }
+    }
+
+    /// Kalan limit: limit − borç − planlı taksitler. Limit tanımsızsa `nil`.
+    public var availableLimit: Decimal? {
+        guard let creditLimit else { return nil }
+        var planned: Decimal = 0
+        for transaction in transactions ?? [] where transaction.status == .planned && transaction.kind == .expense {
+            planned += transaction.amount.amount
+        }
+        return CardLimit.available(limit: creditLimit, balance: balance.amount, plannedInstallments: planned)
+    }
+
     /// İlişkiler üzerinden bakiye (taslaklar hariç).
     public var balance: Money {
         let outgoing = (transactions ?? []).map(\.entry)

@@ -84,8 +84,9 @@ Gelecekteki tüm bilinen ödemeler tek görünümde (Bütçe › Takvim):
 - Kaynaklar: tekrarlayan işlemler, kart son ödemeleri (ekstre tutarıyla; dönem
   sürüyorsa "şu ana kadar"), taksitler, abonelik tahminleri (§2, "tahmini" etiketiyle),
   alacak hatırlatmaları (§4), maaş gibi tekrarlayan gelirler.
-- Ay görünümü (gün hücresinde nokta ve toplam) + altında liste; varsayılan
-  "önümüzdeki 30 gün".
+- Ay görünümü + altında liste; varsayılan "önümüzdeki 30 gün". Gün hücresinde ödeme başına
+  nokta (en çok 3), gelir için yeşil nokta; ayın en büyük 3 ödeme günü (₺1.000 ve üstü) kısa
+  tutarla ("₺22,5 B") yazılır (2026-11-28).
 - Üst satır: "Önümüzdeki 7 günde ₺21.400 ödeme var · maaşa 5 gün". Hesap bakiyesi
   tanımlıysa "Ödemelerden sonra hesapta ₺3.200 kalır"; eksiye düşüyorsa turuncu.
 - Kayıt oluşturmaz; dokununca kaynağına gider (kural, kart, kişi).

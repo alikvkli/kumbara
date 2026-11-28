@@ -43,6 +43,8 @@ struct PaymentCalendarView: View {
 
             Section {
                 MonthGrid(month: $month, items: items, selectedDay: $selectedDay)
+            } footer: {
+                Text("Noktalar o günün ödemeleri (en çok 3), yeşil nokta gelir. Tutar yazan günler ayın en büyük ödeme günleri.")
             }
 
             if !pending.isEmpty {
@@ -130,6 +132,7 @@ private struct MonthGrid: View {
         let days = self.days
         let byDay = Dictionary(grouping: items, by: \.date)
         let today = calendar.startOfDay(for: .now)
+        let large = largeDays(byDay)
         VStack(spacing: 10) {
             HStack {
                 Button("Önceki ay", systemImage: "chevron.left") { move(-1) }
@@ -151,15 +154,28 @@ private struct MonthGrid: View {
                     if let day {
                         let dayItems = byDay[day] ?? []
                         DayCell(day: day, items: dayItems, isToday: day == today, isPast: day < today,
-                                isSelected: selectedDay == day)
+                                isSelected: selectedDay == day, isLarge: large.contains(day))
                             .onTapGesture { selectedDay = selectedDay == day ? nil : day }
                     } else {
-                        Color.clear.frame(height: 40)
+                        Color.clear.frame(height: 46)
                     }
                 }
             }
         }
         .padding(.vertical, 4)
+    }
+
+    /// Görünen ayın en büyük (en çok 3) ödeme günü; ₺1.000 altı sayılmaz.
+    private func largeDays(_ byDay: [Date: [UpcomingPayment]]) -> Set<Date> {
+        let interval = month.interval(in: calendar)
+        var totals: [(day: Date, total: Decimal)] = []
+        for (day, dayItems) in byDay where day >= interval.start && day < interval.end {
+            var total: Decimal = 0
+            for item in dayItems where !item.isIncome { total += item.amount }
+            if total >= 1_000 { totals.append((day, total)) }
+        }
+        totals.sort { $0.total != $1.total ? $0.total > $1.total : $0.day < $1.day }
+        return Set(totals.prefix(3).map(\.day))
     }
 
     private func move(_ step: Int) {
@@ -191,23 +207,39 @@ private struct DayCell: View {
     let isToday: Bool
     let isPast: Bool
     let isSelected: Bool
+    var isLarge = false
     @Environment(\.calendar) private var calendar
+    @Environment(\.locale) private var locale
 
     var body: some View {
-        let outgoing = items.contains { !$0.isIncome }
+        let outgoing = items.filter { !$0.isIncome }
         let incoming = items.contains(where: \.isIncome)
-        VStack(spacing: 3) {
+        var total: Decimal = 0
+        for item in outgoing { total += item.amount }
+        let summary: Text = items.isEmpty
+            ? Text("Ödeme yok")
+            : Text("\(items.count) kalem, \(Money(total, .TRY).formatted(locale: locale, fractionDigits: 0))")
+        return VStack(spacing: 2) {
             Text(verbatim: "\(calendar.component(.day, from: day))")
-                .font(.callout.weight(isToday ? .bold : .regular))
+                .font(.callout.weight(isToday || isLarge ? .bold : .regular))
                 .foregroundStyle(isPast ? .tertiary : .primary)
                 .monospacedDigit()
             HStack(spacing: 2) {
-                if outgoing { Circle().fill(Color.accentColor).frame(width: 5, height: 5) }
+                ForEach(0..<min(outgoing.count, 3), id: \.self) { _ in
+                    Circle().fill(Color.accentColor).frame(width: 5, height: 5)
+                }
                 if incoming { Circle().fill(Color.green).frame(width: 5, height: 5) }
             }
             .frame(height: 5)
+            if isLarge {
+                Text(verbatim: compact(total))
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.accentColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
         }
-        .frame(maxWidth: .infinity, minHeight: 40)
+        .frame(maxWidth: .infinity, minHeight: 46)
         .background {
             if isSelected {
                 RoundedRectangle(cornerRadius: 10).fill(Color.accentColor.opacity(0.18))
@@ -218,8 +250,13 @@ private struct DayCell: View {
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(day.formatted(.dateTime.day().month(.wide))))
-        .accessibilityValue(items.isEmpty ? Text("Ödeme yok") : Text("\(items.count) kalem"))
+        .accessibilityValue(summary)
         .accessibilityAddTraits(.isButton)
+    }
+
+    /// "₺22,5 B" — hücreye sığan kısa tutar.
+    private func compact(_ value: Decimal) -> String {
+        "₺" + value.formatted(.number.notation(.compactName).precision(.fractionLength(0...1)).locale(locale))
     }
 }
 

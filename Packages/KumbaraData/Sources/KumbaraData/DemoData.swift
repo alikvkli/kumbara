@@ -68,6 +68,7 @@ public enum DemoData {
         let card = LedgerAccount(name: "Kredi kartı", kind: .card, currency: .TRY, sortIndex: 2)
         card.statementDay = 15
         card.paymentDueDay = 25
+        card.creditLimit = 60_000
         context.insert(bank)
         context.insert(card)
         try context.save()

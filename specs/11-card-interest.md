@@ -58,7 +58,17 @@ Yalnız TL kartta ve ödenmemiş ekstre varken; bağlantıda "+₺641 faiz".
 - **AC-I8-4:** ₺1.000, asgari %40, kartın oranı %10: 7 ayda kapanır, toplam ₺1.218,72 ödenir, ₺218,72 maliyet.
 - **AC-I8-5:** Tamamı ödenirse faiz yok; borçtan fazla yazılan tutar borçla sınırlanır.
 
-## 6. Kullanıcı onayına sunulan kararlar
+## 6. Kart limiti (2026-11-28, kullanıcı onayı)
+- Kart hesabında isteğe bağlı **limit** alanı (Ayarlar › Hesaplar). Yedekte (`creditLimit`), eski yedeklerde yok.
+- **Kalan limit** = limit − bugünkü borç − planlı taksitler (taksitli alımda tutarın tamamı limitten
+  düşer; ödenen taksit limiti açar). Kart ayrıntısında çubukla; eksiye düşerse turuncu "Limit ₺X aşıldı".
+- Limit tanımlıysa asgari oran ondan seçilir (≤ ₺100.000 %20, üstü %40); "Asgari ödersen"
+  ekranındaki elle seçim yalnız limit yokken görünür (F2 bununla kapanır).
+- "Alabilir miyim?" kalan limiti kullanır: tutar kalan limiti aşarsa "Kart limiti bu tutara yetmiyor".
+- Son ödeme günü geçmiş ama asgari ödenmişse kart "geçti" yerine "asgari ödendi" der; faiz ekranı
+  yalnız ödenen tutarın sonucunu gösterir.
+
+## 7. Kullanıcı onayına sunulan kararlar
 - **F1:** Giriş yalnız kart ayrıntısında (Özet › kart). Ödeme takvimindeki kart satırına bağlantı eklenmedi.
 - **F2:** Limit alanı hesaplara eklenmedi (şema değişmesin); asgari oranı ekranda seçiliyor.
 - **F3:** Kartın oranı ve limit seçimi yedeğe girmiyor (UserDefaults).

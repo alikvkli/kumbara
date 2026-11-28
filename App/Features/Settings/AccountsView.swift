@@ -80,6 +80,7 @@ struct AccountEditor: View {
     @State private var isArchived = false
     @State private var statementDay: Int?
     @State private var paymentDueDay: Int?
+    @State private var limitText = ""
     @State private var didLoad = false
 
     private static let currencies: [CurrencyCode] = [.TRY, .USD, .EUR, .GBP, .CHF]
@@ -99,8 +100,16 @@ struct AccountEditor: View {
         openingText.isEmpty ? 0 : AmountParser(locale: locale).parse(openingText)
     }
 
+    /// Boş → limit yok; yazılmışsa sıfırdan büyük olmalı.
+    private var limit: Decimal?? {
+        let text = limitText.trimmingCharacters(in: .whitespaces)
+        if text.isEmpty { return .some(nil) }
+        guard let value = AmountParser(locale: locale).parse(text), value > 0 else { return nil }
+        return .some(value)
+    }
+
     private var isValid: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty && opening != nil
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && opening != nil && (kind != .card || limit != nil)
     }
 
     var body: some View {
@@ -144,10 +153,16 @@ struct AccountEditor: View {
                             ForEach(1...31, id: \.self) { Text(verbatim: "\($0)").tag(Int?.some($0)) }
                         }
                         .disabled(statementDay == nil)
+                        TextField("Kart limiti", text: $limitText, prompt: Text("İsteğe bağlı"))
+                            .monospacedDigit()
+                            .accessibilityIdentifier("account.limit")
+                            #if os(iOS)
+                            .keyboardType(.decimalPad)
+                            #endif
                     } header: {
                         Text("Ekstre")
                     } footer: {
-                        Text("Kesim gününe göre dönem harcaman, ekstre borcun ve son ödeme tarihin gösterilir; son ödemeden 3 gün önce hatırlatma gelir.")
+                        Text("Kesim gününe göre dönem harcaman, ekstre borcun ve son ödeme tarihin gösterilir; son ödemeden 3 gün önce hatırlatma gelir. Limit girersen kalan limit ve asgari ödeme oranı ondan hesaplanır.")
                     }
                 }
                 if existing != nil {
@@ -183,6 +198,7 @@ struct AccountEditor: View {
                     isArchived = existing.isArchived
                     statementDay = existing.statementDay
                     paymentDueDay = existing.paymentDueDay
+                    limitText = existing.creditLimit.map { $0.formattedNumber(locale: locale, fractionDigits: 0...2) } ?? ""
                     let amount = existing.openingBalance.amount
                     openingText = amount.isZero ? "" : amount.formattedNumber(locale: locale, fractionDigits: 0...2)
                 }
@@ -204,11 +220,13 @@ struct AccountEditor: View {
             existing.isArchived = isArchived
             existing.statementDay = kind == .card ? statementDay : nil
             existing.paymentDueDay = kind == .card ? paymentDueDay : nil
+            existing.creditLimit = kind == .card ? limit.flatMap { $0 } : nil
         } else {
             let account = LedgerAccount(name: trimmed, kind: kind, currency: currency,
                                         openingBalance: opening, sortIndex: nextSortIndex)
             account.statementDay = kind == .card ? statementDay : nil
             account.paymentDueDay = kind == .card ? paymentDueDay : nil
+            account.creditLimit = kind == .card ? limit.flatMap { $0 } : nil
             context.insert(account)
         }
         if kind == .card, statementDay != nil { Reminders.requestAuthorizationIfNeeded() }

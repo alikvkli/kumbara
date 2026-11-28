@@ -61,6 +61,15 @@ public enum MinimumPaymentRule: String, Hashable, Sendable, CaseIterable, Codabl
     public init(limit: Decimal) { self = limit > Self.limitThreshold ? .high : .standard }
 }
 
+/// Kart limiti (specs/11 §6). Taksitli alımda tutarın tamamı limitten düşer; ödenen taksit limiti açar.
+public enum CardLimit {
+    /// Kalan limit = limit − bugünkü borç − henüz kesinleşmemiş (planlı) taksitler. Eksi olabilir (limit aşımı).
+    /// `balance`: kart hesabının bakiyesi (borç eksi).
+    public static func available(limit: Decimal, balance: Decimal, plannedInstallments: Decimal) -> Decimal {
+        limit - max(-balance, 0) - max(plannedInstallments, 0)
+    }
+}
+
 /// Ekstre borcunun bir dönem sonraki maliyeti ve yalnız asgari ödenirse kapanma süresi (specs/11 §3).
 ///
 /// Basitleştirmeler (ekranda yazar): iki ekstre arası 30 gün sayılır, yeni harcama eklenmez, faiz

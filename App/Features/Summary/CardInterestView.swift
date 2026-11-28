@@ -9,6 +9,11 @@ struct CardInterestSettings: Codable, Hashable {
 
     static let key = "card.interest"
 
+    /// Asgari oran: kartın limiti tanımlıysa ondan, değilse elle seçilenden.
+    static func rule(for cardID: UUID, limit: Decimal?) -> MinimumPaymentRule {
+        limit.map(MinimumPaymentRule.init(limit:)) ?? load(cardID).rule
+    }
+
     static func load(_ cardID: UUID) -> CardInterestSettings {
         all()[cardID.uuidString] ?? CardInterestSettings()
     }
@@ -35,12 +40,16 @@ struct CardInterestView: View {
     /// Kesimden bu yana yapılan ödemeler.
     let paid: Decimal
     let due: Date
+    /// Hesapta tanımlı kart limiti; varsa asgari oran ondan seçilir.
+    var limit: Decimal? = nil
     @Environment(\.locale) private var locale
     @Environment(\.calendar) private var calendar
     @State private var settings = CardInterestSettings()
     @State private var paymentText = ""
     @State private var rateText = ""
     @State private var loaded = false
+
+    private var effectiveRule: MinimumPaymentRule { limit.map(MinimumPaymentRule.init(limit:)) ?? settings.rule }
 
     /// Son ödeme günü geçtiyse sonuç bellidir: yalnız ödenen tutarın sonucu gösterilir.
     private var isPastDue: Bool { calendar.startOfDay(for: due) < calendar.startOfDay(for: .now) }
@@ -54,7 +63,7 @@ struct CardInterestView: View {
     }
 
     var body: some View {
-        let rule = settings.rule
+        let rule = effectiveRule
         let minimum = CardInterest.minimum(balance: statement, rule: rule)
         let minimumOutcome = outcome(paying: max(minimum, paid))
         let tier = rates.tier(for: statement)
@@ -141,11 +150,17 @@ struct CardInterestView: View {
             }
 
             Section {
-                Picker("Kart limiti", selection: $settings.rule) {
-                    Text("\(format(MinimumPaymentRule.limitThreshold)) ve altı · asgari \(share(MinimumPaymentRule.standard.ratio))")
-                        .tag(MinimumPaymentRule.standard)
-                    Text("\(format(MinimumPaymentRule.limitThreshold)) üstü · asgari \(share(MinimumPaymentRule.high.ratio))")
-                        .tag(MinimumPaymentRule.high)
+                if let limit {
+                    LabeledContent("Kart limiti") {
+                        Text("\(format(limit)) · asgari \(share(effectiveRule.ratio))").monospacedDigit()
+                    }
+                } else {
+                    Picker("Kart limiti", selection: $settings.rule) {
+                        Text("\(format(MinimumPaymentRule.limitThreshold)) ve altı · asgari \(share(MinimumPaymentRule.standard.ratio))")
+                            .tag(MinimumPaymentRule.standard)
+                        Text("\(format(MinimumPaymentRule.limitThreshold)) üstü · asgari \(share(MinimumPaymentRule.high.ratio))")
+                            .tag(MinimumPaymentRule.high)
+                    }
                 }
                 TextField("Kartın aylık akdi faizi (%)", text: $rateText,
                           prompt: Text(verbatim: percent(tier.contractual)))
@@ -181,7 +196,7 @@ struct CardInterestView: View {
     }
 
     private func outcome(paying payment: Decimal) -> CardInterest.Outcome {
-        CardInterest.outcome(balance: statement, payment: payment, rule: settings.rule, rates: rates, rate: settings.rate)
+        CardInterest.outcome(balance: statement, payment: payment, rule: effectiveRule, rates: rates, rate: settings.rate)
     }
 
     @ViewBuilder
@@ -219,6 +234,7 @@ struct CardInterestView: View {
 struct CardInterestLinkLabel: View {
     let cardID: UUID
     let statement: CardStatement
+    var limit: Decimal? = nil
     @Environment(\.locale) private var locale
     @Environment(\.calendar) private var calendar
 
@@ -226,8 +242,9 @@ struct CardInterestLinkLabel: View {
         let settings = CardInterestSettings.load(cardID)
         let balance = statement.lastStatement.amount
         let paid = statement.paidSinceClosing.amount
-        let minimum = CardInterest.minimum(balance: balance, rule: settings.rule)
-        let outcome = CardInterest.outcome(balance: balance, payment: max(minimum, paid), rule: settings.rule,
+        let rule = CardInterestSettings.rule(for: cardID, limit: limit)
+        let minimum = CardInterest.minimum(balance: balance, rule: rule)
+        let outcome = CardInterest.outcome(balance: balance, payment: max(minimum, paid), rule: rule,
                                            rates: CardInterestRates.current(on: .now, calendar: calendar), rate: settings.rate)
         HStack {
             Label("Asgari ödersen", systemImage: "percent")

@@ -46,6 +46,14 @@ struct ExchangeStoreTests {
             try PortfolioStore(context: context, calendar: calendar).positions().map { "\($0.asset.id)=\($0.quantity)" }.sorted()
         }
         #expect(try positions(target) == positions(source))
+        // Kart limiti (specs/11 §6) yedekten geri gelir; kalan limit borç ve planlı taksitlerden.
+        let card = { (context: ModelContext) in
+            try #require(try context.fetch(FetchDescriptor<LedgerAccount>()).first { $0.kind == .card })
+        }
+        #expect(try card(target).creditLimit == 60_000)
+        let available = try #require(try card(source).availableLimit)
+        #expect(available < 60_000)
+        #expect(try card(target).availableLimit == available)
     }
 
     @Test("Birleştirme: aynı yedek ikinci kez yüklenince çift kayıt ve çift kategori oluşmaz")

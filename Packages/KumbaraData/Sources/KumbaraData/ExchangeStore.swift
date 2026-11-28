@@ -110,6 +110,7 @@ public struct ExchangeStore {
             account.openingBalanceRaw = record.openingBalance
             account.statementDay = record.statementDay
             account.paymentDueDay = record.paymentDueDay
+            account.creditLimitRaw = record.creditLimit
             account.isArchived = record.isArchived
             account.sortIndex = record.sortIndex
             account.createdAt = record.createdAt
@@ -334,7 +335,7 @@ public struct ExchangeStore {
             accounts: try context.fetch(FetchDescriptor<LedgerAccount>()).map {
                 .init(id: $0.id, name: $0.name, kind: $0.kindRaw, currency: $0.currencyRaw, openingBalance: $0.openingBalanceRaw,
                       statementDay: $0.statementDay, paymentDueDay: $0.paymentDueDay, isArchived: $0.isArchived,
-                      sortIndex: $0.sortIndex, createdAt: $0.createdAt)
+                      sortIndex: $0.sortIndex, createdAt: $0.createdAt, creditLimit: $0.creditLimitRaw)
             },
             categories: try context.fetch(FetchDescriptor<LedgerCategory>()).map {
                 .init(id: $0.id, seedKey: $0.seedKey, name: $0.name, kind: $0.kindRaw, symbol: $0.symbol, color: $0.colorRaw,
@@ -431,6 +432,8 @@ struct Backup: Codable {
     struct Account: Codable {
         var id: UUID; var name: String; var kind: String; var currency: String; var openingBalance: String
         var statementDay: Int?; var paymentDueDay: Int?; var isArchived: Bool; var sortIndex: Int; var createdAt: Date
+        /// Kart limiti (specs/11 §6); eski yedeklerde yok.
+        var creditLimit: String?
     }
     struct Category: Codable {
         var id: UUID; var seedKey: String?; var name: String; var kind: String; var symbol: String; var color: String

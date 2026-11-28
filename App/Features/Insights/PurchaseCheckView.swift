@@ -74,7 +74,9 @@ struct PurchaseCheckView: View {
         let store = InsightStore(context: context)
         let purchase = try? store.purchaseContext(now: .now, calendar: calendar)
         let card = account.flatMap { account in
-            account.statementDay.map { PurchasePlanner.Card(statementDay: $0, dueDay: account.paymentDueDay) }
+            account.statementDay.map {
+                PurchasePlanner.Card(statementDay: $0, dueDay: account.paymentDueDay, availableLimit: account.availableLimit)
+            }
         }
         let counts = card == nil ? [1] : [1, 3, 6]
         let scenarios = purchase.map {
