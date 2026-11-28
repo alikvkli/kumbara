@@ -34,12 +34,17 @@ final class ScreenshotTests: XCTestCase {
         func reveal(_ element: XCUIElement) -> Bool {
             let window = app.windows.firstMatch
             _ = element.waitForExistence(timeout: 1)
+            var lastY: CGFloat?
             for attempt in 0..<14 {
                 let frame = window.frame
                 if element.exists {
                     let box = element.frame
-                    let visible = box.minY > frame.minY + 100 && box.maxY < frame.maxY - 220
+                    // Alttaki sekme çubuğu + piyasa şeridi ~140 nokta.
+                    let visible = box.minY > frame.minY + 100 && box.maxY < frame.maxY - 150
                     if visible, element.isHittable { return true }
+                    // Liste sonuna gelindi (kaydırma öğeyi oynatmıyor) ve öğe dokunulabilir: kabul.
+                    if let lastY, abs(lastY - box.minY) < 1, box.minY > frame.minY + 100, element.isHittable { return true }
+                    lastY = box.minY
                 }
                 // İçeriği yukarı it (aşağıdakini getir); öğe yukarıda kaldıysa ya da aşağıda bulunamadıysa
                 // yukarı doğru ara.
