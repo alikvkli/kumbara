@@ -5,7 +5,7 @@ import SwiftData
 /// Dışa / içe aktarma ve yedek (specs/09 §3, T5.3).
 @MainActor
 public struct ExchangeStore {
-    private let context: ModelContext
+    let context: ModelContext
 
     public init(context: ModelContext) {
         self.context = context
@@ -74,7 +74,9 @@ public struct ExchangeStore {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
-        return try encoder.encode(try makeBackup(now: now))
+        var backup = try makeBackup(now: now)
+        backup.rents = try rentRecords()
+        return try encoder.encode(backup)
     }
 
     public enum RestoreMode: Sendable { case replace, merge }
@@ -291,6 +293,7 @@ public struct ExchangeStore {
             alert.createdAt = record.createdAt
             context.insert(alert)
         }
+        try restoreRents(backup.rents)
 
         try context.save()
     }
@@ -311,6 +314,7 @@ public struct ExchangeStore {
         try context.delete(model: SavingsPlan.self)
         try context.delete(model: Person.self)
         try context.delete(model: DebtRecord.self)
+        try context.delete(model: RentContract.self)
         try context.save()
     }
 
@@ -410,6 +414,8 @@ struct Backup: Codable {
     /// Alacak/borç (specs/10 §4); eski yedeklerde yok.
     var people: [PersonRecord]?
     var debts: [DebtRecordBackup]?
+    /// Kira sözleşmeleri (specs/12); eski yedeklerde yok.
+    var rents: [RentRecord]?
 
     struct Account: Codable {
         var id: UUID; var name: String; var kind: String; var currency: String; var openingBalance: String

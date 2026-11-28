@@ -85,7 +85,7 @@ struct BudgetView: View {
                         }
                     }
 
-                    // Ödeme takvimi ve abonelikler (specs/10 §2, §5).
+                    // Ödeme takvimi, abonelikler ve kira artışı (specs/10 §2, §5; specs/12).
                     Section {
                         NavigationLink { PaymentCalendarView() } label: {
                             PaymentCalendarLinkLabel()
@@ -95,6 +95,9 @@ struct BudgetView: View {
                         }
                         Button { isCheckingPurchase = true } label: {
                             Label("Alabilir miyim?", systemImage: "questionmark.circle")
+                        }
+                        NavigationLink { RentContractsView() } label: {
+                            RentLinkLabel()
                         }
                     }
 

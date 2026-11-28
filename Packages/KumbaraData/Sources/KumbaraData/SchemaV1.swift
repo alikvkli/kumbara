@@ -14,7 +14,8 @@ public enum SchemaV1: VersionedSchema {
     public static var models: [any PersistentModel.Type] {
         [LedgerAccount.self, LedgerCategory.self, LedgerTransaction.self, MerchantMemory.self,
          AssetTrade.self, CustomAsset.self, PriceSnapshot.self, Budget.self, NotificationLog.self, RecurringRule.self, PriceAlert.self,
-         Goal.self, SavingsPlan.self, Person.self, DebtRecord.self]
+         Goal.self, SavingsPlan.self, Person.self, DebtRecord.self,
+         RentContract.self]
     }
 
     @Model
@@ -402,6 +403,7 @@ public typealias Goal = SchemaV1.Goal
 public typealias SavingsPlan = SchemaV1.SavingsPlan
 public typealias Person = SchemaV1.Person
 public typealias DebtRecord = SchemaV1.DebtRecord
+public typealias RentContract = SchemaV1.RentContract
 public typealias PriceAlert = SchemaV1.PriceAlert
 public typealias RecurringRule = SchemaV1.RecurringRule
 public typealias Budget = SchemaV1.Budget
@@ -500,5 +502,54 @@ extension SchemaV1 {
             set { amountRaw = newValue.canonicalString }
         }
         public var entry: DebtEntry { DebtEntry(id: id, personID: personID, kind: kind, amount: amount, date: date) }
+    }
+}
+
+extension SchemaV1 {
+    /// Kira sözleşmesi (REQ-I9, specs/12). Yalnız hesap ve hatırlatma içindir; kayıt üretmez.
+    @Model
+    public final class RentContract {
+        public var id: UUID = UUID()
+        public var name: String = ""
+        var roleRaw: String = RentIncrease.Role.tenant.rawValue
+        /// Sözleşmenin başladığı gün; yıl dönümleri yenileme günleridir.
+        public var start: Date = Date.now
+        var rentRaw: String = "0"
+        /// Bağlı tekrarlayan kira kuralı (varsa yeni kira ona da yazılır).
+        public var recurringRuleID: UUID?
+        /// Tabloda henüz olmayan ay için elle girilen TÜİK oranı ("2026-11" ve oran).
+        public var manualRateMonth: String?
+        var manualRateRaw: String?
+        public var createdAt: Date = Date.now
+
+        public init(name: String, role: RentIncrease.Role, start: Date, rent: Decimal) {
+            self.name = name
+            self.roleRaw = role.rawValue
+            self.start = start
+            self.rentRaw = rent.canonicalString
+        }
+
+        public var role: RentIncrease.Role {
+            get { RentIncrease.Role(rawValue: roleRaw) ?? .tenant }
+            set { roleRaw = newValue.rawValue }
+        }
+
+        public var rent: Decimal {
+            get { Decimal(canonical: rentRaw) ?? 0 }
+            set { rentRaw = newValue.canonicalString }
+        }
+
+        public var manualRate: (month: LedgerMonth, rate: Decimal)? {
+            get {
+                guard let manualRateMonth, let manualRateRaw, let rate = Decimal(canonical: manualRateRaw) else { return nil }
+                let parts = manualRateMonth.split(separator: "-").compactMap { Int($0) }
+                guard parts.count == 2, (1...12).contains(parts[1]) else { return nil }
+                return (LedgerMonth(year: parts[0], month: parts[1]), rate)
+            }
+            set {
+                manualRateMonth = newValue.map { String(format: "%04d-%02d", $0.month.year, $0.month.month) }
+                manualRateRaw = newValue?.rate.canonicalString
+            }
+        }
     }
 }
