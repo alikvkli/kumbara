@@ -342,7 +342,10 @@ struct RentEditor: View {
             start = editing.start
             rentText = plain(editing.rent)
             ruleID = editing.recurringRuleID
-        } else if let rule = rules.first(where: { $0.category?.seedKey == "housing.rent" || $0.category?.seedKey == "rental" }) {
+        } else if let rule = rules.first(where: { rule in
+            let key: String = rule.category?.seedKey ?? ""
+            return key == "housing.rent" || key == "rental"
+        }) {
             ruleID = rule.id
             role = rule.kind == .income ? .landlord : .tenant
             rentText = plain(rule.amount)

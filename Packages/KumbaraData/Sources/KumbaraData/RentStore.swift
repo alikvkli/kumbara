@@ -63,7 +63,10 @@ public struct RentStore {
     public func candidateRules() throws -> [RecurringRule] {
         let rules = try RecurringStore(context: context).rules()
         func isRent(_ rule: RecurringRule) -> Bool {
-            [rule.category?.seedKey, rule.category?.parent?.seedKey].contains { $0 == "housing.rent" || $0 == "rental" }
+            let keys: Set<String> = ["housing.rent", "rental"]
+            let own: String? = rule.category?.seedKey
+            let parent: String? = rule.category?.parent?.seedKey
+            return own.map(keys.contains) == true || parent.map(keys.contains) == true
         }
         return rules.filter(isRent) + rules.filter { !isRent($0) }
     }
